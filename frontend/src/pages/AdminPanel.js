@@ -10,12 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   CheckCircle, XCircle, Users, FileImage, BarChart3, 
   Settings, Package, Clock, DollarSign, TrendingUp,
-  AlertCircle, Loader2
+  AlertCircle, Loader2, ShoppingBag
 } from 'lucide-react';
 import { 
   getPendingCreators, approveCreator, suspendCreator, rejectCreator,
   getPendingDesigns, approveDesign, rejectDesign,
-  getPrintifyBlueprints, getAdminAnalytics, getMe
+  getPrintifyBlueprints, getAdminAnalytics, getMe, getAdminOrders
 } from '@/lib/api';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
