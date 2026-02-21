@@ -135,16 +135,16 @@ export default function Landing() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="font-heading text-5xl md:text-7xl font-bold tracking-tight mb-8">
+            <h2 className="font-heading text-5xl md:text-7xl font-bold tracking-tight mb-8 text-white">
               Ready to Create?
             </h2>
-            <p className="font-subheading text-xl mb-12 opacity-90">
+            <p className="font-subheading text-xl mb-12 text-white/90">
               Join our community of creators and start selling your designs today.
             </p>
             <Button 
               onClick={handleLogin}
               size="lg"
-              className="h-14 px-10 rounded-full font-subheading text-base bg-white text-black hover:bg-white/90 transition-transform hover:scale-105"
+              className="h-14 px-10 rounded-full font-subheading text-base bg-white text-primary hover:bg-white/90 transition-transform hover:scale-105"
               data-testid="cta-get-started-btn"
             >
               Get Started Now
@@ -155,10 +155,10 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-border">
+      <footer className="py-12 border-t border-border bg-white">
         <div className="max-w-[1600px] mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="font-heading text-2xl font-bold">CAESURA</p>
+            <p className="font-heading text-2xl font-bold text-foreground">CAESURA</p>
             <p className="text-sm text-muted-foreground">© 2026 Caesura. Premium streetwear marketplace.</p>
           </div>
         </div>
