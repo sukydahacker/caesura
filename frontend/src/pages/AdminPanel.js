@@ -555,7 +555,9 @@ export default function AdminPanel() {
                     <span className="text-3xl font-heading font-bold">{analytics.orders.total}</span>
                   </div>
                   <h3 className="font-semibold">Total Orders</h3>
-                  <p className="text-sm text-muted-foreground">Platform lifetime</p>
+                  <p className="text-sm text-muted-foreground">
+                    {analytics.orders.total_units} units sold
+                  </p>
                 </div>
 
                 {/* Revenue Stats */}
