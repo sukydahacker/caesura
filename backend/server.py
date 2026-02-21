@@ -714,7 +714,7 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
         {"design_id": design_id},
         {"$set": {
             "approval_status": "approved",
-            "approved_by_admin_id": user.user_id,
+            "approved_by_admin_id": admin_user.user_id,
             "featured": featured,
             "approved_at": datetime.now(timezone.utc)
         }}
