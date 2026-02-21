@@ -15,12 +15,12 @@ export default function Landing() {
       <Navbar onLogin={handleLogin} />
       
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden noise-texture">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden noise-texture bg-white">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.pexels.com/photos/30783645/pexels-photo-30783645.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
             alt="Hero background"
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover opacity-10"
           />
         </div>
         
