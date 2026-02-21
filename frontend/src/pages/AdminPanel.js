@@ -213,7 +213,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="pt-24 pb-12 px-6 md:px-12 max-w-[1600px] mx-auto">
@@ -223,7 +223,7 @@ export default function AdminPanel() {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="bg-muted p-1 rounded-full">
+          <TabsList className="bg-secondary p-1 rounded-full">
             <TabsTrigger value="creators" className="rounded-full" data-testid="tab-creators">
               <Users className="h-4 w-4 mr-2" />
               Pending Creators
