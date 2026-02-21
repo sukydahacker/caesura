@@ -15,9 +15,15 @@ import razorpay
 import base64
 from PIL import Image
 import io
+import sys
 
 ROOT_DIR = Path(__file__).parent
+sys.path.insert(0, str(ROOT_DIR))
 load_dotenv(ROOT_DIR / '.env')
+
+# Import services
+from services.printify_service import printify_service
+from services.revenue_service import revenue_service
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
