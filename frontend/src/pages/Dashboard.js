@@ -186,7 +186,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="pt-24 pb-12 px-6 md:px-12 max-w-[1600px] mx-auto">
