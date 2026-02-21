@@ -217,7 +217,7 @@ async def upload_design(request: Request, file: UploadFile = File(...), session_
     try:
         image = Image.open(io.BytesIO(contents))
         image.verify()
-    except:
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid image file")
     
     # Convert to base64 for storage (mock upload)
