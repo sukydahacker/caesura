@@ -824,8 +824,9 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
     total_products = await db.products.count_documents({"is_approved": True})
     total_orders = await db.orders.count_documents({})
     
-    # Calculate revenue
+    # Calculate revenue from ORDERS (not just paid orders)
     pipeline = [
+        {"$match": {"status": {"$in": ["paid", "pending"]}}},
         {"$group": {
             "_id": None,
             "total_revenue": {"$sum": "$total_amount"},
@@ -836,9 +837,9 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
     revenue_data = await db.orders.aggregate(pipeline).to_list(1)
     total_revenue = revenue_data[0]["total_revenue"] if revenue_data else 0
     
-    # Platform earnings
+    # Platform earnings from revenue_splits (only completed/pending ones)
     platform_earnings_pipeline = [
-        {"$match": {"status": "completed"}},
+        {"$match": {"status": {"$in": ["completed", "pending"]}}},
         {"$group": {
             "_id": None,
             "total": {"$sum": "$platform_amount"}
@@ -848,9 +849,9 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
     platform_earnings_data = await db.revenue_splits.aggregate(platform_earnings_pipeline).to_list(1)
     platform_earnings = platform_earnings_data[0]["total"] if platform_earnings_data else 0
     
-    # Creator earnings
+    # Creator earnings from revenue_splits
     creator_earnings_pipeline = [
-        {"$match": {"status": "completed"}},
+        {"$match": {"status": {"$in": ["completed", "pending"]}}},
         {"$group": {
             "_id": None,
             "total": {"$sum": "$creator_amount"}
@@ -859,6 +860,21 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
     
     creator_earnings_data = await db.revenue_splits.aggregate(creator_earnings_pipeline).to_list(1)
     creator_earnings = creator_earnings_data[0]["total"] if creator_earnings_data else 0
+    
+    # Calculate units sold
+    units_sold_pipeline = [
+        {"$match": {"status": {"$in": ["paid", "pending"]}}},
+        {"$unwind": "$items"},
+        {"$group": {
+            "_id": None,
+            "total_units": {"$sum": "$items.quantity"}
+        }}
+    ]
+    
+    units_data = await db.orders.aggregate(units_sold_pipeline).to_list(1)
+    total_units = units_data[0]["total_units"] if units_data else 0
+    
+    logger.info(f"Analytics: Orders={total_orders}, Revenue={total_revenue}, Platform={platform_earnings}, Creator={creator_earnings}, Units={total_units}")
     
     return {
         "users": {
@@ -876,7 +892,8 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
             "total": total_products
         },
         "orders": {
-            "total": total_orders
+            "total": total_orders,
+            "total_units": total_units
         },
         "revenue": {
             "total_revenue": total_revenue,
@@ -884,6 +901,43 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
             "creator_earnings": creator_earnings
         }
     }
+
+@api_router.get("/admin/orders")
+async def get_admin_orders(request: Request, session_token: Optional[str] = Cookie(None)):
+    await require_admin(request, session_token)
+    
+    # Get all orders with revenue split info
+    orders = await db.orders.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    # Enrich with creator info and revenue splits
+    enriched_orders = []
+    for order in orders:
+        # Get revenue splits for this order
+        splits = await db.revenue_splits.find({"order_id": order["order_id"]}, {"_id": 0}).to_list(100)
+        
+        # Get creator info for each item
+        items_with_creators = []
+        for item in order.get("items", []):
+            product = await db.products.find_one({"product_id": item["product_id"]}, {"_id": 0, "user_id": 1, "title": 1})
+            if product:
+                creator = await db.users.find_one({"user_id": product["user_id"]}, {"_id": 0, "name": 1, "email": 1})
+                items_with_creators.append({
+                    **item,
+                    "creator_name": creator["name"] if creator else "Unknown",
+                    "creator_email": creator["email"] if creator else "Unknown"
+                })
+            else:
+                items_with_creators.append(item)
+        
+        enriched_orders.append({
+            **order,
+            "items": items_with_creators,
+            "revenue_splits": splits
+        })
+    
+    logger.info(f"Admin orders query returned {len(enriched_orders)} orders")
+    
+    return enriched_orders
 
 # Include router
 app.include_router(api_router)
