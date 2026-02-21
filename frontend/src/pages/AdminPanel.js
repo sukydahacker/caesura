@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,14 +15,16 @@ import {
 import { 
   getPendingCreators, approveCreator, suspendCreator, rejectCreator,
   getPendingDesigns, approveDesign, rejectDesign,
-  getPrintifyBlueprints, getAdminAnalytics
+  getPrintifyBlueprints, getAdminAnalytics, getMe
 } from '@/lib/api';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function AdminPanel() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('creators');
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   
   // Creators
   const [pendingCreators, setPendingCreators] = useState([]);
@@ -47,9 +50,28 @@ export default function AdminPanel() {
   const [loadingPrintify, setLoadingPrintify] = useState(false);
 
   useEffect(() => {
-    setLoading(false);
-    loadCreators();
+    checkAdminAccess();
   }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      const response = await getMe();
+      const userData = response.data;
+      setUser(userData);
+      
+      if (userData.role !== 'admin') {
+        toast.error('Access denied. Admin privileges required.');
+        navigate('/dashboard');
+        return;
+      }
+      
+      setLoading(false);
+      loadCreators();
+    } catch (error) {
+      toast.error('Failed to verify admin access');
+      navigate('/');
+    }
+  };
 
   const loadCreators = async () => {
     setLoadingCreators(true);
