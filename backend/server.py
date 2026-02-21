@@ -160,6 +160,7 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
 async def create_session(request: Request, response: Response):
     body = await request.json()
     session_id = body.get("session_id")
+    is_creator = body.get("is_creator", False)
     
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id required")
@@ -193,11 +194,16 @@ async def create_session(request: Request, response: Response):
     else:
         # Create new user
         user_id = f"user_{uuid.uuid4().hex[:12]}"
+        role = "creator" if is_creator else "buyer"
+        creator_status = "pending" if is_creator else None
+        
         user_doc = {
             "user_id": user_id,
             "email": auth_data["email"],
             "name": auth_data["name"],
             "picture": auth_data.get("picture"),
+            "role": role,
+            "creator_status": creator_status,
             "created_at": datetime.now(timezone.utc)
         }
         await db.users.insert_one(user_doc)
