@@ -269,15 +269,17 @@ export default function Dashboard() {
           </div>
           
           <div className="flex gap-4">
-            <Button 
-              onClick={() => window.location.href = '/admin'}
-              variant="outline"
-              size="lg"
-              className="rounded-full font-subheading"
-              data-testid="admin-panel-btn"
-            >
-              Admin Panel
-            </Button>
+            {user?.role === 'admin' && (
+              <Button 
+                onClick={() => window.location.href = '/admin'}
+                variant="outline"
+                size="lg"
+                className="rounded-full font-subheading"
+                data-testid="admin-panel-btn"
+              >
+                Admin Panel
+              </Button>
+            )}
             
             <Button 
               onClick={() => setUploadDialogOpen(true)}
