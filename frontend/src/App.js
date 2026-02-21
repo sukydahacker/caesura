@@ -9,7 +9,7 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import Orders from "@/pages/Orders";
 import Profile from "@/pages/Profile";
-import Admin from "@/pages/Admin";
+import AdminPanel from "@/pages/AdminPanel";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import "@/App.css";
 
@@ -32,7 +32,7 @@ function AppRouter() {
         <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
         <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
       </Routes>
       <Toaster />
     </>
