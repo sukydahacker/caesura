@@ -261,6 +261,54 @@ export default function Dashboard() {
             ))}
           </div>
         )}
+
+        {/* My Products Section */}
+        {myProducts.length > 0 && (
+          <div className="mt-16">
+            <h2 className="font-heading text-3xl font-bold tracking-tight mb-8">My Products</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" data-testid="my-products-grid">
+              {myProducts.map((product, index) => (
+                <motion.div
+                  key={product.product_id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className="group relative bg-card border border-border overflow-hidden"
+                  data-testid={`product-card-${index}`}
+                >
+                  <div className="aspect-square bg-muted relative overflow-hidden">
+                    <img 
+                      src={product.mockup_image} 
+                      alt={product.title}
+                      className="w-full h-full object-contain"
+                    />
+                    {!product.is_approved && (
+                      <div className="absolute top-4 right-4 bg-yellow-600 text-white px-3 py-1 text-xs font-semibold rounded-full" data-testid={`pending-badge-${index}`}>
+                        Pending Approval
+                      </div>
+                    )}
+                    {product.is_approved && (
+                      <div className="absolute top-4 right-4 bg-green-600 text-white px-3 py-1 text-xs font-semibold rounded-full" data-testid={`approved-badge-${index}`}>
+                        Approved
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-6">
+                    <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
+                      {product.apparel_type === 'tshirt' ? 'T-Shirt' : 'Hoodie'}
+                    </p>
+                    <h3 className="font-heading text-xl font-semibold mb-2" data-testid={`product-title-${index}`}>{product.title}</h3>
+                    <p className="font-subheading text-lg font-semibold" data-testid={`product-price-${index}`}>₹{product.price}</p>
+                    {!product.is_approved && (
+                      <p className="text-sm text-yellow-600 mt-2">Waiting for admin approval</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Upload Dialog */}
