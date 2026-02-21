@@ -44,6 +44,9 @@ class User(BaseModel):
     email: str
     name: str
     picture: Optional[str] = None
+    role: str = "buyer"  # "buyer", "creator", "admin"
+    creator_status: Optional[str] = None  # "pending", "approved", "suspended", "rejected"
+    creator_bio: Optional[str] = None
     created_at: datetime
 
 class Design(BaseModel):
@@ -54,6 +57,10 @@ class Design(BaseModel):
     description: Optional[str] = None
     image_url: str
     tags: List[str] = []
+    approval_status: str = "pending"  # "pending", "approved", "rejected"
+    rejection_reason: Optional[str] = None
+    approved_by_admin_id: Optional[str] = None
+    featured: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -69,6 +76,11 @@ class Product(BaseModel):
     price: float
     design_image: str
     mockup_image: str
+    printify_product_id: Optional[str] = None
+    printify_blueprint_id: Optional[int] = None
+    base_cost: float = 500.0
+    creator_commission_rate: float = 0.8
+    platform_commission_rate: float = 0.2
     created_at: datetime
     is_active: bool = True
     is_approved: bool = False
