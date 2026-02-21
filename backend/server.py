@@ -549,6 +549,286 @@ async def get_my_products(request: Request, session_token: Optional[str] = Cooki
     products = await db.products.find({"user_id": user.user_id}, {"_id": 0}).to_list(1000)
     return [Product(**p) for p in products]
 
+# Enhanced Admin Routes
+
+@api_router.get("/admin/creators/pending", response_model=List[User])
+async def get_pending_creators(request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    creators = await db.users.find({"role": "creator", "creator_status": "pending"}, {"_id": 0}).to_list(1000)
+    return [User(**c) for c in creators]
+
+@api_router.post("/admin/creators/{user_id}/approve")
+async def approve_creator(user_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    
+    result = await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "creator_status": "approved",
+            "approved_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Creator not found")
+    
+    # TODO: Send email notification
+    logger.info(f"Creator {user_id} approved by admin {user.user_id}")
+    
+    return {"message": "Creator approved", "user_id": user_id}
+
+@api_router.post("/admin/creators/{user_id}/suspend")
+async def suspend_creator(user_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    
+    result = await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "creator_status": "suspended",
+            "suspended_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Creator not found")
+    
+    # Also deactivate all their products
+    await db.products.update_many(
+        {"user_id": user_id},
+        {"$set": {"is_active": False}}
+    )
+    
+    logger.info(f"Creator {user_id} suspended by admin {user.user_id}")
+    
+    return {"message": "Creator suspended", "user_id": user_id}
+
+@api_router.post("/admin/creators/{user_id}/reject")
+async def reject_creator(user_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    
+    body = await request.json()
+    reason = body.get("reason", "Application rejected")
+    
+    result = await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "creator_status": "rejected",
+            "rejection_reason": reason,
+            "rejected_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Creator not found")
+    
+    logger.info(f"Creator {user_id} rejected by admin {user.user_id}")
+    
+    return {"message": "Creator rejected", "user_id": user_id}
+
+@api_router.get("/admin/designs/pending", response_model=List[Design])
+async def get_pending_designs(request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    designs = await db.designs.find({"approval_status": "pending"}, {"_id": 0}).to_list(1000)
+    return [Design(**d) for d in designs]
+
+@api_router.post("/admin/designs/{design_id}/approve")
+async def approve_design_admin(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    
+    body = await request.json()
+    blueprint_id = body.get("blueprint_id", 6)  # Default to T-shirt
+    featured = body.get("featured", False)
+    
+    # Get design
+    design = await db.designs.find_one({"design_id": design_id}, {"_id": 0})
+    if not design:
+        raise HTTPException(status_code=404, detail="Design not found")
+    
+    # Update design status
+    await db.designs.update_one(
+        {"design_id": design_id},
+        {"$set": {
+            "approval_status": "approved",
+            "approved_by_admin_id": user.user_id,
+            "featured": featured,
+            "approved_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    # Create Printify product (or mock)
+    try:
+        printify_product = await printify_service.create_product(
+            design_image_url=design["image_url"],
+            title=design["title"],
+            description=design.get("description", ""),
+            blueprint_id=blueprint_id,
+            print_provider_id=1,
+            variants=[1, 2, 3, 4]  # S, M, L, XL
+        )
+        
+        printify_product_id = printify_product.get("id")
+        
+        # Publish product if real Printify
+        if not printify_product.get("mock"):
+            await printify_service.publish_product(printify_product_id)
+        
+    except Exception as e:
+        logger.error(f"Failed to create Printify product: {e}")
+        printify_product_id = None
+    
+    # Create product in our database
+    product_id = f"product_{uuid.uuid4().hex[:12]}"
+    product_doc = {
+        "product_id": product_id,
+        "design_id": design_id,
+        "user_id": design["user_id"],
+        "title": design["title"],
+        "description": design.get("description"),
+        "apparel_type": "tshirt" if blueprint_id == 6 else "hoodie",
+        "sizes": ["S", "M", "L", "XL", "XXL"],
+        "price": 999.0,  # Default price
+        "design_image": design["image_url"],
+        "mockup_image": design["image_url"],
+        "printify_product_id": printify_product_id,
+        "printify_blueprint_id": blueprint_id,
+        "base_cost": 500.0,
+        "creator_commission_rate": 0.8,
+        "platform_commission_rate": 0.2,
+        "created_at": datetime.now(timezone.utc),
+        "is_active": True,
+        "is_approved": True,
+        "approved_at": datetime.now(timezone.utc)
+    }
+    
+    await db.products.insert_one(product_doc)
+    
+    logger.info(f"Design {design_id} approved and product {product_id} created by admin {user.user_id}")
+    
+    return {
+        "message": "Design approved and product created",
+        "design_id": design_id,
+        "product_id": product_id,
+        "printify_product_id": printify_product_id
+    }
+
+@api_router.post("/admin/designs/{design_id}/reject")
+async def reject_design_admin(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    
+    body = await request.json()
+    reason = body.get("reason", "Design rejected")
+    
+    result = await db.designs.update_one(
+        {"design_id": design_id},
+        {"$set": {
+            "approval_status": "rejected",
+            "rejection_reason": reason,
+            "approved_by_admin_id": user.user_id,
+            "rejected_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Design not found")
+    
+    logger.info(f"Design {design_id} rejected by admin {user.user_id}")
+    
+    return {"message": "Design rejected", "design_id": design_id}
+
+@api_router.get("/admin/printify/blueprints")
+async def get_printify_blueprints(request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    
+    blueprints = await printify_service.get_blueprints()
+    return {"blueprints": blueprints, "mock_mode": printify_service.mock_mode}
+
+@api_router.get("/admin/analytics")
+async def get_admin_analytics(request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # TODO: Add admin role check
+    
+    # Get counts
+    total_users = await db.users.count_documents({})
+    total_creators = await db.users.count_documents({"role": "creator"})
+    pending_creators = await db.users.count_documents({"creator_status": "pending"})
+    approved_creators = await db.users.count_documents({"creator_status": "approved"})
+    
+    total_designs = await db.designs.count_documents({})
+    pending_designs = await db.designs.count_documents({"approval_status": "pending"})
+    approved_designs = await db.designs.count_documents({"approval_status": "approved"})
+    
+    total_products = await db.products.count_documents({"is_approved": True})
+    total_orders = await db.orders.count_documents({})
+    
+    # Calculate revenue
+    pipeline = [
+        {"$group": {
+            "_id": None,
+            "total_revenue": {"$sum": "$total_amount"},
+            "total_orders": {"$sum": 1}
+        }}
+    ]
+    
+    revenue_data = await db.orders.aggregate(pipeline).to_list(1)
+    total_revenue = revenue_data[0]["total_revenue"] if revenue_data else 0
+    
+    # Platform earnings
+    platform_earnings_pipeline = [
+        {"$match": {"status": "completed"}},
+        {"$group": {
+            "_id": None,
+            "total": {"$sum": "$platform_amount"}
+        }}
+    ]
+    
+    platform_earnings_data = await db.revenue_splits.aggregate(platform_earnings_pipeline).to_list(1)
+    platform_earnings = platform_earnings_data[0]["total"] if platform_earnings_data else 0
+    
+    # Creator earnings
+    creator_earnings_pipeline = [
+        {"$match": {"status": "completed"}},
+        {"$group": {
+            "_id": None,
+            "total": {"$sum": "$creator_amount"}
+        }}
+    ]
+    
+    creator_earnings_data = await db.revenue_splits.aggregate(creator_earnings_pipeline).to_list(1)
+    creator_earnings = creator_earnings_data[0]["total"] if creator_earnings_data else 0
+    
+    return {
+        "users": {
+            "total": total_users,
+            "creators": total_creators,
+            "pending_creators": pending_creators,
+            "approved_creators": approved_creators
+        },
+        "designs": {
+            "total": total_designs,
+            "pending": pending_designs,
+            "approved": approved_designs
+        },
+        "products": {
+            "total": total_products
+        },
+        "orders": {
+            "total": total_orders
+        },
+        "revenue": {
+            "total_revenue": total_revenue,
+            "platform_earnings": platform_earnings,
+            "creator_earnings": creator_earnings
+        }
+    }
+
 # Include router
 app.include_router(api_router)
 
