@@ -573,16 +573,13 @@ async def get_creator_earnings(request: Request, session_token: Optional[str] = 
 # Admin Routes
 @api_router.get("/admin/products/pending", response_model=List[Product])
 async def get_pending_products(request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # For now, treat the first user or specific email as admin
-    # In production, add is_admin field to User model
+    await require_admin(request, session_token)
     products = await db.products.find({"is_approved": False, "is_active": True}, {"_id": 0}).to_list(1000)
     return [Product(**p) for p in products]
 
 @api_router.post("/admin/products/{product_id}/approve")
 async def approve_product(product_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # Admin check - in production, verify user.is_admin
+    user = await require_admin(request, session_token)
     
     result = await db.products.update_one(
         {"product_id": product_id},
