@@ -65,6 +65,8 @@ class Product(BaseModel):
     mockup_image: str
     created_at: datetime
     is_active: bool = True
+    is_approved: bool = False
+    approved_at: Optional[datetime] = None
 
 class CartItem(BaseModel):
     model_config = ConfigDict(extra="ignore")
