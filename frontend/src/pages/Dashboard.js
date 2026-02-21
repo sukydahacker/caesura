@@ -136,12 +136,13 @@ export default function Dashboard() {
         mockup_image: selectedDesign.image_url
       });
 
-      toast.success('Product created successfully!');
+      toast.success('Product created successfully!');<parameter>
       setProductDialogOpen(false);
       setSelectedDesign(null);
       setProductTitle('');
       setProductDescription('');
       setPrice('999');
+      fetchMyProducts();
     } catch (error) {
       toast.error('Failed to create product');
     }
