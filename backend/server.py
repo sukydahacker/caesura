@@ -638,14 +638,13 @@ async def approve_creator(user_id: str, request: Request, session_token: Optiona
         raise HTTPException(status_code=404, detail="Creator not found")
     
     # TODO: Send email notification
-    logger.info(f"Creator {user_id} approved by admin {user.user_id}")
+    logger.info(f"Creator {user_id} approved by admin {admin_user.user_id}")
     
     return {"message": "Creator approved", "user_id": user_id}
 
 @api_router.post("/admin/creators/{user_id}/suspend")
 async def suspend_creator(user_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # TODO: Add admin role check
+    admin_user = await require_admin(request, session_token)
     
     result = await db.users.update_one(
         {"user_id": user_id},
