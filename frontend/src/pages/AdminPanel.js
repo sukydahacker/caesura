@@ -249,6 +249,10 @@ export default function AdminPanel() {
               <FileImage className="h-4 w-4 mr-2" />
               Pending Designs
             </TabsTrigger>
+            <TabsTrigger value="orders" className="rounded-full" data-testid="tab-orders">
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              All Orders
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="rounded-full" data-testid="tab-analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
