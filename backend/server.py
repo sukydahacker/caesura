@@ -788,7 +788,7 @@ async def reject_design_admin(design_id: str, request: Request, session_token: O
         {"$set": {
             "approval_status": "rejected",
             "rejection_reason": reason,
-            "approved_by_admin_id": user.user_id,
+            "approved_by_admin_id": admin_user.user_id,
             "rejected_at": datetime.now(timezone.utc)
         }}
     )
@@ -796,22 +796,20 @@ async def reject_design_admin(design_id: str, request: Request, session_token: O
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Design not found")
     
-    logger.info(f"Design {design_id} rejected by admin {user.user_id}")
+    logger.info(f"Design {design_id} rejected by admin {admin_user.user_id}")
     
     return {"message": "Design rejected", "design_id": design_id}
 
 @api_router.get("/admin/printify/blueprints")
 async def get_printify_blueprints(request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # TODO: Add admin role check
+    await require_admin(request, session_token)
     
     blueprints = await printify_service.get_blueprints()
     return {"blueprints": blueprints, "mock_mode": printify_service.mock_mode}
 
 @api_router.get("/admin/analytics")
 async def get_admin_analytics(request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # TODO: Add admin role check
+    await require_admin(request, session_token)
     
     # Get counts
     total_users = await db.users.count_documents({})
