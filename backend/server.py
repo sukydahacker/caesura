@@ -537,16 +537,23 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
                 platform_commission_rate=product.get("platform_commission_rate", 0.2)
             )
             
-            await revenue_service.record_split(
+            creator_earnings = split_data["creator_amount"] * item["quantity"]
+            platform_earnings = split_data["platform_amount"] * item["quantity"]
+            
+            split_id = await revenue_service.record_split(
                 db=db,
                 order_id=order_id,
                 creator_id=product["user_id"],
-                creator_amount=split_data["creator_amount"] * item["quantity"],
-                platform_amount=split_data["platform_amount"] * item["quantity"]
+                creator_amount=creator_earnings,
+                platform_amount=platform_earnings
             )
+            
+            logger.info(f"Revenue split created: split_id={split_id}, order={order_id}, creator_amount={creator_earnings}, platform_amount={platform_earnings}")
     
     # Clear cart
     await db.cart_items.delete_many({"user_id": user.user_id})
+    
+    logger.info(f"Order created: order_id={order_id}, total_amount={body['total_amount']}, status={order_doc['status']}")
     
     return Order(**order_doc)
 
