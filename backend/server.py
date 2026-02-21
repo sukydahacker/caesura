@@ -486,12 +486,57 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
         "total_amount": body["total_amount"],
         "razorpay_order_id": body.get("razorpay_order_id"),
         "razorpay_payment_id": body.get("razorpay_payment_id"),
+        "fulfillment_status": "pending",
         "status": "paid" if body.get("razorpay_payment_id") else "pending",
         "shipping_address": body["shipping_address"],
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
     await db.orders.insert_one(order_doc)
+    
+    # Process each item for Printify order and revenue split
+    for item in body["items"]:
+        product_id = item["product_id"]
+        product = await db.products.find_one({"product_id": product_id}, {"_id": 0})
+        
+        if product and product.get("printify_product_id"):
+            # Place Printify order
+            try:
+                printify_order = await printify_service.create_order(
+                    product_id=product["printify_product_id"],
+                    variant_id=1,  # TODO: Map size to variant
+                    quantity=item["quantity"],
+                    shipping_address=body["shipping_address"]
+                )
+                
+                # Update order with Printify order ID
+                await db.orders.update_one(
+                    {"order_id": order_id},
+                    {"$set": {
+                        "printify_order_id": printify_order.get("id"),
+                        "tracking_number": printify_order.get("tracking_number"),
+                        "tracking_url": printify_order.get("tracking_url")
+                    }}
+                )
+            except Exception as e:
+                logger.error(f"Failed to create Printify order: {e}")
+        
+        # Calculate and record revenue split
+        if product:
+            split_data = revenue_service.calculate_split(
+                retail_price=item["price"],
+                base_cost=product.get("base_cost", 500),
+                creator_commission_rate=product.get("creator_commission_rate", 0.8),
+                platform_commission_rate=product.get("platform_commission_rate", 0.2)
+            )
+            
+            await revenue_service.record_split(
+                db=db,
+                order_id=order_id,
+                creator_id=product["user_id"],
+                creator_amount=split_data["creator_amount"] * item["quantity"],
+                platform_amount=split_data["platform_amount"] * item["quantity"]
+            )
     
     # Clear cart
     await db.cart_items.delete_many({"user_id": user.user_id})
