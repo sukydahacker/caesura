@@ -33,6 +33,8 @@ export default function Navbar({ onLogin }) {
     }
   };
 
+  const isAdmin = user?.role === 'admin';
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glassmorphism">
       <div className="max-w-[1600px] mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
@@ -47,7 +49,7 @@ export default function Navbar({ onLogin }) {
             className="rounded-full font-subheading"
             data-testid="navbar-marketplace-link"
           >
-            Marketplace
+            Shop Now
           </Button>
           
           {user ? (
@@ -61,14 +63,16 @@ export default function Navbar({ onLogin }) {
                 Dashboard
               </Button>
               
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/admin')}
-                className="rounded-full font-subheading"
-                data-testid="navbar-admin-link"
-              >
-                Admin
-              </Button>
+              {isAdmin && (
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate('/admin')}
+                  className="rounded-full font-subheading"
+                  data-testid="navbar-admin-link"
+                >
+                  Admin
+                </Button>
+              )}
               
               <Button 
                 variant="ghost" 
