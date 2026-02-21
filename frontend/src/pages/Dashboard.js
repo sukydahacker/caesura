@@ -190,6 +190,78 @@ export default function Dashboard() {
       <Navbar />
       
       <div className="pt-24 pb-12 px-6 md:px-12 max-w-[1600px] mx-auto">
+        {/* Creator Status Banner */}
+        {user && user.role === 'creator' && user.creator_status && (
+          <div className={`mb-8 p-6 rounded border ${
+            user.creator_status === 'pending' ? 'border-yellow-600 bg-yellow-600/10' :
+            user.creator_status === 'approved' ? 'border-green-600 bg-green-600/10' :
+            user.creator_status === 'suspended' ? 'border-red-600 bg-red-600/10' :
+            'border-red-600 bg-red-600/10'
+          }`}>
+            <div className="flex items-center gap-3">
+              {user.creator_status === 'pending' && (
+                <>
+                  <Clock className="h-6 w-6 text-yellow-600" />
+                  <div>
+                    <h3 className="font-heading font-semibold text-yellow-600">Creator Account Pending</h3>
+                    <p className="text-sm text-muted-foreground">Your creator application is under review. You'll be notified once approved.</p>
+                  </div>
+                </>
+              )}
+              {user.creator_status === 'approved' && (
+                <>
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <div>
+                    <h3 className="font-heading font-semibold text-green-600">Creator Account Active</h3>
+                    <p className="text-sm text-muted-foreground">You can upload designs and create products.</p>
+                  </div>
+                </>
+              )}
+              {user.creator_status === 'suspended' && (
+                <>
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                  <div>
+                    <h3 className="font-heading font-semibold text-red-600">Account Suspended</h3>
+                    <p className="text-sm text-muted-foreground">Your creator account has been suspended. Contact support for details.</p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Earnings Summary */}
+        {earnings && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="border border-border p-6 rounded">
+              <div className="flex items-center gap-3 mb-2">
+                <DollarSign className="h-6 w-6 text-[#0047FF]" />
+                <h3 className="font-subheading font-semibold">Total Earnings</h3>
+              </div>
+              <p className="text-3xl font-heading font-bold">₹{earnings.total_earnings.toFixed(2)}</p>
+              <p className="text-sm text-muted-foreground mt-1">Lifetime earnings</p>
+            </div>
+
+            <div className="border border-border p-6 rounded">
+              <div className="flex items-center gap-3 mb-2">
+                <Clock className="h-6 w-6 text-yellow-600" />
+                <h3 className="font-subheading font-semibold">Pending</h3>
+              </div>
+              <p className="text-3xl font-heading font-bold text-yellow-600">₹{earnings.pending_earnings.toFixed(2)}</p>
+              <p className="text-sm text-muted-foreground mt-1">Awaiting fulfillment</p>
+            </div>
+
+            <div className="border border-border p-6 rounded">
+              <div className="flex items-center gap-3 mb-2">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+                <h3 className="font-subheading font-semibold">Total Orders</h3>
+              </div>
+              <p className="text-3xl font-heading font-bold">{earnings.total_orders}</p>
+              <p className="text-sm text-muted-foreground mt-1">Products sold</p>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-12">
           <div>
             <h1 className="font-heading text-5xl font-bold tracking-tight mb-2">Creator Dashboard</h1>
@@ -212,6 +284,7 @@ export default function Dashboard() {
               size="lg"
               className="rounded-full font-subheading bg-[#0047FF] hover:bg-[#0047FF]/90"
               data-testid="upload-new-design-btn"
+              disabled={user?.creator_status !== 'approved'}
             >
               <Plus className="mr-2 h-5 w-5" />
               Upload Design
