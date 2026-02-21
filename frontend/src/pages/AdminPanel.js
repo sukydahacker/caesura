@@ -218,6 +218,7 @@ export default function AdminPanel() {
     if (value === 'designs') loadDesigns();
     if (value === 'analytics') loadAnalytics();
     if (value === 'printify') loadPrintify();
+    if (value === 'orders') loadOrders();
   };
 
   if (loading) {
