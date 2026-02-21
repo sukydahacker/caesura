@@ -63,6 +63,15 @@ export default function Navbar({ onLogin }) {
               
               <Button 
                 variant="ghost" 
+                onClick={() => navigate('/admin')}
+                className="rounded-full font-subheading"
+                data-testid="navbar-admin-link"
+              >
+                Admin
+              </Button>
+              
+              <Button 
+                variant="ghost" 
                 size="icon"
                 onClick={() => navigate('/cart')}
                 className="rounded-full"
