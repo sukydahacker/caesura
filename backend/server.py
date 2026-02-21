@@ -557,6 +557,12 @@ async def get_order(order_id: str, request: Request, session_token: Optional[str
         raise HTTPException(status_code=404, detail="Order not found")
     return Order(**order)
 
+@api_router.get("/creator/earnings")
+async def get_creator_earnings(request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    earnings = await revenue_service.get_creator_earnings(db, user.user_id)
+    return earnings
+
 # Admin Routes
 @api_router.get("/admin/products/pending", response_model=List[Product])
 async def get_pending_products(request: Request, session_token: Optional[str] = Cookie(None)):
