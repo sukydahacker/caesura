@@ -469,6 +469,54 @@ async def get_order(order_id: str, request: Request, session_token: Optional[str
         raise HTTPException(status_code=404, detail="Order not found")
     return Order(**order)
 
+# Admin Routes
+@api_router.get("/admin/products/pending", response_model=List[Product])
+async def get_pending_products(request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # For now, treat the first user or specific email as admin
+    # In production, add is_admin field to User model
+    products = await db.products.find({"is_approved": False, "is_active": True}, {"_id": 0}).to_list(1000)
+    return [Product(**p) for p in products]
+
+@api_router.post("/admin/products/{product_id}/approve")
+async def approve_product(product_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # Admin check - in production, verify user.is_admin
+    
+    result = await db.products.update_one(
+        {"product_id": product_id},
+        {"$set": {
+            "is_approved": True,
+            "approved_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return {"message": "Product approved"}
+
+@api_router.post("/admin/products/{product_id}/reject")
+async def reject_product(product_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    # Admin check - in production, verify user.is_admin
+    
+    result = await db.products.update_one(
+        {"product_id": product_id},
+        {"$set": {"is_active": False}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return {"message": "Product rejected"}
+
+@api_router.get("/products/my-products", response_model=List[Product])
+async def get_my_products(request: Request, session_token: Optional[str] = Cookie(None)):
+    user = await get_current_user(request, session_token)
+    products = await db.products.find({"user_id": user.user_id}, {"_id": 0}).to_list(1000)
+    return [Product(**p) for p in products]
+
 # Include router
 app.include_router(api_router)
 
