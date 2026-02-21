@@ -174,15 +174,27 @@ export default function Dashboard() {
             <p className="text-muted-foreground font-subheading">Manage your designs and products</p>
           </div>
           
-          <Button 
-            onClick={() => setUploadDialogOpen(true)}
-            size="lg"
-            className="rounded-full font-subheading bg-[#0047FF] hover:bg-[#0047FF]/90"
-            data-testid="upload-new-design-btn"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            Upload Design
-          </Button>
+          <div className="flex gap-4">
+            <Button 
+              onClick={() => window.location.href = '/admin'}
+              variant="outline"
+              size="lg"
+              className="rounded-full font-subheading"
+              data-testid="admin-panel-btn"
+            >
+              Admin Panel
+            </Button>
+            
+            <Button 
+              onClick={() => setUploadDialogOpen(true)}
+              size="lg"
+              className="rounded-full font-subheading bg-[#0047FF] hover:bg-[#0047FF]/90"
+              data-testid="upload-new-design-btn"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Upload Design
+            </Button>
+          </div>
         </div>
 
         {designs.length === 0 ? (
