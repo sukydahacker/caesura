@@ -155,6 +155,13 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
     
     return User(**user_doc)
 
+async def require_admin(request: Request, session_token: Optional[str] = Cookie(None)) -> User:
+    """Helper to require admin role"""
+    user = await get_current_user(request, session_token)
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
 # Auth Routes
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):
