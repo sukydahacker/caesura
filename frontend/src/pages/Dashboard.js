@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Navbar from '@/components/Navbar';
 import { Plus, Trash2, Package } from 'lucide-react';
-import { uploadDesignImage, createDesign, getDesigns, deleteDesign, createProduct } from '@/lib/api';
+import { uploadDesignImage, createDesign, getDesigns, deleteDesign, createProduct, getMyProducts } from '@/lib/api';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
