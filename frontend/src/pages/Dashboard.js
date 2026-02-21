@@ -33,6 +33,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDesigns();
+    fetchMyProducts();
   }, []);
 
   const fetchDesigns = async () => {
@@ -43,6 +44,17 @@ export default function Dashboard() {
       toast.error('Failed to load designs');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [myProducts, setMyProducts] = useState([]);
+  
+  const fetchMyProducts = async () => {
+    try {
+      const response = await getMyProducts();
+      setMyProducts(response.data);
+    } catch (error) {
+      console.error('Failed to load products');
     }
   };
 
