@@ -126,6 +126,18 @@ export default function AdminPanel() {
     }
   };
 
+  const loadOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const response = await getAdminOrders();
+      setOrders(response.data);
+    } catch (error) {
+      toast.error('Failed to load orders');
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
   const handleApproveCreator = async (userId) => {
     try {
       await approveCreator(userId);
