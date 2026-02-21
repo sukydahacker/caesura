@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Navbar from '@/components/Navbar';
-import { Plus, Trash2, Package } from 'lucide-react';
-import { uploadDesignImage, createDesign, getDesigns, deleteDesign, createProduct, getMyProducts } from '@/lib/api';
+import { Plus, Trash2, Package, DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { uploadDesignImage, createDesign, getDesigns, deleteDesign, createProduct, getMyProducts, getCreatorEarnings, getMe } from '@/lib/api';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,6 +17,8 @@ export default function Dashboard() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [selectedDesign, setSelectedDesign] = useState(null);
+  const [user, setUser] = useState(null);
+  const [earnings, setEarnings] = useState(null);
   
   // Upload form
   const [uploadFile, setUploadFile] = useState(null);
@@ -32,9 +34,29 @@ export default function Dashboard() {
   const [productDescription, setProductDescription] = useState('');
 
   useEffect(() => {
+    fetchUserData();
     fetchDesigns();
     fetchMyProducts();
+    fetchEarnings();
   }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await getMe();
+      setUser(response.data);
+    } catch (error) {
+      console.error('Failed to load user data');
+    }
+  };
+
+  const fetchEarnings = async () => {
+    try {
+      const response = await getCreatorEarnings();
+      setEarnings(response.data);
+    } catch (error) {
+      console.error('Failed to load earnings');
+    }
+  };
 
   const fetchDesigns = async () => {
     try {
