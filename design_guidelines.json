@@ -1,0 +1,157 @@
+{
+  "brand_identity": {
+    "name": "Caesura",
+    "core_concept": "Premium Streetwear Marketplace & Creator Studio",
+    "emotional_tone": "Exclusive, Bold, Editorial, Minimalist, High-Tech",
+    "visual_style": "Editorial Hybrid (Stark Light Mode Marketplace vs. Deep Dark Mode Creator Studio)",
+    "design_principles": [
+      "Content is King: The apparel art is the hero. UI recedes.",
+      "Radical Contrast: Mix Swiss typographic precision with raw, streetwear energy.",
+      "Tactile Digital: Use noise, grain, and smooth motion to make pixels feel like fabric.",
+      "Asymmetry: Avoid centering. Use the 'Grid of Tension'."
+    ]
+  },
+  "typography": {
+    "font_family": {
+      "heading": "Syne, sans-serif",
+      "subheading": "Space Grotesk, sans-serif",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "display": "text-8xl md:text-9xl font-extrabold tracking-tighter leading-[0.8]",
+      "h1": "text-6xl md:text-7xl font-bold tracking-tight leading-none",
+      "h2": "text-4xl md:text-5xl font-bold tracking-tight",
+      "h3": "text-2xl md:text-3xl font-semibold tracking-normal",
+      "body_lg": "text-lg md:text-xl font-normal leading-relaxed",
+      "body": "text-base font-normal leading-relaxed text-muted-foreground",
+      "caption": "text-xs font-mono uppercase tracking-[0.2em]"
+    },
+    "installation": "Import from Google Fonts: Syne (400, 700, 800), Space Grotesk (400, 500, 700), Inter (variable), JetBrains Mono."
+  },
+  "colors": {
+    "palette": {
+      "primary": "#000000",
+      "secondary": "#FFFFFF",
+      "accent": "#0047FF", 
+      "accent_foreground": "#FFFFFF",
+      "neutral": "#F3F4F6",
+      "destructive": "#FF3B30",
+      "success": "#34C759",
+      "background": "#FFFFFF",
+      "foreground": "#09090B",
+      "muted": "#F4F4F5",
+      "border": "#E4E4E7"
+    },
+    "dark_mode": {
+      "background": "#09090B",
+      "foreground": "#FAFAFA",
+      "card": "#18181B",
+      "border": "#27272A",
+      "muted": "#27272A"
+    },
+    "usage": {
+      "accent_rule": "Use Electric Blue (#0047FF) sparingly. Only for primary CTAs (Upload, Buy) and active states.",
+      "text_rule": "Never use pure black text on white. Use #09090B. Never use pure white text on black. Use #FAFAFA."
+    }
+  },
+  "spacing_and_layout": {
+    "container_width": "max-w-[1600px]",
+    "section_padding": "py-24 md:py-32",
+    "grid_system": {
+      "marketplace": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-y-12 gap-x-8",
+      "dashboard": "grid grid-cols-12 gap-4 h-screen"
+    },
+    "border_radius": {
+      "default": "rounded-none",
+      "button": "rounded-full",
+      "card": "rounded-none",
+      "input": "rounded-none"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 rounded-full font-medium transition-transform active:scale-95",
+      "secondary": "bg-secondary text-secondary-foreground border border-input hover:bg-accent hover:text-accent-foreground h-12 px-8 rounded-full",
+      "ghost": "hover:bg-accent hover:text-accent-foreground rounded-full"
+    },
+    "cards": {
+      "product": "group relative overflow-hidden bg-transparent border-none rounded-none",
+      "dashboard": "bg-card border border-border/50 shadow-none rounded-none"
+    },
+    "inputs": {
+      "default": "h-12 rounded-none border-x-0 border-t-0 border-b border-input bg-transparent px-0 focus-visible:ring-0 focus-visible:border-primary placeholder:text-muted-foreground/50 transition-colors"
+    },
+    "navigation": {
+        "style": "Fixed, glassmorphism (backdrop-blur-xl), 1px bottom border."
+    }
+  },
+  "visual_enhancers": {
+    "textures": {
+      "noise": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")"
+    },
+    "shadows": {
+        "hover": "0 20px 40px -10px rgba(0,0,0,0.1)"
+    },
+    "glass": "backdrop-blur-xl bg-background/80 border-b border-border/50"
+  },
+  "motion": {
+    "library": "framer-motion",
+    "transitions": {
+      "default": { "duration": 0.4, "ease": [0.22, 1, 0.36, 1] },
+      "slow": { "duration": 0.8, "ease": [0.22, 1, 0.36, 1] }
+    },
+    "hover_effects": "scale-[1.02] active:scale-[0.98]"
+  },
+  "image_urls": {
+    "hero_backgrounds": [
+      "https://images.pexels.com/photos/30783645/pexels-photo-30783645.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.pexels.com/photos/4710336/pexels-photo-4710336.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ],
+    "streetwear_models": [
+      "https://images.pexels.com/photos/19461585/pexels-photo-19461585.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.pexels.com/photos/8904575/pexels-photo-8904575.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ],
+    "product_mockups": [
+      "https://images.pexels.com/photos/9558752/pexels-photo-9558752.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.pexels.com/photos/9558583/pexels-photo-9558583.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ],
+    "abstract_art": [
+      "https://images.pexels.com/photos/3137064/pexels-photo-3137064.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ]
+  },
+  "page_specifics": {
+    "landing_page": {
+      "hero": "Full-screen cinematic video or large typography with parallax scrolling.",
+      "featured_section": "Horizontal scrolling marquee (infinite loop) + massive product cards."
+    },
+    "marketplace": {
+      "layout": "Masonry grid with varied aspect ratios. Infinite scroll.",
+      "filters": "Sticky sidebar with accordion filters. Minimal checkboxes."
+    },
+    "creator_dashboard": {
+      "theme": "Dark Mode ONLY.",
+      "layout": "Sidebar navigation (collapsed by default on mobile). High density data tables.",
+      "charts": "Line charts with gradient fill (Electric Blue to Transparent)."
+    },
+    "product_detail": {
+      "layout": "Split screen: Left (Sticky Images), Right (Scrollable Details).",
+      "add_to_cart": "Sticky bottom bar on mobile."
+    }
+  },
+  "instructions_to_main_agent": [
+    "INSTALL FONTS: Add @import for Syne, Space Grotesk, Inter, JetBrains Mono in index.css.",
+    "RESET CSS: Ensure 'border-border' is applied to all elements in base layer.",
+    "NO DEFAULT SHADCN: Heavily customize Shadcn components. Remove rounded corners from cards/inputs.",
+    "USE IMAGES: Use the provided image_urls for placeholders. Do not use gray boxes.",
+    "ANIMATE: Use framer-motion for page transitions and stagger effects on grids.",
+    "DATA-TESTID: Add data-testid to every interactive element (buttons, inputs, links)."
+  ],
+  "universal_guidelines": [
+    "Do not use gradients for backgrounds. Use solid colors or subtle noise textures.",
+    "Avoid centering text unless it is a massive headline.",
+    "Use 2x more padding than you think is necessary.",
+    "Never use 'Inter' for headings. Use 'Syne'.",
+    "Ensure high contrast in Dark Mode (pure black background #09090B vs pure white text #FAFAFA)."
+  ]
+}
