@@ -398,6 +398,111 @@ export default function AdminPanel() {
             )}
           </TabsContent>
 
+          {/* All Orders Tab */}
+          <TabsContent value="orders" className="space-y-6">
+            {loadingOrders ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-20 border border-border rounded" data-testid="no-orders">
+                <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="font-heading text-xl font-semibold mb-2">No Orders Yet</h3>
+                <p className="text-muted-foreground">Orders will appear here once customers start purchasing</p>
+              </div>
+            ) : (
+              <div className="space-y-4" data-testid="admin-orders-list">
+                {orders.map((order, index) => (
+                  <motion.div
+                    key={order.order_id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="border border-border p-6 rounded bg-white"
+                    data-testid={`order-card-${index}`}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="font-heading text-lg font-semibold mb-1">
+                          Order #{order.order_id.slice(-8).toUpperCase()}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(order.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                          order.status === 'paid' ? 'bg-green-100 text-green-700' :
+                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                          order.status === 'shipped' ? 'bg-blue-100 text-blue-700' :
+                          order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {order.status.toUpperCase()}
+                        </span>
+                        <p className="font-heading text-xl font-bold mt-2">₹{order.total_amount.toFixed(2)}</p>
+                      </div>
+                    </div>
+
+                    {/* Order Items */}
+                    <div className="border-t border-border pt-4 mb-4">
+                      <h4 className="font-semibold mb-3 text-sm">Items:</h4>
+                      <div className="space-y-2">
+                        {order.items.map((item, itemIndex) => (
+                          <div key={itemIndex} className="flex justify-between text-sm bg-muted/50 p-3 rounded">
+                            <div>
+                              <p className="font-medium">{item.title}</p>
+                              {item.creator_name && (
+                                <p className="text-xs text-muted-foreground">Creator: {item.creator_name}</p>
+                              )}
+                              <p className="text-xs text-muted-foreground">Size: {item.size} × {item.quantity}</p>
+                            </div>
+                            <p className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Revenue Splits */}
+                    {order.revenue_splits && order.revenue_splits.length > 0 && (
+                      <div className="border-t border-border pt-4 mb-4">
+                        <h4 className="font-semibold mb-3 text-sm">Revenue Split:</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          {order.revenue_splits.map((split, splitIndex) => (
+                            <div key={splitIndex} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Creator (80%):</span>
+                                <span className="font-semibold text-green-600">₹{split.creator_amount.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Platform (20%):</span>
+                                <span className="font-semibold text-blue-600">₹{split.platform_amount.toFixed(2)}</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Status: {split.status === 'pending' ? '⏳ Pending Settlement' : '✅ Completed'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Shipping Address */}
+                    <div className="border-t border-border pt-4">
+                      <h4 className="font-semibold mb-2 text-sm">Shipping To:</h4>
+                      <div className="text-sm text-muted-foreground">
+                        <p>{order.shipping_address.name}</p>
+                        <p>{order.shipping_address.address}</p>
+                        <p>{order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.pincode}</p>
+                        <p>{order.shipping_address.phone}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
             {loadingAnalytics ? (
