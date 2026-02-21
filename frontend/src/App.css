@@ -1,27 +1,28 @@
 .App {
   min-height: 100vh;
+  background-color: #FAFAFA;
 }
 
 .App-link {
   color: #0047FF;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Light theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #F5F5F5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #000;
+  background: #D0D0D0;
   border-radius: 4px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #fff;
+::-webkit-scrollbar-thumb:hover {
+  background: #A0A0A0;
 }
 
 /* Smooth transitions */
