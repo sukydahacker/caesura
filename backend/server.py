@@ -426,7 +426,7 @@ async def verify_payment(request: Request, session_token: Optional[str] = Cookie
         # Verify Razorpay signature
         razorpay_client.utility.verify_payment_signature(body)
         return {"verified": True}
-    except:
+    except Exception:
         raise HTTPException(status_code=400, detail="Payment verification failed")
 
 # Order Routes
