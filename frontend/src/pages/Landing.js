@@ -68,9 +68,9 @@ export default function Landing() {
       </section>
 
       {/* How It Works */}
-      <section className="py-32 bg-muted">
+      <section className="py-32 bg-[#F8F8F8]">
         <div className="max-w-[1600px] mx-auto px-6 md:px-12">
-          <h2 className="font-heading text-4xl md:text-6xl font-bold tracking-tight mb-20">
+          <h2 className="font-heading text-4xl md:text-6xl font-bold tracking-tight mb-20 text-foreground">
             How It Works
           </h2>
           
