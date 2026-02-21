@@ -50,6 +50,24 @@ export const approveProduct = (id) => api.post(`/admin/products/${id}/approve`);
 export const rejectProduct = (id) => api.post(`/admin/products/${id}/reject`);
 export const getMyProducts = () => api.get('/products/my-products');
 
+// Enhanced Admin - Creator Management
+export const getPendingCreators = () => api.get('/admin/creators/pending');
+export const approveCreator = (userId) => api.post(`/admin/creators/${userId}/approve`);
+export const suspendCreator = (userId) => api.post(`/admin/creators/${userId}/suspend`);
+export const rejectCreator = (userId, reason) => api.post(`/admin/creators/${userId}/reject`, { reason });
+
+// Enhanced Admin - Design Management
+export const getPendingDesigns = () => api.get('/admin/designs/pending');
+export const approveDesign = (designId, blueprintId, featured) => api.post(`/admin/designs/${designId}/approve`, { blueprint_id: blueprintId, featured });
+export const rejectDesign = (designId, reason) => api.post(`/admin/designs/${designId}/reject`, { reason });
+
+// Enhanced Admin - Printify & Analytics
+export const getPrintifyBlueprints = () => api.get('/admin/printify/blueprints');
+export const getAdminAnalytics = () => api.get('/admin/analytics');
+
+// Creator Earnings
+export const getCreatorEarnings = () => api.get('/creator/earnings');
+
 // Payments
 export const createPaymentOrder = (data) => api.post('/payments/create-order', data);
 export const verifyPayment = (data) => api.post('/payments/verify', data);
