@@ -103,10 +103,24 @@ class Order(BaseModel):
     total_amount: float
     razorpay_order_id: Optional[str] = None
     razorpay_payment_id: Optional[str] = None
+    printify_order_id: Optional[str] = None
+    fulfillment_status: str = "pending"  # "pending", "printing", "shipped", "delivered", "cancelled"
+    tracking_number: Optional[str] = None
+    tracking_url: Optional[str] = None
     status: str  # "pending", "paid", "shipped", "delivered", "cancelled"
     shipping_address: dict
     created_at: datetime
     updated_at: datetime
+
+class RevenueSplit(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    split_id: str
+    order_id: str
+    creator_id: str
+    creator_amount: float
+    platform_amount: float
+    status: str  # "pending", "completed"
+    created_at: datetime
 
 # Auth Helper
 async def get_current_user(request: Request, session_token: Optional[str] = Cookie(None)) -> User:
