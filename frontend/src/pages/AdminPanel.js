@@ -49,6 +49,10 @@ export default function AdminPanel() {
   const [printifyData, setPrintifyData] = useState(null);
   const [loadingPrintify, setLoadingPrintify] = useState(false);
 
+  // Orders
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
   useEffect(() => {
     checkAdminAccess();
   }, []);
