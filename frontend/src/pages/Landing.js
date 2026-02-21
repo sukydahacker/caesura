@@ -85,7 +85,7 @@ export default function Landing() {
               <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
                 <Sparkles className="h-8 w-8 text-white" />
               </div>
-              <h3 className="font-heading text-2xl font-semibold">1. Upload Your Design</h3>
+              <h3 className="font-heading text-2xl font-semibold text-foreground">1. Upload Your Design</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Sign in with Google and upload your artwork. Our platform handles the rest.
               </p>
@@ -101,7 +101,7 @@ export default function Landing() {
               <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
                 <Shirt className="h-8 w-8 text-white" />
               </div>
-              <h3 className="font-heading text-2xl font-semibold">2. Preview on Apparel</h3>
+              <h3 className="font-heading text-2xl font-semibold text-foreground">2. Preview on Apparel</h3>
               <p className="text-muted-foreground leading-relaxed">
                 See your design on T-shirts and hoodies. Choose sizes and set your price.
               </p>
@@ -117,7 +117,7 @@ export default function Landing() {
               <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
                 <Package className="h-8 w-8 text-white" />
               </div>
-              <h3 className="font-heading text-2xl font-semibold">3. Start Selling</h3>
+              <h3 className="font-heading text-2xl font-semibold text-foreground">3. Start Selling</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Publish to our marketplace. When someone buys, we handle printing and shipping.
               </p>
