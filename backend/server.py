@@ -277,10 +277,15 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
         "description": body.get("description"),
         "image_url": body["image_url"],
         "tags": body.get("tags", []),
+        "approval_status": "pending",
+        "featured": False,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
     await db.designs.insert_one(design_doc)
+    
+    # TODO: Send email notification to admin
+    logger.info(f"New design {design_id} submitted by user {user.user_id} for approval")
     
     return Design(**design_doc)
 
