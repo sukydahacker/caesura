@@ -64,6 +64,7 @@ export const rejectDesign = (designId, reason) => api.post(`/admin/designs/${des
 // Enhanced Admin - Printify & Analytics
 export const getPrintifyBlueprints = () => api.get('/admin/printify/blueprints');
 export const getAdminAnalytics = () => api.get('/admin/analytics');
+export const getAdminOrders = () => api.get('/admin/orders');
 
 // Creator Earnings
 export const getCreatorEarnings = () => api.get('/creator/earnings');
