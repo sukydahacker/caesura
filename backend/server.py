@@ -686,21 +686,19 @@ async def reject_creator(user_id: str, request: Request, session_token: Optional
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Creator not found")
     
-    logger.info(f"Creator {user_id} rejected by admin {user.user_id}")
+    logger.info(f"Creator {user_id} rejected by admin {admin_user.user_id}")
     
     return {"message": "Creator rejected", "user_id": user_id}
 
 @api_router.get("/admin/designs/pending", response_model=List[Design])
 async def get_pending_designs(request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # TODO: Add admin role check
+    await require_admin(request, session_token)
     designs = await db.designs.find({"approval_status": "pending"}, {"_id": 0}).to_list(1000)
     return [Design(**d) for d in designs]
 
 @api_router.post("/admin/designs/{design_id}/approve")
 async def approve_design_admin(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # TODO: Add admin role check
+    admin_user = await require_admin(request, session_token)
     
     body = await request.json()
     blueprint_id = body.get("blueprint_id", 6)  # Default to T-shirt
