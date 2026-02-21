@@ -767,7 +767,7 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
     
     await db.products.insert_one(product_doc)
     
-    logger.info(f"Design {design_id} approved and product {product_id} created by admin {user.user_id}")
+    logger.info(f"Design {design_id} approved and product {product_id} created by admin {admin_user.user_id}")
     
     return {
         "message": "Design approved and product created",
@@ -778,8 +778,7 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
 
 @api_router.post("/admin/designs/{design_id}/reject")
 async def reject_design_admin(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # TODO: Add admin role check
+    admin_user = await require_admin(request, session_token)
     
     body = await request.json()
     reason = body.get("reason", "Design rejected")
