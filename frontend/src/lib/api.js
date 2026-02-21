@@ -44,6 +44,12 @@ export const createOrder = (data) => api.post('/orders', data);
 export const getOrders = () => api.get('/orders');
 export const getOrder = (id) => api.get(`/orders/${id}`);
 
+// Admin
+export const getPendingProducts = () => api.get('/admin/products/pending');
+export const approveProduct = (id) => api.post(`/admin/products/${id}/approve`);
+export const rejectProduct = (id) => api.post(`/admin/products/${id}/reject`);
+export const getMyProducts = () => api.get('/products/my-products');
+
 // Payments
 export const createPaymentOrder = (data) => api.post('/payments/create-order', data);
 export const verifyPayment = (data) => api.post('/payments/verify', data);
