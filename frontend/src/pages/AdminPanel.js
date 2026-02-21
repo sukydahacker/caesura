@@ -565,18 +565,28 @@ export default function AdminPanel() {
                   <div className="flex items-center gap-3">
                     <DollarSign className="h-10 w-10 text-[#0047FF]" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Revenue</p>
+                      <p className="text-sm text-muted-foreground">Gross Revenue</p>
                       <p className="text-4xl font-heading font-bold">₹{analytics.revenue.total_revenue.toFixed(2)}</p>
                     </div>
                   </div>
                   <div className="flex gap-6 pt-4 border-t border-border">
                     <div>
                       <p className="text-sm text-muted-foreground">Platform Earnings (20%)</p>
-                      <p className="text-2xl font-semibold text-green-600">₹{analytics.revenue.platform_earnings.toFixed(2)}</p>
+                      <p className="text-2xl font-semibold text-green-600">
+                        ₹{analytics.revenue.platform_earnings.toFixed(2)}
+                        {analytics.revenue.platform_earnings === 0 && analytics.orders.total > 0 && (
+                          <span className="text-xs text-yellow-600 ml-2">⏳ Pending settlement</span>
+                        )}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Creator Earnings (80%)</p>
-                      <p className="text-2xl font-semibold">₹{analytics.revenue.creator_earnings.toFixed(2)}</p>
+                      <p className="text-2xl font-semibold">
+                        ₹{analytics.revenue.creator_earnings.toFixed(2)}
+                        {analytics.revenue.creator_earnings === 0 && analytics.orders.total > 0 && (
+                          <span className="text-xs text-yellow-600 ml-2">⏳ Pending settlement</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
