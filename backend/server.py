@@ -596,8 +596,7 @@ async def approve_product(product_id: str, request: Request, session_token: Opti
 
 @api_router.post("/admin/products/{product_id}/reject")
 async def reject_product(product_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # Admin check - in production, verify user.is_admin
+    await require_admin(request, session_token)
     
     result = await db.products.update_one(
         {"product_id": product_id},
@@ -619,15 +618,13 @@ async def get_my_products(request: Request, session_token: Optional[str] = Cooki
 
 @api_router.get("/admin/creators/pending", response_model=List[User])
 async def get_pending_creators(request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # TODO: Add admin role check
+    await require_admin(request, session_token)
     creators = await db.users.find({"role": "creator", "creator_status": "pending"}, {"_id": 0}).to_list(1000)
     return [User(**c) for c in creators]
 
 @api_router.post("/admin/creators/{user_id}/approve")
 async def approve_creator(user_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
-    user = await get_current_user(request, session_token)
-    # TODO: Add admin role check
+    admin_user = await require_admin(request, session_token)
     
     result = await db.users.update_one(
         {"user_id": user_id},
