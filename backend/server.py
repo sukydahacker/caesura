@@ -404,7 +404,7 @@ async def create_payment_order(request: Request, session_token: Optional[str] = 
             "amount": razorpay_order["amount"],
             "currency": razorpay_order["currency"]
         }
-    except Exception as e:
+    except Exception:
         # If Razorpay keys not configured, return mock order
         return {
             "order_id": f"order_mock_{uuid.uuid4().hex[:12]}",
