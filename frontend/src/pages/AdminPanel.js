@@ -285,15 +285,19 @@ export default function AdminPanel() {
           <TabsList className="bg-secondary p-1 rounded-full">
             <TabsTrigger value="creators" className="rounded-full" data-testid="tab-creators">
               <Users className="h-4 w-4 mr-2" />
-              Pending Creators
+              Creators
             </TabsTrigger>
             <TabsTrigger value="designs" className="rounded-full" data-testid="tab-designs">
               <FileImage className="h-4 w-4 mr-2" />
-              Pending Designs
+              Designs
+            </TabsTrigger>
+            <TabsTrigger value="products" className="rounded-full" data-testid="tab-products">
+              <Package className="h-4 w-4 mr-2" />
+              Live Products
             </TabsTrigger>
             <TabsTrigger value="orders" className="rounded-full" data-testid="tab-orders">
               <ShoppingBag className="h-4 w-4 mr-2" />
-              All Orders
+              Orders
             </TabsTrigger>
             <TabsTrigger value="analytics" className="rounded-full" data-testid="tab-analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
@@ -301,7 +305,7 @@ export default function AdminPanel() {
             </TabsTrigger>
             <TabsTrigger value="printify" className="rounded-full" data-testid="tab-printify">
               <Settings className="h-4 w-4 mr-2" />
-              Printify Setup
+              Setup
             </TabsTrigger>
           </TabsList>
 
