@@ -952,6 +952,93 @@ async def get_admin_orders(request: Request, session_token: Optional[str] = Cook
     
     return enriched_orders
 
+@api_router.get("/admin/products/live")
+async def get_live_products(request: Request, session_token: Optional[str] = Cookie(None)):
+    await require_admin(request, session_token)
+    
+    # Get all approved products (live, out of stock, or disabled)
+    products = await db.products.find({
+        "is_approved": True,
+        "is_active": True
+    }, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    # Enrich with creator info and units sold
+    enriched_products = []
+    for product in products:
+        # Get creator info
+        creator = await db.users.find_one({"user_id": product["user_id"]}, {"_id": 0, "name": 1, "email": 1})
+        
+        # Calculate units sold from orders
+        pipeline = [
+            {"$match": {"status": {"$in": ["paid", "pending"]}}},
+            {"$unwind": "$items"},
+            {"$match": {"items.product_id": product["product_id"]}},
+            {"$group": {
+                "_id": None,
+                "total_units": {"$sum": "$items.quantity"}
+            }}
+        ]
+        
+        units_data = await db.orders.aggregate(pipeline).to_list(1)
+        units_sold = units_data[0]["total_units"] if units_data else 0
+        
+        enriched_products.append({
+            **product,
+            "creator_name": creator["name"] if creator else "Unknown",
+            "creator_email": creator["email"] if creator else "Unknown",
+            "units_sold": units_sold
+        })
+    
+    logger.info(f"Admin live products query returned {len(enriched_products)} products")
+    
+    return enriched_products
+
+@api_router.put("/admin/products/{product_id}/status")
+async def update_product_status(product_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
+    admin_user = await require_admin(request, session_token)
+    body = await request.json()
+    new_status = body.get("status")  # "live", "out_of_stock", "disabled"
+    
+    if new_status not in ["live", "out_of_stock", "disabled"]:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be: live, out_of_stock, or disabled")
+    
+    # Get product
+    product = await db.products.find_one({"product_id": product_id}, {"_id": 0})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Safety check: if disabling, check if product has orders
+    if new_status == "disabled":
+        has_orders = await db.orders.find_one({
+            "items.product_id": product_id,
+            "status": {"$in": ["paid", "pending"]}
+        })
+        
+        if has_orders:
+            logger.warning(f"Admin tried to disable product {product_id} which has existing orders")
+            # Still allow disable but log it
+    
+    # Update product status
+    result = await db.products.update_one(
+        {"product_id": product_id},
+        {"$set": {
+            "product_status": new_status,
+            "status_updated_at": datetime.now(timezone.utc),
+            "status_updated_by": admin_user.user_id
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    logger.info(f"Product {product_id} status changed to '{new_status}' by admin {admin_user.user_id}")
+    
+    return {
+        "message": f"Product status updated to {new_status}",
+        "product_id": product_id,
+        "new_status": new_status
+    }
+
 # Include router
 app.include_router(api_router)
 
