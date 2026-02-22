@@ -835,6 +835,7 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
     approved_designs = await db.designs.count_documents({"approval_status": "approved"})
     
     total_products = await db.products.count_documents({"is_approved": True})
+    live_products = await db.products.count_documents({"is_approved": True, "product_status": "live"})
     total_orders = await db.orders.count_documents({})
     
     # Calculate revenue from ORDERS (not just paid orders)
