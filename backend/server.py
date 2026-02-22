@@ -903,7 +903,8 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
             "approved": approved_designs
         },
         "products": {
-            "total": total_products
+            "total": total_products,
+            "live": live_products
         },
         "orders": {
             "total": total_orders,
