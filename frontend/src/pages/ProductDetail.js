@@ -162,16 +162,27 @@ export default function ProductDetail() {
             </div>
 
             {/* Add to Cart */}
-            <Button
-              onClick={handleAddToCart}
-              disabled={addingToCart}
-              size="lg"
-              className="w-full h-14 rounded-full font-subheading text-base"
-              data-testid="add-to-cart-btn"
-            >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              {addingToCart ? 'Adding...' : 'Add to Cart'}
-            </Button>
+            {product.product_status === 'out_of_stock' ? (
+              <Button
+                disabled
+                size="lg"
+                className="w-full h-14 rounded-full font-subheading text-base bg-gray-300 cursor-not-allowed"
+                data-testid="add-to-cart-btn-disabled"
+              >
+                Out of Stock
+              </Button>
+            ) : (
+              <Button
+                onClick={handleAddToCart}
+                disabled={addingToCart}
+                size="lg"
+                className="w-full h-14 rounded-full font-subheading text-base"
+                data-testid="add-to-cart-btn"
+              >
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                {addingToCart ? 'Adding...' : 'Add to Cart'}
+              </Button>
+            )}
 
             {/* Product Info */}
             <div className="border-t border-border pt-8 space-y-4">
