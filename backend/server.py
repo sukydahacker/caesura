@@ -81,6 +81,8 @@ class Product(BaseModel):
     base_cost: float = 500.0
     creator_commission_rate: float = 0.8
     platform_commission_rate: float = 0.2
+    product_status: str = "live"  # "live", "out_of_stock", "disabled"
+    units_sold: int = 0
     created_at: datetime
     is_active: bool = True
     is_approved: bool = False
