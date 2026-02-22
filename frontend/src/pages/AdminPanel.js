@@ -160,23 +160,17 @@ export default function AdminPanel() {
     const actionText = newStatus === 'disabled' ? 'disable' : newStatus === 'out_of_stock' ? 'mark as out of stock' : 're-enable';
     const successText = newStatus === 'disabled' ? 'disabled' : newStatus === 'out_of_stock' ? 'marked as out of stock' : 're-enabled';
     
-    if (newStatus === 'disabled' && product?.units_sold > 0) {
-      if (!window.confirm(`This product has ${product.units_sold} units sold. Disabling will hide it from the storefront but won't affect existing orders. Continue?`)) {
-        return;
-      }
-    }
-    
-    if (!window.confirm(`Are you sure you want to ${actionText} "${product?.title}"?`)) {
-      return;
-    }
+    console.log('handleProductStatusChange called:', productId, newStatus);
     
     try {
-      await updateProductStatus(productId, newStatus);
+      const response = await updateProductStatus(productId, newStatus);
+      console.log('API response:', response);
       toast.success(`Product ${successText} successfully`);
       loadLiveProducts();
-      loadAnalytics(); // Refresh analytics
+      loadAnalytics();
     } catch (error) {
-      toast.error(`Failed to ${actionText} product`);
+      console.error('Status change error:', error);
+      toast.error(`Failed to ${actionText} product: ${error.message}`);
     }
   };
 
