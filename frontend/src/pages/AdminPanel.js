@@ -15,7 +15,8 @@ import {
 import { 
   getPendingCreators, approveCreator, suspendCreator, rejectCreator,
   getPendingDesigns, approveDesign, rejectDesign,
-  getPrintifyBlueprints, getAdminAnalytics, getMe, getAdminOrders
+  getPrintifyBlueprints, getAdminAnalytics, getMe, getAdminOrders,
+  getLiveProducts, updateProductStatus
 } from '@/lib/api';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
