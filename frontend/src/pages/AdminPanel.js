@@ -444,6 +444,104 @@ export default function AdminPanel() {
             )}
           </TabsContent>
 
+          {/* Live Products Tab */}
+          <TabsContent value="products" className="space-y-6">
+            {loadingLiveProducts ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : liveProducts.length === 0 ? (
+              <div className="text-center py-20 border border-border rounded" data-testid="no-live-products">
+                <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="font-heading text-xl font-semibold mb-2">No Live Products</h3>
+                <p className="text-muted-foreground">Products will appear here once designs are approved</p>
+              </div>
+            ) : (
+              <div className="space-y-4" data-testid="live-products-list">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-muted-foreground">Showing {liveProducts.length} product(s)</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {liveProducts.map((product, index) => (
+                    <motion.div
+                      key={product.product_id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="border border-border rounded overflow-hidden bg-white"
+                      data-testid={`live-product-card-${index}`}
+                    >
+                      <div className="aspect-square bg-muted relative">
+                        <img 
+                          src={product.mockup_image || product.design_image} 
+                          alt={product.title}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
+                          product.product_status === 'live' ? 'bg-green-100 text-green-700' :
+                          product.product_status === 'out_of_stock' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {product.product_status === 'live' ? 'LIVE' : 
+                           product.product_status === 'out_of_stock' ? 'OUT OF STOCK' : 'DISABLED'}
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 space-y-3">
+                        <div>
+                          <h3 className="font-heading text-lg font-semibold mb-1" data-testid={`product-title-${index}`}>{product.title}</h3>
+                          <p className="text-sm text-muted-foreground">by {product.creator_name || 'Unknown Creator'}</p>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="font-bold text-lg">₹{product.price?.toFixed(2) || '999.00'}</span>
+                            <span className="text-sm text-muted-foreground">{product.units_sold || 0} sold</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-border">
+                          <p className="text-xs text-muted-foreground mb-2">Change Status:</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {product.product_status !== 'live' && (
+                              <Button
+                                onClick={() => handleProductStatusChange(product.product_id, 'live')}
+                                size="sm"
+                                className="rounded-full bg-green-600 hover:bg-green-700 text-xs"
+                                data-testid={`enable-product-btn-${index}`}
+                              >
+                                Enable
+                              </Button>
+                            )}
+                            {product.product_status !== 'out_of_stock' && (
+                              <Button
+                                onClick={() => handleProductStatusChange(product.product_id, 'out_of_stock')}
+                                size="sm"
+                                variant="outline"
+                                className="rounded-full text-xs"
+                                data-testid={`out-of-stock-btn-${index}`}
+                              >
+                                Out of Stock
+                              </Button>
+                            )}
+                            {product.product_status !== 'disabled' && (
+                              <Button
+                                onClick={() => handleProductStatusChange(product.product_id, 'disabled')}
+                                size="sm"
+                                variant="destructive"
+                                className="rounded-full text-xs"
+                                data-testid={`disable-product-btn-${index}`}
+                              >
+                                Disable
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
           {/* All Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
             {loadingOrders ? (
