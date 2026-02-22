@@ -10,7 +10,7 @@ from PIL import Image
 import io
 
 class CaesuraAPITester:
-    def __init__(self, base_url="https://creator-collective-2.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://caesura-admin-debug.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session_token = "test_session_1771657037215"  # Test session from MongoDB
         self.user_id = "test-user-1771657037215"

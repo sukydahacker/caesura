@@ -1,0 +1,191 @@
+<analysis>**original_problem_statement:**
+The user wants to build a modern, premium streetwear marketplace website named Caesura, a print-on-demand fashion platform.
+
+**PRODUCT REQUIREMENTS:**
+
+**Phase 1 (MVP - Mostly Complete):**
+*   Users can sign up/log in using Google OAuth.
+*   Creators can upload apparel designs.
+*   A mocked design preview on T-shirts and hoodies.
+*   A marketplace for other users to browse and purchase designs.
+*   Admin approval workflow: Products are visible on the marketplace only after admin approval.
+*   Payment integration for India (UPI), implemented with Razorpay.
+*   A clean, minimalist design with a light theme, neutral colors, and bold typography.
+
+**Phase 2 (In Progress):**
+*   **Full Admin Panel:**
+    *   Manage creator accounts (approve/suspend/reject).
+    *   Review and approve/reject designs.
+    *   Manually control live product status (Live, Out of Stock, Disabled).
+    *   Monitor all platform orders.
+    *   View analytics: sales, revenue splits, top creators.
+    *   (Future) Manage Printify product blueprints and pricing rules.
+*   **Full Creator Experience:**
+    *   Creator dashboard with sales, earnings, and order tracking.
+*   **Backend & Integrations:**
+    *   Full integration with Printify API for product creation and order fulfillment (currently mocked).
+    *   Automated revenue split calculation (20% for the platform, 80% for the creator).
+    *   Track order lifecycle from placement to delivery.
+*   **Automations (Future):**
+    *   Email notifications for key events (account/design approval, sales).
+
+**User's preferred language**: English
+
+**what currently exists?**
+A full-stack application (React + FastAPI + MongoDB) is in place. Key features include:
+-   Google OAuth for user authentication.
+-   A creator dashboard for uploading designs.
+-   An admin panel with role-based access.
+-   A product approval workflow where an admin must approve products before they appear on the marketplace.
+-   An Orders view in the admin panel to see all placed orders.
+-   Revenue split logic that calculates platform and creator earnings per order.
+-   A forced light theme across the entire application as requested.
+-   The admin user is .
+
+**Last working item**:
+-   **Last item agent was working:** Implementing a Live Products management tab in the Admin Panel. This feature is intended to allow the admin to manually control the visibility and stock status (, , ) of products on the storefront.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** both
+-   **User Testing Done:** Y (User reported that the Live Products tab is empty, which is a bug).
+
+**All Pending/In progress Issue list**:
+-   **Issue 1:** Live Products tab in Admin Panel is empty. (Priority: P0)
+
+**Issues Detail:**
+-   **Issue 1: Live Products tab in Admin Panel is empty.**
+    -   **Attempted fixes:** The agent added a  field to the  collection in the database and ran a migration script to set this field to  for all existing products. A new admin endpoint () and a corresponding frontend tab were created. The fix was unsuccessful because the products are still not appearing, likely due to an incorrect database query in the backend that is still filtering out products (e.g., by an old  flag) or an issue in the data backfill.
+    -   **Next debug checklist:**
+        1.  **Backend ():** Review the  endpoint. Ensure the database query () fetches *all* documents and does not contain filters like  or . This endpoint must return all products regardless of their status for the admin.
+        2.  **Database:** Manually inspect the  collection in MongoDB to confirm that existing products have the  field correctly set to .
+        3.  **API Test:** Use  to call the  endpoint directly (with an admin auth token) to verify if the backend returns the expected list of all products.
+        4.  **Frontend ():** Check the  hook that calls the API to ensure it's fetching data correctly and that the state is being updated.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical admin feature. Fixing it will give the admin full manual control over which products are available on the storefront.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** None
+
+**In progress Task List**:
+-   **Task 1:** Complete the Admin Product Management feature. (Priority: P0)
+
+**Task Detail:**
+-   **Task 1: Complete the Admin Product Management feature.**
+    -   **Where to resume:** Resume by debugging the Live Products tab is empty issue. Once the products are visible, implement the frontend controls (buttons/dropdowns) to allow the admin to change a product's status (, , ).
+    -   **What will be achieved with this?** The admin will be able to manually manage product availability on the storefront directly from the admin panel.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on something:** Blocked on fixing Issue 1: Live Products tab in Admin Panel is empty.
+
+**Upcoming and Future Tasks**
+**Upcoming Tasks:**
+-   **Real Printify Integration (P1):**
+    -   Integrate the Printify API using the keys from the user (not yet provided).
+    -   Implement the logic in  to automatically create products on Printify after admin approval and to track order fulfillment.
+-   **Admin Creator Management (P1):**
+    -   Build the UI in the Admin Panel to allow the admin to approve, suspend, or reject creator accounts. The backend endpoints for this already exist.
+-   **Marketplace Filtering (P2):**
+    -   Add UI controls and backend logic to filter marketplace products by category, popularity, etc.
+
+**Future Tasks:**
+-   **Real Email Notifications:** Replace the mocked console log notifications with a real email service like SendGrid.
+-   **Creator Tiers:** Introduce creator tiers like Verified or Featured.
+-   **Admin Blueprint Management:** Allow the admin to define product blueprints (e.g., T-shirt types, colors, sizes) from Printify.
+
+**Completed work in this session**
+-   **Recently completed:**
+    -   Full-stack application scaffold with React and FastAPI.
+    -   User authentication with Google OAuth.
+    -   Admin role-based access control (RBAC) implemented on both frontend and backend.
+    -   Creator dashboard for design uploads.
+    -   Admin approval workflow for new products.
+    -   Application-wide light theme implemented, dark mode removed.
+    -   Admin panel created with tabs for Analytics and Order viewing.
+    -   Revenue calculation logic fixed to correctly split earnings between the platform and creators.
+    -   Shop Now text updated in the navbar.
+
+**Earlier issues found/mentioned but not fixed**
+None. Issues have been addressed as they arose.
+
+**Known issue recurrence from previous fork**
+N/A
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Backend:** FastAPI, Python
+-   **Frontend:** React, JavaScript, TailwindCSS
+-   **Database:** MongoDB
+-   **Authentication:** Google OAuth
+-   **Payments:** Razorpay
+
+**key DB schema**
+-   **users:** 
+-   **designs:** 
+-   **orders:** 
+-   **revenue_splits:** 
+
+**changes in tech stack**
+None.
+
+**All files of reference**
+-   : Contains all API endpoints, database models, and business logic. This file is becoming large and may need refactoring.
+-   : The central component for all admin-facing UI. It manages multiple tabs for different functions.
+-   : The frontend client for making API calls to the backend.
+-   : The dashboard for creators to upload designs and view their status.
+-   : Stubbed-out service to handle Printify API integration (work in progress).
+
+**Areas that need refactoring**:
+-   : This file has grown very large. It should be broken down into multiple routers using FastAPI's  for better organization (e.g., , ).
+-   : This component is handling the logic and UI for multiple tabs. It should be refactored to use child components for each tab's content (e.g., , ).
+
+**key api endpoints**
+-   : Fetches live products for the public marketplace.
+-   : Fetches all products for the admin panel (currently buggy).
+-   : Updates a product's status.
+-   : Fetches all orders for the admin panel.
+-   : Approves a pending design.
+-   : Gets the current user session and role.
+
+**Critical Info for New Agent**
+-   The user  is the designated admin. You will need to log in as this user to test any admin functionality.
+-   The project is in a phased implementation. The current focus is on building out the **Enhanced Admin Panel** and **Real Printify Integration**.
+-   The user has not yet provided Printify API keys. The Printify integration is currently mocked. A  has been created to guide the user.
+-   A major bug is preventing the Live Products admin tab from showing any products. This is the highest priority issue to resolve.
+
+**documents and test reports created in this job**
+-   
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User (Latest):** Reports bug: Live Products tab in admin panel is empty, even though products exist. Requests data backfill and manual status controls. (IN PROGRESS)
+2.  **User:** Requests an admin view for Live Designs with manual controls to enable/disable them. (IN PROGRESS)
+3.  **User:** Acknowledges fix and asks to proceed with admin product management.
+4.  **User:** Reports bug: Orders are not visible in the admin panel, and revenue analytics are incorrect. (RESOLVED)
+5.  **User:** Requests to disable dark mode entirely and enforce a clean, light theme. (RESOLVED)
+6.  **User:** Requests to change Marketplace to Shop Now and ensure non-admins cannot see admin controls. (RESOLVED)
+7.  **User:** Confirms to continue building the enhanced admin panel. (DONE)
+8.  **User:** Asks how to log in as admin with email . (RESOLVED)
+9.  **User:** Asks how to log in as admin with a slightly different email (typo). (RESOLVED)
+10. **User:** Provides a comprehensive spec for the full platform, kicking off Phase 2. (IN PROGRESS)
+
+**Project Health Check:**
+-   **Broken:** The Live Products feature in the Admin Panel is currently broken and does not display any data.
+-   **Mocked:** The Printify API integration is mocked. All functions in  are placeholders. Email notifications are also mocked (console logs).
+
+**3rd Party Integrations**
+-   **Emergent-managed Google Auth:** Used for user login and registration.
+-   **Razorpay:** Integrated for processing payments, targeting the Indian market (UPI).
+-   **Printify:** Planned for print-on-demand services. Currently mocked and requires user-provided API keys to become functional.
+
+**Testing status**
+-   **Testing agent used after significant changes:** NO
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** []
+-   **Known regressions:** The Live Products feature is non-functional after being implemented.
+
+**Credentials to test flow:**
+-   **Admin User:**  (Login via Google OAuth button).
+
+**What agent forgot to execute**
+The agent attempted a data migration to add the  field to existing products but failed to ensure the corresponding admin API () would correctly fetch them. The query for this endpoint is likely still filtering based on old criteria, preventing any products from being returned to the Live Products admin view.</analysis>
