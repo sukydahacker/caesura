@@ -772,6 +772,8 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
         "base_cost": 500.0,
         "creator_commission_rate": 0.8,
         "platform_commission_rate": 0.2,
+        "product_status": "live",  # Default to live
+        "units_sold": 0,
         "created_at": datetime.now(timezone.utc),
         "is_active": True,
         "is_approved": True,
