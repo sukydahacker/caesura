@@ -157,7 +157,8 @@ export default function AdminPanel() {
 
   const handleProductStatusChange = async (productId, newStatus) => {
     const product = liveProducts.find(p => p.product_id === productId);
-    const statusText = newStatus === 'disabled' ? 'disable' : newStatus === 'out_of_stock' ? 'mark as out of stock' : 're-enable';
+    const actionText = newStatus === 'disabled' ? 'disable' : newStatus === 'out_of_stock' ? 'mark as out of stock' : 're-enable';
+    const successText = newStatus === 'disabled' ? 'disabled' : newStatus === 'out_of_stock' ? 'marked as out of stock' : 're-enabled';
     
     if (newStatus === 'disabled' && product?.units_sold > 0) {
       if (!window.confirm(`This product has ${product.units_sold} units sold. Disabling will hide it from the storefront but won't affect existing orders. Continue?`)) {
@@ -165,17 +166,17 @@ export default function AdminPanel() {
       }
     }
     
-    if (!window.confirm(`Are you sure you want to ${statusText} "${product?.title}"?`)) {
+    if (!window.confirm(`Are you sure you want to ${actionText} "${product?.title}"?`)) {
       return;
     }
     
     try {
       await updateProductStatus(productId, newStatus);
-      toast.success(`Product ${statusText}d successfully`);
+      toast.success(`Product ${successText} successfully`);
       loadLiveProducts();
       loadAnalytics(); // Refresh analytics
     } catch (error) {
-      toast.error(`Failed to ${statusText} product`);
+      toast.error(`Failed to ${actionText} product`);
     }
   };
 
