@@ -66,8 +66,13 @@ export default function Marketplace() {
                   <img 
                     src={product.mockup_image} 
                     alt={product.title}
-                    className="w-full h-full object-contain transition-transform group-hover:scale-105"
+                    className={`w-full h-full object-contain transition-transform group-hover:scale-105 ${product.product_status === 'out_of_stock' ? 'opacity-70' : ''}`}
                   />
+                  {product.product_status === 'out_of_stock' && (
+                    <div className="absolute top-3 right-3 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold" data-testid={`out-of-stock-badge-${index}`}>
+                      OUT OF STOCK
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-1">
@@ -75,7 +80,12 @@ export default function Marketplace() {
                     {product.apparel_type === 'tshirt' ? 'T-Shirt' : 'Hoodie'}
                   </p>
                   <h3 className="font-heading text-xl font-semibold" data-testid={`product-title-${index}`}>{product.title}</h3>
-                  <p className="font-subheading text-lg font-semibold" data-testid={`product-price-${index}`}>₹{product.price}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-subheading text-lg font-semibold" data-testid={`product-price-${index}`}>₹{product.price}</p>
+                    {product.product_status === 'out_of_stock' && (
+                      <span className="text-sm text-yellow-600 font-medium">• Unavailable</span>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}
