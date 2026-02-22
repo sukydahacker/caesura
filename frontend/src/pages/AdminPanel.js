@@ -54,6 +54,10 @@ export default function AdminPanel() {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
+  // Live Products
+  const [liveProducts, setLiveProducts] = useState([]);
+  const [loadingLiveProducts, setLoadingLiveProducts] = useState(false);
+
   useEffect(() => {
     checkAdminAccess();
   }, []);
