@@ -65,6 +65,8 @@ export const rejectDesign = (designId, reason) => api.post(`/admin/designs/${des
 export const getPrintifyBlueprints = () => api.get('/admin/printify/blueprints');
 export const getAdminAnalytics = () => api.get('/admin/analytics');
 export const getAdminOrders = () => api.get('/admin/orders');
+export const getLiveProducts = () => api.get('/admin/products/live');
+export const updateProductStatus = (productId, status) => api.put(`/admin/products/${productId}/status`, { status });
 
 // Creator Earnings
 export const getCreatorEarnings = () => api.get('/creator/earnings');
