@@ -351,8 +351,12 @@ async def create_product(request: Request, session_token: Optional[str] = Cookie
 
 @api_router.get("/products", response_model=List[Product])
 async def get_products(skip: int = 0, limit: int = 50):
-    # Only show approved products on marketplace
-    products = await db.products.find({"is_active": True, "is_approved": True}, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
+    # Only show approved AND live/out_of_stock products on marketplace (disabled products hidden)
+    products = await db.products.find({
+        "is_active": True, 
+        "is_approved": True,
+        "product_status": {"$in": ["live", "out_of_stock"]}
+    }, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
     return [Product(**p) for p in products]
 
 @api_router.get("/products/{product_id}", response_model=Product)
