@@ -257,9 +257,10 @@ export default function AdminPanel() {
     setActiveTab(value);
     if (value === 'creators') loadCreators();
     if (value === 'designs') loadDesigns();
+    if (value === 'products') loadLiveProducts();
+    if (value === 'orders') loadOrders();
     if (value === 'analytics') loadAnalytics();
     if (value === 'printify') loadPrintify();
-    if (value === 'orders') loadOrders();
   };
 
   if (loading) {
