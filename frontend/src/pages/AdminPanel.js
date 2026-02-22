@@ -143,6 +143,42 @@ export default function AdminPanel() {
     }
   };
 
+  const loadLiveProducts = async () => {
+    setLoadingLiveProducts(true);
+    try {
+      const response = await getLiveProducts();
+      setLiveProducts(response.data);
+    } catch (error) {
+      toast.error('Failed to load live products');
+    } finally {
+      setLoadingLiveProducts(false);
+    }
+  };
+
+  const handleProductStatusChange = async (productId, newStatus) => {
+    const product = liveProducts.find(p => p.product_id === productId);
+    const statusText = newStatus === 'disabled' ? 'disable' : newStatus === 'out_of_stock' ? 'mark as out of stock' : 're-enable';
+    
+    if (newStatus === 'disabled' && product?.units_sold > 0) {
+      if (!window.confirm(`This product has ${product.units_sold} units sold. Disabling will hide it from the storefront but won't affect existing orders. Continue?`)) {
+        return;
+      }
+    }
+    
+    if (!window.confirm(`Are you sure you want to ${statusText} "${product?.title}"?`)) {
+      return;
+    }
+    
+    try {
+      await updateProductStatus(productId, newStatus);
+      toast.success(`Product ${statusText}d successfully`);
+      loadLiveProducts();
+      loadAnalytics(); // Refresh analytics
+    } catch (error) {
+      toast.error(`Failed to ${statusText} product`);
+    }
+  };
+
   const handleApproveCreator = async (userId) => {
     try {
       await approveCreator(userId);
