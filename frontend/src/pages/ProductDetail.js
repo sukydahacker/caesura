@@ -103,6 +103,11 @@ export default function ProductDetail() {
                 {product.title}
               </h1>
               <p className="font-subheading text-3xl font-bold" data-testid="product-detail-price">₹{product.price}</p>
+              {product.product_status === 'out_of_stock' && (
+                <div className="mt-3 inline-block bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-semibold" data-testid="out-of-stock-notice">
+                  Currently Out of Stock
+                </div>
+              )}
             </div>
 
             {product.description && (
