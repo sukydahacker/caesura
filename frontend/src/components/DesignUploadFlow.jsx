@@ -15,13 +15,13 @@ import { PRINT_PRESETS, GARMENT_COLORS, DESIGN_STATES } from '@/config/printPres
 
 // Relaxed design requirements for creator-friendly validation
 const VALIDATION_CONFIG = {
-  // Hard fail thresholds (truly unusable)
+  // Hard fail thresholds (truly unusable - very small images)
   hardFail: {
-    minShortSide: 1500, // Below this, image is too small to print anything
+    minShortSide: 500, // Below this, image is way too small
   },
   // Soft pass thresholds (acceptable with warnings)
   softPass: {
-    minShortSide: 3000, // Minimum acceptable for print
+    minShortSide: 2000, // Below this, show optimization warning
   },
   // Preferred thresholds (recommended, no warnings)
   preferred: {
