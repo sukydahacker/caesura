@@ -95,7 +95,14 @@ Build a modern, premium streetwear marketplace website named "Caesura" - a print
   - Smart embroidery compatibility detection
   - Design states and status-grouped display
   - Products View slide-out panel
-- **TESTED**: Backend 11/11 tests passed, Frontend 100% pass rate
+- **UPDATED**: Creator-friendly validation (warning-based UX)
+  - Hard fail only at <1500px (truly unusable)
+  - Soft pass at ≥3000px with optimization warning
+  - JPEG/WebP accepted with format conversion warning
+  - Transparency not required - background cleanup handled by admin
+  - Embroidery: warning at >4 colors, disable at >6 colors
+  - Admin flags stored for quality issues (low_resolution, background_cleanup_required, etc.)
+- **TESTED**: Backend 9/9 passed, Frontend 5/5 validation scenarios passed
 
 ### 2026-02-22
 - **FIXED**: Live Products tab in Admin Panel was empty
