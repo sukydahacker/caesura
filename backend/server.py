@@ -303,6 +303,31 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
     body = await request.json()
     
     design_id = f"design_{uuid.uuid4().hex[:12]}"
+    
+    # Extract product configurations if provided
+    product_configs = body.get("products", [])
+    design_analysis = body.get("analysis", None)
+    
+    # Determine initial status
+    initial_status = "submitted" if product_configs else "draft"
+    
+    # Build internal print metadata (not exposed to creators)
+    print_metadata = None
+    if product_configs:
+        print_metadata = {
+            "products": [
+                {
+                    "product_type": pc.get("productType"),
+                    "print_method": pc.get("printMethod"),
+                    "preset_id": pc.get("preset"),
+                    "placement": "front",  # Default placement
+                    "final_print_size": calculate_print_size(pc.get("productType"), design_analysis)
+                }
+                for pc in product_configs
+            ],
+            "submitted_at": datetime.now(timezone.utc).isoformat()
+        }
+    
     design_doc = {
         "design_id": design_id,
         "user_id": user.user_id,
@@ -310,17 +335,58 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
         "description": body.get("description"),
         "image_url": body["image_url"],
         "tags": body.get("tags", []),
-        "approval_status": "pending",
+        "approval_status": initial_status,
         "featured": False,
+        "product_configs": product_configs,
+        "design_analysis": design_analysis,
+        "print_metadata": print_metadata,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
     await db.designs.insert_one(design_doc)
     
-    # TODO: Send email notification to admin
-    logger.info(f"New design {design_id} submitted by user {user.user_id} for approval")
+    logger.info(f"New design {design_id} submitted by user {user.user_id} with {len(product_configs)} products")
     
     return Design(**design_doc)
+
+
+def calculate_print_size(product_type: str, analysis: dict) -> dict:
+    """Calculate final print dimensions based on preset and design analysis"""
+    # Internal print presets (matching frontend config)
+    presets = {
+        "tshirt": {"max_width_cm": 38, "max_height_cm": 48, "scale_ratio": 0.85},
+        "hoodie": {"max_width_cm": 38, "max_height_cm": 48, "scale_ratio": 0.85},
+        "oversized_tshirt": {"max_width_cm": 40, "max_height_cm": 52, "scale_ratio": 0.82},
+        "varsity_jacket": {"max_width_cm": 9, "max_height_cm": 9, "scale_ratio": 0.9},
+        "cap": {"max_width_cm": 6.5, "max_height_cm": 5, "scale_ratio": 0.9}
+    }
+    
+    preset = presets.get(product_type, presets["tshirt"])
+    
+    if not analysis:
+        return {
+            "width_cm": preset["max_width_cm"] * preset["scale_ratio"],
+            "height_cm": preset["max_height_cm"] * preset["scale_ratio"]
+        }
+    
+    design_width = analysis.get("width", 4500)
+    design_height = analysis.get("height", 5400)
+    aspect_ratio = design_width / design_height
+    
+    max_w = preset["max_width_cm"] * preset["scale_ratio"]
+    max_h = preset["max_height_cm"] * preset["scale_ratio"]
+    
+    if aspect_ratio > (max_w / max_h):
+        final_w = max_w
+        final_h = max_w / aspect_ratio
+    else:
+        final_h = max_h
+        final_w = max_h * aspect_ratio
+    
+    return {
+        "width_cm": round(final_w, 2),
+        "height_cm": round(final_h, 2)
+    }
 
 @api_router.get("/designs", response_model=List[Design])
 async def get_designs(request: Request, session_token: Optional[str] = Cookie(None)):
