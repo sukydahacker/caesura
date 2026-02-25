@@ -49,6 +49,25 @@ class User(BaseModel):
     creator_bio: Optional[str] = None
     created_at: datetime
 
+class DesignProductConfig(BaseModel):
+    """Configuration for each product type a design is enabled on"""
+    model_config = ConfigDict(extra="ignore")
+    product_type: str  # tshirt, hoodie, oversized_tshirt, varsity_jacket, cap
+    color: str  # white, black, navy, etc.
+    preset: str  # preset id
+    print_method: str  # dtf, embroidery
+    base_price: float
+    enabled: bool = True
+
+class DesignAnalysis(BaseModel):
+    """Analysis results from design validation"""
+    model_config = ConfigDict(extra="ignore")
+    width: int
+    height: int
+    has_transparency: bool = True
+    color_count: int = 0
+    has_gradients: bool = False
+
 class Design(BaseModel):
     model_config = ConfigDict(extra="ignore")
     design_id: str
@@ -57,10 +76,15 @@ class Design(BaseModel):
     description: Optional[str] = None
     image_url: str
     tags: List[str] = []
-    approval_status: str = "pending"  # "pending", "approved", "rejected"
+    approval_status: str = "draft"  # "draft", "submitted", "approved", "live", "rejected"
     rejection_reason: Optional[str] = None
     approved_by_admin_id: Optional[str] = None
     featured: bool = False
+    # Enhanced fields
+    product_configs: List[dict] = []  # Product configurations
+    design_analysis: Optional[dict] = None  # Analysis metadata
+    # Internal metadata (for admin/production)
+    print_metadata: Optional[dict] = None  # Internal print specifications
     created_at: datetime
     updated_at: datetime
 
