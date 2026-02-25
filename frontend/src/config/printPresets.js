@@ -140,13 +140,23 @@ export const PRINT_PRESETS = {
   }
 };
 
-// Design validation requirements
+// Design validation requirements - RELAXED for creator-friendliness
+// Hard requirements only block truly unusable files
+// Soft requirements show warnings but allow upload
 export const DESIGN_REQUIREMENTS = {
-  minWidth: 4500, // pixels
-  minHeight: 5400, // pixels
-  minDPI: 300,
-  allowedFormats: ['image/png'],
-  requireTransparency: true
+  // Hard fail: Below this, image cannot be printed at all
+  hardMinShortSide: 1500, // pixels
+  // Soft pass: Acceptable with optimization warning
+  softMinShortSide: 3000, // pixels
+  // Preferred: No warnings, optimal quality
+  preferredWidth: 4500, // pixels
+  preferredHeight: 5400, // pixels
+  // Format preferences
+  preferredFormat: 'image/png',
+  allowedFormats: ['image/png', 'image/jpeg', 'image/webp'],
+  // Embroidery limits
+  embroideryMaxColors: 4, // soft limit
+  embroideryHardMaxColors: 6, // hard limit
 };
 
 // Color palette for garments
