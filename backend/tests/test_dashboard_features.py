@@ -261,10 +261,23 @@ class TestUserProfile:
 class TestFileUpload:
     """Test design file upload endpoint"""
     
-    def test_upload_requires_auth(self):
-        """Test that upload requires authentication"""
-        # Try without auth
+    def test_upload_requires_file(self):
+        """Test that upload requires file (422 when no file provided)"""
+        # Without auth it returns 422 because file validation happens first
         response = requests.post(f"{BASE_URL}/api/upload/design")
+        # FastAPI validates file presence before auth check
+        assert response.status_code == 422
+        
+    def test_upload_with_invalid_auth(self):
+        """Test upload with invalid auth returns 401"""
+        import io
+        # Create a simple test image
+        files = {"file": ("test.png", io.BytesIO(b"fake png data"), "image/png")}
+        response = requests.post(
+            f"{BASE_URL}/api/upload/design",
+            files=files,
+            headers={"Authorization": "Bearer invalid_token"}
+        )
         assert response.status_code == 401
 
 
