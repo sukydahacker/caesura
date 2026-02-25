@@ -8,109 +8,40 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { 
   Upload, X, Check, AlertTriangle, ChevronRight, ChevronLeft, 
-  Loader2, Palette, Eye, ShoppingBag, Info
+  Loader2, Palette, Eye, ShoppingBag, Info, AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { PRINT_PRESETS, GARMENT_COLORS, DESIGN_REQUIREMENTS, DESIGN_STATES } from '@/config/printPresets';
+import { PRINT_PRESETS, GARMENT_COLORS, DESIGN_STATES } from '@/config/printPresets';
 
-// Mockup canvas component for generating product previews
-const MockupCanvas = ({ designImage, productType, garmentColor, placement = 'front' }) => {
-  const canvasRef = useRef(null);
-  const [mockupReady, setMockupReady] = useState(false);
-  
-  const preset = PRINT_PRESETS[productType];
-  const mockupUrl = preset?.mockupImages?.[garmentColor] || preset?.mockupImages?.white;
-  
-  useEffect(() => {
-    if (!canvasRef.current || !designImage || !mockupUrl) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    // Load mockup image
-    const mockupImg = new Image();
-    mockupImg.crossOrigin = 'anonymous';
-    
-    const designImg = new Image();
-    designImg.crossOrigin = 'anonymous';
-    
-    let mounted = true;
-    
-    mockupImg.onload = () => {
-      if (!mounted) return;
-      
-      canvas.width = 600;
-      canvas.height = 750;
-      
-      // Draw mockup
-      ctx.drawImage(mockupImg, 0, 0, canvas.width, canvas.height);
-      
-      // Load and draw design
-      designImg.onload = () => {
-        if (!mounted) return;
-        
-        // Calculate design position and size based on product type
-        const placementConfig = getPlacementConfig(productType, placement);
-        
-        // Design overlay position (percentage-based for flexibility)
-        const designX = canvas.width * placementConfig.x;
-        const designY = canvas.height * placementConfig.y;
-        const designW = canvas.width * placementConfig.width;
-        const designH = (designImg.height / designImg.width) * designW;
-        
-        // Center the design
-        const offsetX = designX - (designW / 2);
-        const offsetY = designY - (designH / 2);
-        
-        ctx.drawImage(designImg, offsetX, offsetY, designW, designH);
-        setMockupReady(true);
-      };
-      
-      designImg.src = designImage;
-    };
-    
-    mockupImg.src = mockupUrl;
-    
-    return () => {
-      mounted = false;
-    };
-  }, [designImage, mockupUrl, productType, placement]);
-  
-  // Placement configurations for different products
-  const getPlacementConfig = (type, placement) => {
-    const configs = {
-      tshirt: { front: { x: 0.5, y: 0.42, width: 0.45 } },
-      hoodie: { front: { x: 0.5, y: 0.42, width: 0.42 } },
-      oversized_tshirt: { front: { x: 0.5, y: 0.4, width: 0.5 } },
-      varsity_jacket: { left_chest: { x: 0.35, y: 0.35, width: 0.15 } },
-      cap: { front: { x: 0.5, y: 0.45, width: 0.35 } }
-    };
-    return configs[type]?.[placement] || configs.tshirt.front;
-  };
-  
-  return (
-    <div className="relative aspect-[4/5] bg-muted overflow-hidden">
-      <canvas 
-        ref={canvasRef} 
-        className="w-full h-full object-contain"
-        style={{ display: mockupReady ? 'block' : 'none' }}
-      />
-      {!mockupReady && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      )}
-    </div>
-  );
+// Relaxed design requirements for creator-friendly validation
+const VALIDATION_CONFIG = {
+  // Hard fail thresholds (truly unusable)
+  hardFail: {
+    minShortSide: 1500, // Below this, image is too small to print anything
+  },
+  // Soft pass thresholds (acceptable with warnings)
+  softPass: {
+    minShortSide: 3000, // Minimum acceptable for print
+  },
+  // Preferred thresholds (recommended, no warnings)
+  preferred: {
+    minWidth: 4500,
+    minHeight: 5400,
+  },
+  // Embroidery constraints (soft limits)
+  embroidery: {
+    maxColors: 4, // Soft limit, above this shows warning
+    hardMaxColors: 6, // Hard limit, above this disable embroidery
+  },
+  allowedFormats: ['image/png', 'image/jpeg', 'image/webp'] // Accept more formats
 };
 
-// Simple mockup using CSS overlay (fallback)
+// Simple mockup using CSS overlay
 const SimpleMockup = ({ designImage, productType, garmentColor }) => {
   const preset = PRINT_PRESETS[productType];
   const mockupUrl = preset?.mockupImages?.[garmentColor] || preset?.mockupImages?.white;
   const colorInfo = GARMENT_COLORS[garmentColor];
   
-  // Get positioning based on product type
   const getOverlayStyle = () => {
     switch (productType) {
       case 'varsity_jacket':
@@ -149,6 +80,24 @@ const SimpleMockup = ({ designImage, productType, garmentColor }) => {
   );
 };
 
+// Warning badge component
+const WarningBadge = ({ type, message }) => {
+  const configs = {
+    info: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', icon: Info },
+    warning: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', icon: AlertTriangle },
+    error: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: AlertCircle },
+  };
+  const config = configs[type] || configs.info;
+  const Icon = config.icon;
+  
+  return (
+    <div className={`flex items-start gap-2 p-3 rounded-lg ${config.bg} ${config.border} border`}>
+      <Icon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${config.text}`} />
+      <p className={`text-sm ${config.text}`}>{message}</p>
+    </div>
+  );
+};
+
 // Product card for the preview grid
 const ProductPreviewCard = ({ 
   productType, 
@@ -156,6 +105,7 @@ const ProductPreviewCard = ({
   enabled, 
   onToggle, 
   incompatibilityReason,
+  warningMessage,
   selectedColor,
   onColorChange 
 }) => {
@@ -171,24 +121,31 @@ const ProductPreviewCard = ({
         enabled ? 'border-border' : 'border-border/50 opacity-60'
       }`}
     >
-      {/* Product mockup */}
       <SimpleMockup 
         designImage={enabled ? designImage : null}
         productType={productType}
         garmentColor={selectedColor}
       />
       
-      {/* Incompatibility overlay */}
+      {/* Hard incompatibility overlay */}
       {incompatibilityReason && (
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center p-4">
           <div className="text-center text-white">
-            <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-400" />
+            <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-400" />
             <p className="text-sm font-medium">{incompatibilityReason}</p>
           </div>
         </div>
       )}
       
-      {/* Product info */}
+      {/* Soft warning overlay */}
+      {!incompatibilityReason && warningMessage && enabled && (
+        <div className="absolute top-2 left-2 right-2">
+          <div className="bg-yellow-500/90 text-white px-2 py-1 rounded text-xs text-center">
+            {warningMessage}
+          </div>
+        </div>
+      )}
+      
       <div className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -205,7 +162,6 @@ const ProductPreviewCard = ({
           />
         </div>
         
-        {/* Color selector */}
         {enabled && (
           <div className="space-y-2">
             <button
@@ -249,20 +205,19 @@ const ProductPreviewCard = ({
 
 // Main Upload Design Flow Component
 export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
-  const [step, setStep] = useState(1); // 1: Upload, 2: Preview, 3: Details
+  const [step, setStep] = useState(1);
   const [designFile, setDesignFile] = useState(null);
   const [designPreview, setDesignPreview] = useState(null);
   const [designAnalysis, setDesignAnalysis] = useState(null);
-  const [validationErrors, setValidationErrors] = useState([]);
+  const [validationResult, setValidationResult] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
   
-  // Product configuration
   const [enabledProducts, setEnabledProducts] = useState({
     tshirt: true,
     hoodie: true,
     oversized_tshirt: true,
-    varsity_jacket: false,
-    cap: false
+    varsity_jacket: true,
+    cap: true
   });
   
   const [productColors, setProductColors] = useState({
@@ -273,12 +228,10 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
     cap: 'black'
   });
   
-  // Design details
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   
-  // Reset on close
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
@@ -286,98 +239,195 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
         setDesignFile(null);
         setDesignPreview(null);
         setDesignAnalysis(null);
-        setValidationErrors([]);
+        setValidationResult(null);
         setTitle('');
         setDescription('');
         setEnabledProducts({
           tshirt: true,
           hoodie: true,
           oversized_tshirt: true,
-          varsity_jacket: false,
-          cap: false
+          varsity_jacket: true,
+          cap: true
         });
       }, 300);
     }
   }, [open]);
   
-  // File validation and analysis
+  // Creator-friendly validation
   const validateAndAnalyzeDesign = useCallback(async (file) => {
     setIsValidating(true);
-    setValidationErrors([]);
+    setValidationResult(null);
     
-    const errors = [];
+    const result = {
+      canProceed: true,
+      hardErrors: [],
+      warnings: [],
+      adminFlags: [],
+      quality: 'optimal' // 'optimal', 'acceptable', 'needs_optimization'
+    };
     
-    // Check file type
-    if (!DESIGN_REQUIREMENTS.allowedFormats.includes(file.type)) {
-      errors.push('Please upload a PNG file. Other formats are not supported.');
+    // Check file type - be more permissive
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+      result.hardErrors.push('Please upload an image file (PNG, JPEG, or WebP).');
+      result.canProceed = false;
     }
     
-    // Load and analyze image
+    // Prefer PNG but accept others with warning
+    if (isImage && file.type !== 'image/png') {
+      result.warnings.push('PNG format is recommended for best print quality. Your file will be converted during preparation.');
+      result.adminFlags.push('format_conversion_needed');
+    }
+    
     const reader = new FileReader();
     
     return new Promise((resolve) => {
       reader.onload = async (e) => {
         const img = new Image();
         img.onload = () => {
-          // Check dimensions
-          if (img.width < DESIGN_REQUIREMENTS.minWidth || img.height < DESIGN_REQUIREMENTS.minHeight) {
-            errors.push(`Design resolution is too low. Minimum required: ${DESIGN_REQUIREMENTS.minWidth} × ${DESIGN_REQUIREMENTS.minHeight} pixels.`);
+          const shortSide = Math.min(img.width, img.height);
+          const longSide = Math.max(img.width, img.height);
+          
+          // Hard fail: Image too small to print anything
+          if (shortSide < VALIDATION_CONFIG.hardFail.minShortSide) {
+            result.hardErrors.push(`Image is too small for printing. Minimum ${VALIDATION_CONFIG.hardFail.minShortSide}px required on the shortest side.`);
+            result.canProceed = false;
+          }
+          // Soft pass: Below recommended but acceptable
+          else if (shortSide < VALIDATION_CONFIG.softPass.minShortSide) {
+            result.warnings.push('Resolution is below recommended. May affect print sharpness on larger products.');
+            result.adminFlags.push('low_resolution');
+            result.quality = 'needs_optimization';
+          }
+          // Check against preferred dimensions
+          else if (img.width < VALIDATION_CONFIG.preferred.minWidth || img.height < VALIDATION_CONFIG.preferred.minHeight) {
+            result.warnings.push(`Recommended size is ${VALIDATION_CONFIG.preferred.minWidth} × ${VALIDATION_CONFIG.preferred.minHeight}px for optimal quality.`);
+            result.quality = 'acceptable';
           }
           
-          // Analyze image for embroidery compatibility
+          // Analyze image
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          canvas.width = Math.min(img.width, 200); // Sample at smaller size
-          canvas.height = Math.min(img.height, 200);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const sampleSize = Math.min(200, img.width, img.height);
+          canvas.width = sampleSize;
+          canvas.height = sampleSize;
+          ctx.drawImage(img, 0, 0, sampleSize, sampleSize);
           
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize);
           const analysis = analyzeImageData(imageData);
           
-          // Check for transparency
-          if (!analysis.hasTransparency) {
-            errors.push('Design must have a transparent background.');
+          // Transparency check - be lenient
+          if (!analysis.hasTransparency && !analysis.hasCleanBackground) {
+            result.warnings.push('Background will be cleaned during print preparation.');
+            result.adminFlags.push('background_cleanup_required');
+          } else if (!analysis.hasTransparency && analysis.hasCleanBackground) {
+            // Has uniform background - acceptable
+            result.adminFlags.push('background_cleanup_recommended');
           }
           
-          setDesignAnalysis({
+          // Set analysis data
+          const fullAnalysis = {
             width: img.width,
             height: img.height,
             hasTransparency: analysis.hasTransparency,
+            hasCleanBackground: analysis.hasCleanBackground,
             colorCount: analysis.colorCount,
             hasGradients: analysis.hasGradients,
-            dominantColors: analysis.dominantColors
-          });
+            dominantColors: analysis.dominantColors,
+            quality: result.quality,
+            adminFlags: result.adminFlags
+          };
           
-          // Auto-disable embroidery products if incompatible
-          if (analysis.hasGradients || analysis.colorCount > 5) {
+          setDesignAnalysis(fullAnalysis);
+          
+          // Auto-configure embroidery products based on analysis
+          if (analysis.colorCount > VALIDATION_CONFIG.embroidery.hardMaxColors || analysis.hasGradients) {
+            // Hard disable embroidery
             setEnabledProducts(prev => ({
               ...prev,
               varsity_jacket: false,
               cap: false
             }));
+          } else if (analysis.colorCount > VALIDATION_CONFIG.embroidery.maxColors) {
+            // Soft warning but allow
+            result.adminFlags.push('embroidery_not_recommended');
           }
           
           setIsValidating(false);
-          setValidationErrors(errors);
-          resolve(errors.length === 0);
+          setValidationResult(result);
+          resolve(result);
+        };
+        
+        img.onerror = () => {
+          result.hardErrors.push('Could not read image file. Please try a different file.');
+          result.canProceed = false;
+          setIsValidating(false);
+          setValidationResult(result);
+          resolve(result);
         };
         
         img.src = e.target.result;
         setDesignPreview(e.target.result);
       };
       
+      reader.onerror = () => {
+        result.hardErrors.push('Could not read file. Please try again.');
+        result.canProceed = false;
+        setIsValidating(false);
+        setValidationResult(result);
+        resolve(result);
+      };
+      
       reader.readAsDataURL(file);
     });
   }, []);
   
-  // Analyze image data for color count, gradients, transparency
+  // Enhanced image analysis
   const analyzeImageData = (imageData) => {
     const data = imageData.data;
     const colorSet = new Set();
-    let hasTransparency = false;
+    let transparentPixels = 0;
+    let totalPixels = data.length / 4;
     let hasGradients = false;
-    let prevR = -1, prevG = -1, prevB = -1;
     let gradientCount = 0;
+    
+    // Track background color (sample corners)
+    const corners = [];
+    const w = imageData.width;
+    const h = imageData.height;
+    const cornerPositions = [
+      0, // top-left
+      (w - 1) * 4, // top-right
+      (h - 1) * w * 4, // bottom-left
+      ((h - 1) * w + (w - 1)) * 4 // bottom-right
+    ];
+    
+    cornerPositions.forEach(pos => {
+      if (pos < data.length - 3) {
+        corners.push({
+          r: data[pos],
+          g: data[pos + 1],
+          b: data[pos + 2],
+          a: data[pos + 3]
+        });
+      }
+    });
+    
+    // Check if corners are similar (uniform background)
+    let hasCleanBackground = false;
+    if (corners.length >= 4) {
+      const first = corners[0];
+      const allSimilar = corners.every(c => 
+        Math.abs(c.r - first.r) < 30 &&
+        Math.abs(c.g - first.g) < 30 &&
+        Math.abs(c.b - first.b) < 30
+      );
+      // Clean background if corners are similar and light colored
+      const isLight = (first.r + first.g + first.b) / 3 > 200;
+      hasCleanBackground = allSimilar && (isLight || first.a < 50);
+    }
+    
+    let prevR = -1, prevG = -1, prevB = -1;
     
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
@@ -385,19 +435,18 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
       const b = data[i + 2];
       const a = data[i + 3];
       
-      // Check transparency
-      if (a < 255) {
-        hasTransparency = true;
+      if (a < 250) {
+        transparentPixels++;
       }
       
-      // Quantize colors for counting
-      const quantized = `${Math.round(r/32)}${Math.round(g/32)}${Math.round(b/32)}`;
+      // Quantize colors more aggressively for accurate count
+      const quantized = `${Math.round(r/40)}${Math.round(g/40)}${Math.round(b/40)}`;
       colorSet.add(quantized);
       
-      // Detect gradients (smooth color transitions)
-      if (prevR !== -1) {
+      // Detect gradients
+      if (prevR !== -1 && a > 200) {
         const diff = Math.abs(r - prevR) + Math.abs(g - prevG) + Math.abs(b - prevB);
-        if (diff > 0 && diff < 20) {
+        if (diff > 0 && diff < 15) {
           gradientCount++;
         }
       }
@@ -405,64 +454,75 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
       prevR = r; prevG = g; prevB = b;
     }
     
-    // If many small transitions, likely has gradients
-    hasGradients = gradientCount > (data.length / 4) * 0.3;
+    const transparencyRatio = transparentPixels / totalPixels;
+    hasGradients = gradientCount > totalPixels * 0.25;
     
     return {
-      hasTransparency,
+      hasTransparency: transparencyRatio > 0.05, // More than 5% transparent
+      hasCleanBackground,
       colorCount: colorSet.size,
       hasGradients,
       dominantColors: Array.from(colorSet).slice(0, 5)
     };
   };
   
-  // Handle file drop/select
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     setDesignFile(file);
-    const isValid = await validateAndAnalyzeDesign(file);
+    const result = await validateAndAnalyzeDesign(file);
     
-    if (isValid) {
+    if (result.canProceed) {
       setStep(2);
     }
   };
   
-  // Handle drag and drop
   const handleDrop = async (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
     
     setDesignFile(file);
-    const isValid = await validateAndAnalyzeDesign(file);
+    const result = await validateAndAnalyzeDesign(file);
     
-    if (isValid) {
+    if (result.canProceed) {
       setStep(2);
     }
   };
   
-  // Get incompatibility reason for a product
-  const getIncompatibilityReason = (productType) => {
+  // Get product warnings/incompatibilities
+  const getProductStatus = (productType) => {
     const preset = PRINT_PRESETS[productType];
     
     if (preset.printMethod === 'embroidery' && designAnalysis) {
+      // Hard incompatibility
       if (designAnalysis.hasGradients) {
-        return "This design isn't compatible with embroidery.";
+        return { 
+          incompatible: true, 
+          reason: "This design isn't compatible with embroidery." 
+        };
       }
-      if (designAnalysis.colorCount > 5) {
-        return "Too many colors for embroidery.";
+      if (designAnalysis.colorCount > VALIDATION_CONFIG.embroidery.hardMaxColors) {
+        return { 
+          incompatible: true, 
+          reason: "Too many colors for embroidery." 
+        };
+      }
+      // Soft warning
+      if (designAnalysis.colorCount > VALIDATION_CONFIG.embroidery.maxColors) {
+        return { 
+          incompatible: false, 
+          warning: "May require color reduction for embroidery." 
+        };
       }
     }
     
-    return null;
+    return { incompatible: false, warning: null };
   };
   
-  // Count enabled products
   const enabledCount = Object.values(enabledProducts).filter(Boolean).length;
   
-  // Submit design
   const handleSubmit = async () => {
     if (!title.trim()) {
       toast.error('Please enter a design title');
@@ -477,7 +537,6 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
     setSubmitting(true);
     
     try {
-      // Prepare product configurations
       const productConfigs = Object.entries(enabledProducts)
         .filter(([_, enabled]) => enabled)
         .map(([productType, _]) => ({
@@ -488,7 +547,6 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
           basePrice: PRINT_PRESETS[productType].basePrice
         }));
       
-      // Call onComplete with all data
       await onComplete({
         file: designFile,
         preview: designPreview,
@@ -518,7 +576,7 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
             {step === 3 && 'Design Details'}
           </DialogTitle>
           <DialogDescription>
-            {step === 1 && 'Upload a high-quality PNG with transparent background'}
+            {step === 1 && 'Upload your artwork to see it on products'}
             {step === 2 && 'See how your design looks on different products'}
             {step === 3 && 'Add details and submit for approval'}
           </DialogDescription>
@@ -539,12 +597,13 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
         {/* Step 1: Upload */}
         {step === 1 && (
           <div className="space-y-6">
-            {/* Drop zone */}
             <div
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
-              className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                validationErrors.length > 0 ? 'border-red-500 bg-red-50' : 'border-border hover:border-[#0047FF]/50'
+              className={`relative border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+                validationResult?.hardErrors?.length > 0 
+                  ? 'border-red-300 bg-red-50' 
+                  : 'border-border hover:border-[#0047FF]/50 hover:bg-muted/30'
               }`}
             >
               {isValidating ? (
@@ -552,41 +611,73 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
                   <Loader2 className="h-12 w-12 mx-auto animate-spin text-[#0047FF]" />
                   <p className="text-muted-foreground">Analyzing your design...</p>
                 </div>
-              ) : designPreview ? (
+              ) : designPreview && validationResult ? (
                 <div className="space-y-4">
-                  <div className="w-48 h-48 mx-auto bg-[#f0f0f0] rounded overflow-hidden" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'10\' height=\'10\' fill=\'%23ddd\'/%3E%3Crect x=\'10\' y=\'10\' width=\'10\' height=\'10\' fill=\'%23ddd\'/%3E%3C/svg%3E")' }}>
+                  <div 
+                    className="w-48 h-48 mx-auto bg-[#f0f0f0] rounded overflow-hidden" 
+                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'10\' height=\'10\' fill=\'%23ddd\'/%3E%3Crect x=\'10\' y=\'10\' width=\'10\' height=\'10\' fill=\'%23ddd\'/%3E%3C/svg%3E")' }}
+                  >
                     <img src={designPreview} alt="Preview" className="w-full h-full object-contain" />
                   </div>
-                  {validationErrors.length > 0 ? (
-                    <div className="text-red-600 space-y-2">
-                      <AlertTriangle className="h-8 w-8 mx-auto" />
-                      <p className="font-medium">This design does not meet Caesura print standards.</p>
-                      <ul className="text-sm space-y-1">
-                        {validationErrors.map((err, i) => (
-                          <li key={i}>• {err}</li>
-                        ))}
-                      </ul>
+                  
+                  {/* Hard errors - blocking */}
+                  {validationResult.hardErrors.length > 0 ? (
+                    <div className="space-y-3">
+                      <div className="text-red-600">
+                        <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+                        <p className="font-medium">Unable to process this file</p>
+                      </div>
+                      {validationResult.hardErrors.map((err, i) => (
+                        <WarningBadge key={i} type="error" message={err} />
+                      ))}
                       <Button
                         onClick={() => {
                           setDesignFile(null);
                           setDesignPreview(null);
-                          setValidationErrors([]);
+                          setValidationResult(null);
                         }}
                         variant="outline"
                         className="mt-4"
                       >
-                        Try Another Design
+                        Try Another File
                       </Button>
                     </div>
                   ) : (
-                    <div className="text-green-600 space-y-2">
-                      <Check className="h-8 w-8 mx-auto" />
-                      <p className="font-medium">Design meets requirements!</p>
+                    <div className="space-y-3">
+                      {/* Success state */}
+                      <div className="text-green-600">
+                        <Check className="h-8 w-8 mx-auto mb-2" />
+                        <p className="font-medium">
+                          {validationResult.quality === 'optimal' 
+                            ? 'Design looks great!' 
+                            : validationResult.quality === 'acceptable'
+                              ? 'Design accepted'
+                              : 'Design accepted with notes'}
+                        </p>
+                      </div>
+                      
                       {designAnalysis && (
                         <p className="text-sm text-muted-foreground">
-                          {designAnalysis.width} × {designAnalysis.height}px • {designAnalysis.colorCount} colors detected
+                          {designAnalysis.width} × {designAnalysis.height}px
                         </p>
                       )}
+                      
+                      {/* Warnings - non-blocking */}
+                      {validationResult.warnings.length > 0 && (
+                        <div className="space-y-2 max-w-md mx-auto">
+                          {validationResult.warnings.map((warn, i) => (
+                            <WarningBadge key={i} type="warning" message={warn} />
+                          ))}
+                        </div>
+                      )}
+                      
+                      <Button
+                        onClick={() => setStep(2)}
+                        className="mt-4 rounded-full bg-[#0047FF] hover:bg-[#0047FF]/90"
+                      >
+                        Continue to Preview
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -595,31 +686,33 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
                   <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
                   <div>
                     <p className="font-medium">Drop your design here or click to browse</p>
-                    <p className="text-sm text-muted-foreground mt-1">PNG only • Transparent background • Min 4500 × 5400px</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      PNG recommended • Transparent background preferred • Min 3000px
+                    </p>
                   </div>
                 </div>
               )}
               
               <input
                 type="file"
-                accept="image/png"
+                accept="image/*"
                 onChange={handleFileSelect}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 data-testid="design-file-input"
               />
             </div>
             
-            {/* Requirements info */}
+            {/* Tips section */}
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p className="font-medium text-foreground">Design Requirements</p>
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p className="font-medium text-foreground">Tips for best results</p>
                   <ul className="space-y-1">
-                    <li>• PNG format with transparent background</li>
-                    <li>• Minimum 4500 × 5400 pixels at 300 DPI</li>
-                    <li>• Flat colors work best for all products</li>
-                    <li>• Avoid very thin lines for embroidered items</li>
+                    <li>• PNG with transparent background works best</li>
+                    <li>• Higher resolution = sharper prints (4500×5400px ideal)</li>
+                    <li>• Flat colors work great for embroidered items</li>
+                    <li>• Our team will optimize your design before production</li>
                   </ul>
                 </div>
               </div>
@@ -630,37 +723,50 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
         {/* Step 2: Product Preview Grid */}
         {step === 2 && (
           <div className="space-y-6">
-            {/* Preview info */}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">
                   {enabledCount} product{enabledCount !== 1 ? 's' : ''} enabled
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setStep(1)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setStep(1)}>
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Change Design
               </Button>
             </div>
             
-            {/* Product grid */}
+            {/* Quality notices */}
+            {designAnalysis?.quality === 'needs_optimization' && (
+              <WarningBadge 
+                type="info" 
+                message="This design will be optimized before printing to ensure the best quality."
+              />
+            )}
+            
+            {designAnalysis?.adminFlags?.includes('background_cleanup_required') && (
+              <WarningBadge 
+                type="info" 
+                message="Background will be cleaned during print preparation."
+              />
+            )}
+            
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {Object.keys(PRINT_PRESETS).map((productType) => (
-                <ProductPreviewCard
-                  key={productType}
-                  productType={productType}
-                  designImage={designPreview}
-                  enabled={enabledProducts[productType] && !getIncompatibilityReason(productType)}
-                  onToggle={(enabled) => setEnabledProducts(prev => ({ ...prev, [productType]: enabled }))}
-                  incompatibilityReason={getIncompatibilityReason(productType)}
-                  selectedColor={productColors[productType]}
-                  onColorChange={(color) => setProductColors(prev => ({ ...prev, [productType]: color }))}
-                />
-              ))}
+              {Object.keys(PRINT_PRESETS).map((productType) => {
+                const status = getProductStatus(productType);
+                return (
+                  <ProductPreviewCard
+                    key={productType}
+                    productType={productType}
+                    designImage={designPreview}
+                    enabled={enabledProducts[productType] && !status.incompatible}
+                    onToggle={(enabled) => setEnabledProducts(prev => ({ ...prev, [productType]: enabled }))}
+                    incompatibilityReason={status.incompatible ? status.reason : null}
+                    warningMessage={status.warning}
+                    selectedColor={productColors[productType]}
+                    onColorChange={(color) => setProductColors(prev => ({ ...prev, [productType]: color }))}
+                  />
+                );
+              })}
             </div>
             
             {/* Contrast warnings */}
@@ -669,21 +775,12 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
               const color = productColors[type];
               return GARMENT_COLORS[color]?.contrastWarning === 'light';
             }) && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-yellow-800">Contrast Warning</p>
-                    <p className="text-yellow-700">
-                      Some designs may have low visibility on light-colored garments. 
-                      Consider using darker colors for better results.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <WarningBadge 
+                type="warning" 
+                message="Some designs may have low visibility on light-colored garments. Consider using darker colors."
+              />
             )}
             
-            {/* Next button */}
             <Button
               onClick={() => setStep(3)}
               disabled={enabledCount === 0}
@@ -699,9 +796,11 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
         {/* Step 3: Details & Submit */}
         {step === 3 && (
           <div className="space-y-6">
-            {/* Design summary */}
             <div className="flex gap-6">
-              <div className="w-32 h-32 bg-muted rounded overflow-hidden flex-shrink-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'10\' height=\'10\' fill=\'%23ddd\'/%3E%3Crect x=\'10\' y=\'10\' width=\'10\' height=\'10\' fill=\'%23ddd\'/%3E%3C/svg%3E")' }}>
+              <div 
+                className="w-32 h-32 bg-muted rounded overflow-hidden flex-shrink-0" 
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'10\' height=\'10\' fill=\'%23ddd\'/%3E%3Crect x=\'10\' y=\'10\' width=\'10\' height=\'10\' fill=\'%23ddd\'/%3E%3C/svg%3E")' }}
+              >
                 <img src={designPreview} alt="Design" className="w-full h-full object-contain" />
               </div>
               <div className="flex-1 space-y-1">
@@ -715,10 +814,16 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
                       </span>
                     ))}
                 </div>
+                
+                {/* Quality indicator */}
+                {designAnalysis?.quality && designAnalysis.quality !== 'optimal' && (
+                  <p className="text-xs text-yellow-600 mt-2">
+                    Design will be optimized before production
+                  </p>
+                )}
               </div>
             </div>
             
-            {/* Title */}
             <div>
               <Label htmlFor="design-title">Design Title *</Label>
               <Input
@@ -731,7 +836,6 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
               />
             </div>
             
-            {/* Description */}
             <div>
               <Label htmlFor="design-description">Description (Optional)</Label>
               <Textarea
@@ -745,7 +849,6 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
               />
             </div>
             
-            {/* Submission info */}
             <div className="bg-[#0047FF]/5 border border-[#0047FF]/20 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <Eye className="h-5 w-5 text-[#0047FF] mt-0.5" />
@@ -753,13 +856,12 @@ export default function DesignUploadFlow({ open, onOpenChange, onComplete }) {
                   <p className="font-medium">What happens next?</p>
                   <p className="text-muted-foreground">
                     Your design will be reviewed by our team within 24-48 hours. 
-                    Once approved, your products will go live on the marketplace.
+                    We'll optimize it for print quality if needed, then your products go live!
                   </p>
                 </div>
               </div>
             </div>
             
-            {/* Actions */}
             <div className="flex gap-3">
               <Button
                 variant="outline"
