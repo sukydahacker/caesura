@@ -5,30 +5,34 @@ import { RotateCcw, Maximize2, ChevronLeft, ChevronRight, Info } from 'lucide-re
 import { GARMENT_COLORS } from '@/config/printPresets';
 
 // Internal print-safe area configuration (NOT exposed to creators)
-const PRINT_SAFE_AREAS = {
+export const PRINT_SAFE_AREAS = Object.freeze({
   tshirt: {
-    front: {
-      // Percentages relative to mockup container
-      x: 0.25,       // 25% from left
-      y: 0.18,       // 18% from top (below collar)
-      width: 0.50,   // 50% of container width
-      height: 0.55,  // 55% of container height
-      // Internal production specs (hidden)
-      _maxWidthCm: 38,
-      _maxHeightCm: 48,
-      _verticalOffsetCm: 6,
-      _printMethod: 'dtf'
-    },
-    back: {
-      x: 0.25,
-      y: 0.15,
-      width: 0.50,
-      height: 0.58,
-      _maxWidthCm: 38,
-      _maxHeightCm: 48,
-      _printMethod: 'dtf'
-    }
+  front: {
+    // Percentages relative to mockup container
+    x: 0.26,      // Slightly right for better visual centering
+    y: 0.20,      // Lowered to avoid collar area
+    width: 0.48,  // Slightly narrower for cleaner margins
+    height: 0.52, // Balanced vertical print zone
+
+    // Internal production specs (hidden)
+    _maxWidthCm: 38,
+    _maxHeightCm: 48,
+    _verticalOffsetCm: 7, // More realistic chest drop
+    _printMethod: 'dtf'
   },
+
+  back: {
+    x: 0.26,
+    y: 0.17,      // Back starts a bit higher than front
+    width: 0.48,
+    height: 0.56, // More vertical space on back
+
+    _maxWidthCm: 38,
+    _maxHeightCm: 48,
+    _printMethod: 'dtf'
+  }
+},
+
   hoodie: {
     front: {
       x: 0.27,
@@ -49,6 +53,7 @@ const PRINT_SAFE_AREAS = {
       _printMethod: 'dtf'
     }
   },
+
   oversized_tshirt: {
     front: {
       x: 0.23,
@@ -69,20 +74,19 @@ const PRINT_SAFE_AREAS = {
       _printMethod: 'dtf'
     }
   }
-};
-
+});
 // Mockup images for different views and colors
 const MOCKUP_IMAGES = {
   tshirt: {
     front: {
-      white: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800',
-      black: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800',
-      navy: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800',
-      grey: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800',
+      white: '/mockups/tshirt-whitefront.jpg',
+      black: '/mockups/tshirt-blackfront.jpg',
+      yellow: '/mockups/tshirt-yellow.jpg',
+      grey: '/mockups/Grey-Front.jpg',
     },
     back: {
-      white: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800',
-      black: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800',
+      white: '/mockups/tshirt-whitebackog.png',
+      black: '/mockups/tshirt-blackback.jpg',
     }
   },
   hoodie: {
@@ -111,13 +115,13 @@ const MOCKUP_IMAGES = {
 
 // Design constraints
 const DESIGN_CONSTRAINTS = {
-  minScale: 0.15,  // Minimum 15% of safe area
-  maxScale: 1.0,   // Maximum 100% of safe area
+  minScale: 0.15,   // Minimum 15% of safe area
+  maxScale: 1.0,    // Maximum 100% of safe area
   defaultScale: 0.6 // Default 60% of safe area
 };
 
-export default function MockupEditor({ 
-  designImage, 
+export default function MockupEditor({
+  designImage,
   productType = 'tshirt',
   initialPlacement = null,
   onPlacementChange,
@@ -126,52 +130,62 @@ export default function MockupEditor({
 }) {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  
+
   // View state
   const [activeView, setActiveView] = useState('front');
   const [selectedColor, setSelectedColor] = useState('white');
-  
-  // Design placement state (relative to safe area, 0-1 range)
-  const [placement, setPlacement] = useState(initialPlacement || {
-    x: 0.5,  // Center X
-    y: 0.5,  // Center Y
-    scale: DESIGN_CONSTRAINTS.defaultScale
-  });
-  
+
+  // Design placement state (relative to safe area, 0–1 range)
+  const [placement, setPlacement] = useState(
+    initialPlacement || {
+      x: 0.5, // Center X
+      y: 0.5, // Center Y
+      scale: DESIGN_CONSTRAINTS.defaultScale
+    }
+  );
+
   // Interaction state
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [designAspectRatio, setDesignAspectRatio] = useState(1);
-  
+
   // Load design image to get aspect ratio
   useEffect(() => {
-    if (designImage) {
-      const img = new Image();
-      img.onload = () => {
+    if (!designImage) return;
+
+    const img = new Image();
+    img.onload = () => {
+      if (img.height > 0) {
         setDesignAspectRatio(img.width / img.height);
-      };
-      img.src = designImage;
-    }
+      }
+    };
+    img.src = designImage;
   }, [designImage]);
-  
+
   // Update container size on mount and resize
   useEffect(() => {
     const updateSize = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setContainerSize({ width: rect.width, height: rect.height });
-      }
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      setContainerSize({
+        width: rect.width,
+        height: rect.height
+      });
     };
-    
+
     updateSize();
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
   }, []);
-  
+
   // Get safe area config
-  const safeArea = PRINT_SAFE_AREAS[productType]?.[activeView] || PRINT_SAFE_AREAS.tshirt.front;
-  
+  const safeArea =
+    (PRINT_SAFE_AREAS[productType] &&
+      PRINT_SAFE_AREAS[productType][activeView]) ||
+    PRINT_SAFE_AREAS.tshirt.front;
+
   // Calculate safe area bounds in pixels
   const safeAreaBounds = {
     x: containerSize.width * safeArea.x,
@@ -179,37 +193,43 @@ export default function MockupEditor({
     width: containerSize.width * safeArea.width,
     height: containerSize.height * safeArea.height
   };
-  
+
   // Calculate design size based on scale and aspect ratio
   const calculateDesignSize = useCallback(() => {
     const maxWidth = safeAreaBounds.width * placement.scale;
     const maxHeight = safeAreaBounds.height * placement.scale;
-    
-    let width, height;
-    if (designAspectRatio > (maxWidth / maxHeight)) {
+
+    let width;
+    let height;
+
+    if (designAspectRatio > maxWidth / maxHeight) {
       width = maxWidth;
-      height = maxWidth / designAspectRatio;
+      height = width / designAspectRatio;
     } else {
       height = maxHeight;
-      width = maxHeight * designAspectRatio;
+      width = height * designAspectRatio;
     }
-    
+
     return { width, height };
   }, [safeAreaBounds, placement.scale, designAspectRatio]);
-  
+
   // Calculate design position in pixels
   const calculateDesignPosition = useCallback(() => {
     const designSize = calculateDesignSize();
-    const centerX = safeAreaBounds.x + safeAreaBounds.width * placement.x;
-    const centerY = safeAreaBounds.y + safeAreaBounds.height * placement.y;
-    
+
+    const centerX =
+      safeAreaBounds.x + safeAreaBounds.width * placement.x;
+    const centerY =
+      safeAreaBounds.y + safeAreaBounds.height * placement.y;
+
     return {
       left: centerX - designSize.width / 2,
       top: centerY - designSize.height / 2,
-      ...designSize
+      width: designSize.width,
+      height: designSize.height
     };
   }, [safeAreaBounds, placement, calculateDesignSize]);
-  
+
   // Handle mouse down on design
   const handleMouseDown = (e, action) => {
     e.preventDefault();
@@ -412,138 +432,174 @@ export default function MockupEditor({
   const mockupUrl = MOCKUP_IMAGES[productType]?.[activeView]?.[selectedColor] || 
                     MOCKUP_IMAGES.tshirt.front.white;
   
-  // Available colors for this product
-  const availableColors = Object.keys(MOCKUP_IMAGES[productType]?.[activeView] || {});
-  
-  return (
-    <div className="flex flex-col h-full" data-testid="mockup-editor">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <Button variant="ghost" size="sm" onClick={onBack} data-testid="editor-back-btn">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
-        </Button>
-        <h2 className="font-heading font-semibold">
-          {productType === 'tshirt' ? 'T-Shirt' : 
-           productType === 'hoodie' ? 'Hoodie' : 
-           'Oversized T-Shirt'} Editor
-        </h2>
-        <div className="w-20" /> {/* Spacer */}
-      </div>
-      
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar - View selector */}
-        <div className="w-24 border-r border-border p-3 space-y-3 bg-muted/30">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Views</p>
-          
-          {['front', 'back'].map((view) => (
+  // Available colors for this product & view
+const availableColors = Object.keys(
+  MOCKUP_IMAGES[productType]?.[activeView] || {}
+);
+
+const productLabel =
+  productType === 'tshirt'
+    ? 'T-Shirt'
+    : productType === 'hoodie'
+    ? 'Hoodie'
+    : 'Oversized T-Shirt';
+
+return (
+  <div className="flex flex-col h-full" data-testid="mockup-editor">
+    {/* Header */}
+    <div className="flex items-center justify-between p-4 border-b border-border">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onBack}
+        data-testid="editor-back-btn"
+      >
+        <ChevronLeft className="h-4 w-4 mr-1" />
+        Back
+      </Button>
+
+      <h2 className="font-heading font-semibold">
+        {productLabel} Editor
+      </h2>
+
+      <div className="w-20" aria-hidden /> {/* Spacer */}
+    </div>
+
+    <div className="flex flex-1 overflow-hidden">
+      {/* Left sidebar - View selector */}
+      <div className="w-24 border-r border-border p-3 space-y-3 bg-muted/30">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+          Views
+        </p>
+
+        {['front', 'back'].map((view) => {
+          const previewSrc =
+            MOCKUP_IMAGES[productType]?.[view]?.[selectedColor] ||
+            MOCKUP_IMAGES.tshirt.front.white;
+
+          const isActive = activeView === view;
+
+          return (
             <button
               key={view}
+              type="button"
               onClick={() => setActiveView(view)}
-              className={`w-full aspect-[3/4] rounded border-2 overflow-hidden transition-all ${
-                activeView === view 
-                  ? 'border-[#0047FF] ring-2 ring-[#0047FF]/20' 
+              className={`w-full aspect-[3/4] rounded border-2 overflow-hidden transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0047FF]/40 ${
+                isActive
+                  ? 'border-[#0047FF] ring-2 ring-[#0047FF]/20'
                   : 'border-border hover:border-[#0047FF]/50'
               }`}
+              aria-pressed={isActive}
               data-testid={`view-${view}-btn`}
             >
-              <img 
-                src={MOCKUP_IMAGES[productType]?.[view]?.[selectedColor] || MOCKUP_IMAGES.tshirt.front.white}
+              <img
+                src={previewSrc}
                 alt={`${view} view`}
                 className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
-          <p className="text-xs text-center text-muted-foreground capitalize">{activeView}</p>
-        </div>
-        
-        {/* Main editor area */}
-        <div className="flex-1 flex flex-col">
-          {/* Mockup canvas */}
-          <div className="flex-1 relative bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-8">
-            <div 
-              ref={containerRef}
-              className="relative w-full max-w-md aspect-[3/4] bg-white rounded-lg shadow-lg overflow-hidden"
-              data-testid="mockup-canvas"
-            >
-              {/* Mockup image */}
-              <img 
-                src={mockupUrl}
-                alt="Product mockup"
-                className="w-full h-full object-cover pointer-events-none"
                 draggable={false}
               />
-              
-              {/* Print-safe area indicator */}
-              <div 
-                className="absolute border-2 border-dashed border-[#0047FF]/30 rounded pointer-events-none"
-                style={{
-                  left: `${safeArea.x * 100}%`,
-                  top: `${safeArea.y * 100}%`,
-                  width: `${safeArea.width * 100}%`,
-                  height: `${safeArea.height * 100}%`
-                }}
-                data-testid="print-safe-area"
-              >
-                {/* Corner indicators */}
-                <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-[#0047FF]/50" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-[#0047FF]/50" />
-                <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-[#0047FF]/50" />
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-[#0047FF]/50" />
-              </div>
-              
+            </button>
+          );
+        })}
+
+        <p className="text-xs text-center text-muted-foreground capitalize">
+          {activeView}
+        </p>
+      </div>
+
+      {/* Main editor area */}
+      <div className="flex-1 flex flex-col">
+        {/* Mockup canvas */}
+        <div className="flex-1 relative bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-8">
+          <div
+            ref={containerRef}
+            className="relative w-full max-w-md aspect-[3/4] bg-white rounded-lg shadow-lg overflow-hidden"
+            data-testid="mockup-canvas"
+          >
+            {/* Mockup image */}
+            <img
+              src={mockupUrl}
+              alt="Product mockup"
+              className="w-full h-full object-cover pointer-events-none select-none"
+              draggable={false}
+            />
+
+            {/* Print-safe area indicator */}
+            <div
+              className="absolute border-2 border-dashed border-[#0047FF]/30 rounded pointer-events-none"
+              style={{
+                left: `${safeArea.x * 100}%`,
+                top: `${safeArea.y * 100}%`,
+                width: `${safeArea.width * 100}%`,
+                height: `${safeArea.height * 100}%`
+              }}
+              data-testid="print-safe-area"
+            >
+              {/* Corner indicators */}
+              <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-[#0047FF]/50" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-[#0047FF]/50" />
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-[#0047FF]/50" />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-[#0047FF]/50" />
+            </div>
+            
               {/* Design element */}
-              {designImage && containerSize.width > 0 && (
-                <motion.div
-                  className={`absolute cursor-move select-none ${isDragging ? 'cursor-grabbing' : ''}`}
-                  style={{
-                    left: designPos.left,
-                    top: designPos.top,
-                    width: designPos.width,
-                    height: designPos.height,
-                  }}
-                  onMouseDown={(e) => handleMouseDown(e, 'drag')}
-                  onTouchStart={(e) => handleTouchStart(e, 'drag')}
-                  data-testid="design-element"
-                >
-                  {/* Design image */}
-                  <img 
-                    src={designImage}
-                    alt="Your design"
-                    className="w-full h-full object-contain pointer-events-none mix-blend-multiply"
-                    draggable={false}
-                  />
-                  
-                  {/* Selection border */}
-                  <div className="absolute inset-0 border-2 border-[#0047FF] rounded pointer-events-none" />
-                  
-                  {/* Resize handles */}
-                  {['nw', 'ne', 'sw', 'se'].map((corner) => (
-                    <div
-                      key={corner}
-                      className={`absolute w-4 h-4 bg-white border-2 border-[#0047FF] rounded-sm cursor-${
-                        corner === 'nw' || corner === 'se' ? 'nwse' : 'nesw'
-                      }-resize hover:bg-[#0047FF] hover:border-[#0047FF] transition-colors`}
-                      style={{
-                        top: corner.includes('n') ? -8 : 'auto',
-                        bottom: corner.includes('s') ? -8 : 'auto',
-                        left: corner.includes('w') ? -8 : 'auto',
-                        right: corner.includes('e') ? -8 : 'auto',
-                      }}
-                      onMouseDown={(e) => handleMouseDown(e, 'resize')}
-                      onTouchStart={(e) => handleTouchStart(e, 'resize')}
-                      data-testid={`resize-handle-${corner}`}
-                    />
-                  ))}
-                </motion.div>
-              )}
+{designImage && containerSize.width > 0 && (
+  <motion.div
+    className={`absolute select-none ${
+      isDragging ? 'cursor-grabbing' : 'cursor-move'
+    }`}
+    style={{
+      left: designPos.left,
+      top: designPos.top,
+      width: designPos.width,
+      height: designPos.height
+    }}
+    onMouseDown={(e) => handleMouseDown(e, 'drag')}
+    onTouchStart={(e) => handleTouchStart(e, 'drag')}
+    data-testid="design-element"
+  >
+    {/* Design image */}
+    <img
+      src={designImage}
+      alt="Your design"
+      className="w-full h-full object-contain pointer-events-none select-none mix-blend-normal"
+      draggable={false}
+    />
+
+    {/* Selection border */}
+    <div className="absolute inset-0 border-2 border-[#0047FF] rounded pointer-events-none" />
+
+    {/* Resize handles */}
+    {['nw', 'ne', 'sw', 'se'].map((corner) => {
+      const isNS = corner === 'nw' || corner === 'se';
+
+      return (
+        <div
+          key={corner}
+          className={`absolute w-4 h-4 bg-white border-2 border-[#0047FF] rounded-sm ${
+            isNS ? 'cursor-nwse-resize' : 'cursor-nesw-resize'
+          } transition-colors hover:bg-[#0047FF]`}
+          style={{
+            top: corner.includes('n') ? -8 : 'auto',
+            bottom: corner.includes('s') ? -8 : 'auto',
+            left: corner.includes('w') ? -8 : 'auto',
+            right: corner.includes('e') ? -8 : 'auto'
+          }}
+          onMouseDown={(e) => handleMouseDown(e, 'resize')}
+          onTouchStart={(e) => handleTouchStart(e, 'resize')}
+          data-testid={`resize-handle-${corner}`}
+        />
+      );
+    })}
+  </motion.div>
+)}
             </div>
           </div>
           
           {/* Helper text */}
           <div className="px-4 py-2 bg-muted/50 border-t border-border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Info className="h-4 w-4" />
+              <Info className="h-4 w-4 shrink-0" />
               <span>Place and resize your design within the print area</span>
             </div>
           </div>

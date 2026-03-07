@@ -309,7 +309,7 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
     design_analysis = body.get("analysis", None)
     
     # Determine initial status
-    initial_status = "submitted" if product_configs else "draft"
+    initial_status = "pending" if product_configs else "draft"
     
     # Build internal print metadata (not exposed to creators)
     print_metadata = None
@@ -432,6 +432,7 @@ async def create_product(request: Request, session_token: Optional[str] = Cookie
         "price": body["price"],
         "design_image": design["image_url"],
         "mockup_image": body.get("mockup_image", design["image_url"]),
+        "overlay_image": design["image_url"],
         "created_at": datetime.now(timezone.utc),
         "is_active": True
     }
@@ -799,6 +800,33 @@ async def get_pending_designs(request: Request, session_token: Optional[str] = C
     designs = await db.designs.find({"approval_status": "pending"}, {"_id": 0}).to_list(1000)
     return [Design(**d) for d in designs]
 
+def get_mockup_url(blueprint_id: int, product_configs: list) -> str:
+    """Pick a real garment mockup image based on product type and color"""
+    # Detect color from product_configs if available
+    color = "white"
+    if product_configs:
+        first = product_configs[0] if isinstance(product_configs[0], dict) else {}
+        color = first.get("color", "white").lower()
+
+    # Mockup image map: product type + color → real garment photo
+    mockups = {
+        "tshirt": {
+            "white": "/mockups/tshirt-whitefront.jpg",
+            "black": "/mockups/tshirt-blackfront.jpg",
+            "yellow": "/mockups/tshirt-yellow.jpg",
+            "grey": "/mockups/Grey-Front.jpg",
+        },
+        "hoodie": {
+            "white": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800",
+            "black": "https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800",
+            "grey": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800",
+        }
+    }
+
+    product_type = "hoodie" if blueprint_id != 6 else "tshirt"
+    color_map = mockups.get(product_type, mockups["tshirt"])
+    return color_map.get(color, color_map.get("white", "/mockups/tshirt-whitefront.jpg"))
+
 @api_router.post("/admin/designs/{design_id}/approve")
 async def approve_design_admin(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     admin_user = await require_admin(request, session_token)
@@ -856,7 +884,7 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
         "sizes": ["S", "M", "L", "XL", "XXL"],
         "price": 999.0,  # Default price
         "design_image": design["image_url"],
-        "mockup_image": design["image_url"],
+        "mockup_image": get_mockup_url(blueprint_id, design.get("product_configs", [])),
         "printify_product_id": printify_product_id,
         "printify_blueprint_id": blueprint_id,
         "base_cost": 500.0,
@@ -1008,6 +1036,12 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
             "creator_earnings": creator_earnings
         }
     }
+
+@api_router.get("/admin/users")
+async def get_admin_users(request: Request, session_token: Optional[str] = Cookie(None)):
+    await require_admin(request, session_token)
+    users = await db.users.find({}, {"_id": 0, "user_id": 1, "name": 1, "email": 1, "role": 1, "creator_status": 1, "picture": 1, "created_at": 1}).sort("created_at", -1).to_list(1000)
+    return users
 
 @api_router.get("/admin/orders")
 async def get_admin_orders(request: Request, session_token: Optional[str] = Cookie(None)):

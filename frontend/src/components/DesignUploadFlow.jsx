@@ -49,17 +49,27 @@ const SimpleMockup = ({ designImage, productType, garmentColor }) => {
   const preset = PRINT_PRESETS[productType];
   const mockupUrl = preset?.mockupImages?.[garmentColor] || preset?.mockupImages?.white;
   
-  const getOverlayStyle = () => {
+  // Each product has a defined "print zone" as % of the card:
+  // top/left = where the zone starts, width/height = how big it is.
+  // The design image will be contained & centred within this box.
+  const getPrintZone = () => {
     switch (productType) {
       case 'varsity_jacket':
-        return { top: '28%', left: '25%', width: '18%', transform: 'translateX(-50%)' };
+        return { top: '28%', left: '16%', width: '22%', height: '22%' };
       case 'cap':
-        return { top: '35%', left: '50%', width: '40%', transform: 'translateX(-50%)' };
+        return { top: '32%', left: '30%', width: '40%', height: '18%' };
+      case 'hoodie':
+        return { top: '22%', left: '25%', width: '50%', height: '38%' };
+      case 'oversized_tshirt':
+        return { top: '20%', left: '25%', width: '50%', height: '38%' };
+      case 'tshirt':
       default:
-        return { top: '25%', left: '50%', width: '50%', transform: 'translateX(-50%)' };
+        return { top: '28%', left: '28%', width: '44%', height: '32%' };
     }
   };
-  
+
+  const zone = getPrintZone();
+
   return (
     <div className="relative aspect-[4/5] bg-muted overflow-hidden rounded-sm">
       <img 
@@ -69,11 +79,26 @@ const SimpleMockup = ({ designImage, productType, garmentColor }) => {
         crossOrigin="anonymous"
       />
       {designImage && (
-        <div className="absolute pointer-events-none" style={getOverlayStyle()}>
+        <div
+          className="absolute pointer-events-none flex items-center justify-center"
+          style={{
+            top: zone.top,
+            left: zone.left,
+            width: zone.width,
+            height: zone.height,
+          }}
+        >
           <img 
             src={designImage} 
             alt="Design preview"
-            className="w-full h-auto mix-blend-multiply"
+            className="mix-blend-normal"
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
+            }}
           />
         </div>
       )}

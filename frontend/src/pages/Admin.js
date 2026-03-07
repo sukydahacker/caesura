@@ -100,6 +100,14 @@ export default function Admin() {
                     alt={product.title}
                     className="w-full h-full object-contain"
                   />
+                  {product.design_image && (
+                    <img
+                      src={product.design_image}
+                      alt="design"
+                      className="absolute pointer-events-none"
+                      style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }}
+                    />
+                  )}
                 </div>
                 
                 <div className="p-6">

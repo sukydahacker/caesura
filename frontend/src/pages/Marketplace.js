@@ -68,6 +68,14 @@ export default function Marketplace() {
                     alt={product.title}
                     className={`w-full h-full object-contain transition-transform group-hover:scale-105 ${product.product_status === 'out_of_stock' ? 'opacity-70' : ''}`}
                   />
+                  {product.design_image && (
+                    <img
+                      src={product.design_image}
+                      alt="design"
+                      className="absolute pointer-events-none"
+                      style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }}
+                    />
+                  )}
                   {product.product_status === 'out_of_stock' && (
                     <div className="absolute top-3 right-3 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold" data-testid={`out-of-stock-badge-${index}`}>
                       OUT OF STOCK

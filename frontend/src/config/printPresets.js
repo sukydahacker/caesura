@@ -25,13 +25,12 @@ export const PRINT_PRESETS = {
       }
     },
     basePrice: 799,
-    availableColors: ['white', 'black', 'navy', 'grey', 'cream'],
+    availableColors: ['white', 'black', 'yellow', 'grey'],
     mockupImages: {
-      white: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=800',
-      black: 'https://images.pexels.com/photos/8532616/pexels-photo-8532616.jpeg?auto=compress&w=800',
-      navy: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800',
-      grey: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800',
-      cream: 'https://images.unsplash.com/photo-1622236405896-f0ee41309aa3?w=800'
+      white: 'https://d91ztqmtx7u1k.cloudfront.net/ClientContent/Images/ExtraLarge/t-shirt-cotton-blank-t-shirt--20240515090954038.jpg',
+      black: '/mockups/tshirt-black.jpg',
+      yellow: '/mockups/tshirt-yellow.jpg',
+      grey: '/mockups/tshirt-grey.jpg',
     }
   },
   hoodie: {
@@ -53,12 +52,12 @@ export const PRINT_PRESETS = {
       }
     },
     basePrice: 1499,
-    availableColors: ['white', 'black', 'grey', 'navy'],
+    availableColors: ['white', 'black', 'yellow', 'grey'],
     mockupImages: {
-      white: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800',
+      white: '/mockups/tshirt-white.jpg',
       black: 'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800',
-      grey: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800',
-      navy: 'https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?w=800'
+      yellow: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800',
+      grey: 'https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?w=800'
     }
   },
   oversized_tshirt: {
@@ -105,11 +104,11 @@ export const PRINT_PRESETS = {
       minStrokeWidth: 2 // mm
     },
     basePrice: 2499,
-    availableColors: ['black', 'navy', 'burgundy'],
+    availableColors: ['black', 'white', 'grey'],
     mockupImages: {
       black: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800',
-      navy: 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=800',
-      burgundy: 'https://images.unsplash.com/photo-1548126032-079a0fb0099d?w=800'
+      white: 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=800',
+      grey: 'https://images.unsplash.com/photo-1548126032-079a0fb0099d?w=800'
     }
   },
   cap: {
@@ -130,12 +129,11 @@ export const PRINT_PRESETS = {
       minStrokeWidth: 2
     },
     basePrice: 599,
-    availableColors: ['white', 'black', 'navy', 'khaki'],
+    availableColors: ['white', 'black', 'navy'],
     mockupImages: {
       white: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800',
       black: 'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=800',
       navy: 'https://images.unsplash.com/photo-1521369909029-2afed882baee?w=800',
-      khaki: 'https://images.unsplash.com/photo-1534215754734-18e55d13e346?w=800'
     }
   }
 };
@@ -163,11 +161,8 @@ export const DESIGN_REQUIREMENTS = {
 export const GARMENT_COLORS = {
   white: { hex: '#FFFFFF', name: 'White', contrastWarning: 'light' },
   black: { hex: '#1a1a1a', name: 'Black', contrastWarning: 'dark' },
-  navy: { hex: '#1e3a5f', name: 'Navy Blue', contrastWarning: 'dark' },
   grey: { hex: '#6b7280', name: 'Heather Grey', contrastWarning: null },
-  cream: { hex: '#f5f5dc', name: 'Cream', contrastWarning: 'light' },
-  burgundy: { hex: '#722f37', name: 'Burgundy', contrastWarning: 'dark' },
-  khaki: { hex: '#c3b091', name: 'Khaki', contrastWarning: 'light' }
+  yellow: { hex: '#FACC15', name: 'Yellow', contrastWarning: 'light' },
 };
 
 // Design status states
@@ -202,30 +197,36 @@ export const checkEmbroideryCompatibility = (designAnalysis) => {
 };
 
 // Calculate scaled design dimensions for mockup
-export const calculateMockupDimensions = (preset, placement, designWidth, designHeight) => {
+export const calculateMockupDimensions = (
+  preset,
+  placement,
+  designWidth,
+  designHeight
+) => {
   const placementConfig = preset.placements[placement];
-  if (!placementConfig) return null;
-  
+  if (!placementConfig || !designWidth || !designHeight) return null;
+
   const maxWidth = placementConfig.maxWidth;
   const maxHeight = placementConfig.maxHeight;
   const scaleRatio = placementConfig.scaleRatio;
-  
+
   // Calculate aspect ratio of design
   const aspectRatio = designWidth / designHeight;
-  
+
   // Calculate final dimensions maintaining aspect ratio
-  let finalWidth, finalHeight;
-  
-  if (aspectRatio > (maxWidth / maxHeight)) {
-    // Design is wider - constrain by width
+  let finalWidth;
+  let finalHeight;
+
+  if (aspectRatio > maxWidth / maxHeight) {
+    // Design is wider – constrain by width
     finalWidth = maxWidth * scaleRatio;
     finalHeight = finalWidth / aspectRatio;
   } else {
-    // Design is taller - constrain by height
+    // Design is taller – constrain by height
     finalHeight = maxHeight * scaleRatio;
     finalWidth = finalHeight * aspectRatio;
   }
-  
+
   return {
     width: finalWidth,
     height: finalHeight,

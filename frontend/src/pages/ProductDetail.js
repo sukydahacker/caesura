@@ -78,13 +78,21 @@ export default function ProductDetail() {
             transition={{ duration: 0.6 }}
             className="sticky top-24 h-fit"
           >
-            <div className="aspect-square bg-muted overflow-hidden">
+            <div className="aspect-square bg-muted overflow-hidden relative">
               <img 
                 src={product.mockup_image} 
                 alt={product.title}
                 className="w-full h-full object-contain"
                 data-testid="product-image"
               />
+              {product.overlay_image && (
+                <img
+                  src={product.overlay_image}
+                  alt="design"
+                  className="absolute pointer-events-none"
+                  style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }}
+                />
+              )}
             </div>
           </motion.div>
 

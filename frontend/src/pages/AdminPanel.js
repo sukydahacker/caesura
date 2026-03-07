@@ -58,6 +58,10 @@ export default function AdminPanel() {
   const [liveProducts, setLiveProducts] = useState([]);
   const [loadingLiveProducts, setLoadingLiveProducts] = useState(false);
 
+  // Users
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
   useEffect(() => {
     checkAdminAccess();
   }, []);
@@ -152,6 +156,19 @@ export default function AdminPanel() {
       toast.error('Failed to load live products');
     } finally {
       setLoadingLiveProducts(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const response = await fetch('/api/admin/users', { credentials: 'include' });
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      toast.error('Failed to load users');
+    } finally {
+      setLoadingUsers(false);
     }
   };
 
@@ -255,6 +272,7 @@ export default function AdminPanel() {
     if (value === 'products') loadLiveProducts();
     if (value === 'orders') loadOrders();
     if (value === 'analytics') loadAnalytics();
+    if (value === 'users') loadUsers();
     if (value === 'printify') loadPrintify();
   };
 
@@ -298,9 +316,9 @@ export default function AdminPanel() {
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="printify" className="rounded-full" data-testid="tab-printify">
-              <Settings className="h-4 w-4 mr-2" />
-              Setup
+            <TabsTrigger value="users" className="rounded-full" data-testid="tab-users">
+              <Users className="h-4 w-4 mr-2" />
+              Users
             </TabsTrigger>
           </TabsList>
 
@@ -395,9 +413,15 @@ export default function AdminPanel() {
                   >
                     <div className="aspect-square bg-muted relative">
                       <img 
+                        src="/mockups/tshirt-whitefront.jpg"
+                        alt="t-shirt"
+                        className="w-full h-full object-contain"
+                      />
+                      <img 
                         src={design.image_url} 
                         alt={design.title}
-                        className="w-full h-full object-contain"
+                        className="absolute pointer-events-none"
+                        style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }}
                       />
                     </div>
                     
@@ -472,6 +496,14 @@ export default function AdminPanel() {
                           alt={product.title}
                           className="w-full h-full object-contain"
                         />
+                        {product.design_image && product.mockup_image && (
+                          <img
+                            src={product.design_image}
+                            alt="design"
+                            className="absolute pointer-events-none"
+                            style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }}
+                          />
+                        )}
                         <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
                           product.product_status === 'live' ? 'bg-green-100 text-green-700' :
                           product.product_status === 'out_of_stock' ? 'bg-yellow-100 text-yellow-700' :
@@ -738,67 +770,68 @@ export default function AdminPanel() {
             )}
           </TabsContent>
 
-          {/* Printify Setup Tab */}
-          <TabsContent value="printify" className="space-y-6">
-            {loadingPrintify ? (
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-6">
+            {loadingUsers ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : printifyData ? (
-              <div className="space-y-6">
-                {/* Status Card */}
-                <div className={`border ${printifyData.mock_mode ? 'border-yellow-600 bg-yellow-600/5' : 'border-green-600 bg-green-600/5'} p-6 rounded`}>
-                  <div className="flex items-center gap-3">
-                    {printifyData.mock_mode ? (
-                      <>
-                        <AlertCircle className="h-8 w-8 text-yellow-600" />
-                        <div>
-                          <h3 className="font-heading text-lg font-semibold text-yellow-600">Mock Mode Active</h3>
-                          <p className="text-sm text-muted-foreground">Printify API credentials not configured. Using mock data for development.</p>
-                          <Button 
-                            onClick={() => window.open('/PRINTIFY_SETUP.md', '_blank')}
-                            variant="outline"
-                            size="sm"
-                            className="mt-3 rounded-full"
-                          >
-                            View Setup Guide
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="h-8 w-8 text-green-600" />
-                        <div>
-                          <h3 className="font-heading text-lg font-semibold text-green-600">Printify Connected</h3>
-                          <p className="text-sm text-muted-foreground">Real-time integration active</p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Blueprints */}
-                <div>
-                  <h3 className="font-heading text-2xl font-bold mb-4">Available Blueprints</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {blueprints.map((blueprint) => (
-                      <div key={blueprint.id} className="border border-border p-6 rounded space-y-3">
-                        {blueprint.images && blueprint.images[0] && (
-                          <img src={blueprint.images[0]} alt={blueprint.title} className="w-full h-40 object-contain bg-muted rounded" />
-                        )}
-                        <div>
-                          <h4 className="font-heading font-semibold">{blueprint.title}</h4>
-                          <p className="text-sm text-muted-foreground">{blueprint.description}</p>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {blueprint.brand} - {blueprint.model}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+            ) : (
+              <div>
+                <p className="text-sm text-muted-foreground mb-4">Showing {users.length} user(s)</p>
+                <div className="border border-border rounded overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-subheading font-semibold">Name</th>
+                        <th className="text-left px-4 py-3 font-subheading font-semibold">Email</th>
+                        <th className="text-left px-4 py-3 font-subheading font-semibold">Role</th>
+                        <th className="text-left px-4 py-3 font-subheading font-semibold">Creator Status</th>
+                        <th className="text-left px-4 py-3 font-subheading font-semibold">Joined</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u, index) => (
+                        <tr key={u.user_id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
+                          <td className="px-4 py-3 flex items-center gap-2">
+                            {u.picture && <img src={u.picture} alt={u.name} className="w-7 h-7 rounded-full object-cover" />}
+                            <span className="font-medium">{u.name || '—'}</span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                              u.role === 'admin' ? 'bg-purple-100 text-purple-700' :
+                              u.role === 'creator' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {u.creator_status ? (
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                u.creator_status === 'approved' ? 'bg-green-100 text-green-700' :
+                                u.creator_status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                u.creator_status === 'suspended' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>
+                                {u.creator_status}
+                              </span>
+                            ) : <span className="text-muted-foreground">—</span>}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">
+                            {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {users.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">No users found</div>
+                  )}
                 </div>
               </div>
-            ) : null}
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -815,8 +848,9 @@ export default function AdminPanel() {
           
           {selectedDesign && (
             <div className="space-y-4">
-              <div className="aspect-square bg-muted rounded overflow-hidden">
-                <img src={selectedDesign.image_url} alt={selectedDesign.title} className="w-full h-full object-contain" />
+              <div className="aspect-square bg-muted rounded overflow-hidden relative">
+                <img src="/mockups/tshirt-whitefront.jpg" alt="t-shirt" className="w-full h-full object-contain" />
+                <img src={selectedDesign.image_url} alt={selectedDesign.title} className="absolute pointer-events-none" style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }} />
               </div>
               
               <div>
