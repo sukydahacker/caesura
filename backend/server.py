@@ -216,13 +216,16 @@ async def create_session(request: Request, response: Response):
     if user_doc:
         user_id = user_doc["user_id"]
         # Update user data
+        update_fields = {
+            "name": auth_data["name"],
+            "picture": auth_data.get("picture"),
+            "updated_at": datetime.now(timezone.utc)
+        }
+        if auth_data["email"] == "sukrit.chawla@gmail.com":
+            update_fields["role"] = "admin"
         await db.users.update_one(
             {"user_id": user_id},
-            {"$set": {
-                "name": auth_data["name"],
-                "picture": auth_data.get("picture"),
-                "updated_at": datetime.now(timezone.utc)
-            }}
+            {"$set": update_fields}
         )
     else:
         # Create new user
@@ -1166,6 +1169,24 @@ async def update_product_status(product_id: str, request: Request, session_token
         "product_id": product_id,
         "new_status": new_status
     }
+
+# ── TEMPORARY BOOTSTRAP: delete after use ──────────────────
+@api_router.post("/bootstrap/make-admin")
+async def bootstrap_make_admin(request: Request):
+    body = await request.json()
+    if body.get("secret") != "caesura-bootstrap-2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    email = body.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="email required")
+    result = await db.users.update_one(
+        {"email": email},
+        {"$set": {"role": "admin"}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found — log in first, then retry")
+    return {"ok": True, "email": email, "role": "admin"}
+# ── END TEMPORARY BOOTSTRAP ─────────────────────────────────
 
 # Include router
 app.include_router(api_router)
