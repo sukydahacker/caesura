@@ -86,24 +86,25 @@ export const PRINT_PRESETS = {
       grey: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800'
     }
   },
-  varsity_jacket: {
-    id: 'varsity_jacket',
-    name: 'Varsity Jacket',
-    printMethod: 'embroidery',
+  bomber_jacket: {
+    id: 'bomber_jacket',
+    name: 'Bomber Jacket',
+    printMethod: 'dtf',
     placements: {
-      left_chest: {
-        maxWidth: 9,
-        maxHeight: 9,
-        scaleRatio: 0.9,
-        position: 'left_chest'
+      front: {
+        maxWidth: 30,
+        maxHeight: 35,
+        scaleRatio: 0.8,
+        position: 'center'
+      },
+      back: {
+        maxWidth: 36,
+        maxHeight: 42,
+        scaleRatio: 0.85,
+        position: 'center'
       }
     },
-    constraints: {
-      maxColors: 3,
-      noGradients: true,
-      minStrokeWidth: 2 // mm
-    },
-    basePrice: 2499,
+    basePrice: 1899,
     availableColors: ['black', 'white', 'grey'],
     mockupImages: {
       black: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800',
@@ -111,29 +112,30 @@ export const PRINT_PRESETS = {
       grey: 'https://images.unsplash.com/photo-1548126032-079a0fb0099d?w=800'
     }
   },
-  cap: {
-    id: 'cap',
-    name: 'Embroidered Cap',
-    printMethod: 'embroidery',
+  sweatshirt: {
+    id: 'sweatshirt',
+    name: 'Sweatshirt',
+    printMethod: 'dtf',
     placements: {
       front: {
-        maxWidth: 6.5,
-        maxHeight: 5,
-        scaleRatio: 0.9,
-        position: 'center_front'
+        maxWidth: 36,
+        maxHeight: 44,
+        scaleRatio: 0.85,
+        position: 'center'
+      },
+      back: {
+        maxWidth: 36,
+        maxHeight: 44,
+        scaleRatio: 0.85,
+        position: 'center'
       }
     },
-    constraints: {
-      maxColors: 3,
-      noGradients: true,
-      minStrokeWidth: 2
-    },
-    basePrice: 599,
-    availableColors: ['white', 'black', 'navy'],
+    basePrice: 1299,
+    availableColors: ['white', 'black', 'grey'],
     mockupImages: {
-      white: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800',
-      black: 'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=800',
-      navy: 'https://images.unsplash.com/photo-1521369909029-2afed882baee?w=800',
+      white: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800',
+      black: 'https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?w=800',
+      grey: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800'
     }
   }
 };
