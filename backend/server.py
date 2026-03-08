@@ -188,6 +188,29 @@ async def require_admin(request: Request, session_token: Optional[str] = Cookie(
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
+# Dev login — creates a real session for an existing user by email (dev only)
+@api_router.post("/auth/dev-login")
+async def dev_login(request: Request, response: Response):
+    body = await request.json()
+    if body.get("secret") != "caesura-dev-2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    email = body.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="email required")
+    user_doc = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found — log in via Emergent preview first")
+    session_token = f"dev_{uuid.uuid4().hex}"
+    await db.user_sessions.insert_one({
+        "user_id": user_doc["user_id"],
+        "session_token": session_token,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+        "created_at": datetime.now(timezone.utc)
+    })
+    response.set_cookie(key="session_token", value=session_token, httponly=True,
+                        secure=False, samesite="lax", path="/", max_age=7*24*60*60)
+    return {"ok": True, "session_token": session_token, "user": user_doc}
+
 # Auth Routes
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):
