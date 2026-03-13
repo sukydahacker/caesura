@@ -332,7 +332,7 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
     
     # Designs submitted with a price (from /sell) go straight to pending review.
     # Designs without a price are saved as drafts.
-    initial_status = "pending" if (product_configs or body.get("price")) else "draft"
+    initial_status = "pending_approval" if (product_configs or body.get("price")) else "draft"
     
     # Build internal print metadata (not exposed to creators)
     print_metadata = None
@@ -357,6 +357,9 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
         "title": body["title"],
         "description": body.get("description"),
         "image_url": body["image_url"],
+        "mockup_image_url": body.get("mockup_image_url"),
+        "product_type": body.get("product_type", "UT27"),
+        "placement_coordinates": body.get("placement_coordinates"),
         "price": body.get("price"),
         "tags": body.get("tags", []),
         "approval_status": initial_status,
@@ -901,7 +904,7 @@ async def reject_creator(user_id: str, request: Request, session_token: Optional
 @api_router.get("/admin/designs/pending")
 async def get_pending_designs(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    designs = await db.designs.find({"approval_status": "pending"}, {"_id": 0}).to_list(1000)
+    designs = await db.designs.find({"approval_status": {"$in": ["pending", "pending_approval"]}}, {"_id": 0}).to_list(1000)
     # Enrich each design with creator name
     result = []
     for d in designs:
@@ -946,16 +949,22 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
     apparel_type = body.get("apparel_type", "tshirt")  # "tshirt" | "hoodie" | "oversized_tshirt"
     featured     = body.get("featured", False)
 
-    # Mockup template images per apparel type (served from /public/mockups/)
-    MOCKUP_TEMPLATES = {
-        "tshirt":            "/mockups/tshirt-whitefront.jpg",
-        "hoodie":            "/mockups/tshirt-whitefront.jpg",
-        "oversized_tshirt":  "/mockups/tshirt-offwhitefront.png",
-    }
-
     design = await db.designs.find_one({"design_id": design_id}, {"_id": 0})
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
+
+    # Use product_type from the design (UT27 or UH24) if stored, else fall back to apparel_type param
+    product_type = design.get("product_type") or apparel_type or "UT27"
+
+    # Use the canvas-exported mockup if stored, otherwise fall back to a static template
+    FALLBACK_MOCKUPS = {
+        "UT27": "/mockups/tshirt-offwhitefront.png",
+        "UH24": "/mockups/tshirt-whitefront.jpg",
+        "tshirt": "/mockups/tshirt-whitefront.jpg",
+        "hoodie": "/mockups/tshirt-whitefront.jpg",
+        "oversized_tshirt": "/mockups/tshirt-offwhitefront.png",
+    }
+    mockup_image = design.get("mockup_image_url") or FALLBACK_MOCKUPS.get(product_type, "/mockups/tshirt-whitefront.jpg")
 
     # Update design status to approved
     await db.designs.update_one(
@@ -978,12 +987,14 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
         "user_id":                 design["user_id"],
         "title":                   design["title"],
         "description":             design.get("description"),
-        "apparel_type":            apparel_type,
+        "apparel_type":            product_type,
         "sizes":                   ["S", "M", "L", "XL", "XXL"],
         "price":                   price,
-        # design_image is the raw uploaded artwork; mockup_image is the template thumbnail
+        # design_image = raw uploaded artwork (used by Qikink for printing)
+        # mockup_image = canvas-exported merged image (shown on marketplace)
         "design_image":            design["image_url"],
-        "mockup_image":            MOCKUP_TEMPLATES.get(apparel_type, MOCKUP_TEMPLATES["tshirt"]),
+        "mockup_image":            mockup_image,
+        "placement_coordinates":   design.get("placement_coordinates"),
         # Qikink uses design_id as the design_code in order payloads
         "qikink_design_code":      design_id,
         "base_cost":               500.0,
@@ -1048,7 +1059,7 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
     approved_creators = await db.users.count_documents({"creator_status": "approved"})
     
     total_designs = await db.designs.count_documents({})
-    pending_designs = await db.designs.count_documents({"approval_status": "pending"})
+    pending_designs = await db.designs.count_documents({"approval_status": {"$in": ["pending", "pending_approval"]}})
     approved_designs = await db.designs.count_documents({"approval_status": "approved"})
     
     total_products = await db.products.count_documents({"is_approved": True})

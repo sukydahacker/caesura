@@ -23,19 +23,33 @@ class QikinkService:
     # ── Qikink SKU map: apparel_type → color → size → SKU
     # These must match the SKUs shown in your Qikink dashboard.
     # Update when new product types are added.
+    # SKU format: {product_code}-{color_code}-{size}
+    # Verify these against your Qikink dashboard → Products → SKU column
     SKU_MAP: Dict[str, Dict[str, Dict[str, str]]] = {
+        # Unisex Terry Oversized Tee (UT27)
+        "UT27": {
+            "white": {"S": "UT27-WH-S", "M": "UT27-WH-M", "L": "UT27-WH-L", "XL": "UT27-WH-XL", "XXL": "UT27-WH-XXL"},
+            "black": {"S": "UT27-BK-S", "M": "UT27-BK-M", "L": "UT27-BK-L", "XL": "UT27-BK-XL", "XXL": "UT27-BK-XXL"},
+            "navy":  {"S": "UT27-NV-S", "M": "UT27-NV-M", "L": "UT27-NV-L", "XL": "UT27-NV-XL", "XXL": "UT27-NV-XXL"},
+        },
+        # Unisex Hoodie (UH24)
+        "UH24": {
+            "white": {"S": "UH24-WH-S", "M": "UH24-WH-M", "L": "UH24-WH-L", "XL": "UH24-WH-XL", "XXL": "UH24-WH-XXL"},
+            "black": {"S": "UH24-BK-S", "M": "UH24-BK-M", "L": "UH24-BK-L", "XL": "UH24-BK-XL", "XXL": "UH24-BK-XXL"},
+            "navy":  {"S": "UH24-NV-S", "M": "UH24-NV-M", "L": "UH24-NV-L", "XL": "UH24-NV-XL", "XXL": "UH24-NV-XXL"},
+        },
+        # Legacy aliases for any existing data
         "tshirt": {
-            "white": {"S": "RTs-Wh-S",  "M": "RTs-Wh-M",  "L": "RTs-Wh-L",  "XL": "RTs-Wh-XL",  "XXL": "RTs-Wh-XXL"},
-            "black": {"S": "RTs-Bk-S",  "M": "RTs-Bk-M",  "L": "RTs-Bk-L",  "XL": "RTs-Bk-XL",  "XXL": "RTs-Bk-XXL"},
-            "navy":  {"S": "RTs-Nv-S",  "M": "RTs-Nv-M",  "L": "RTs-Nv-L",  "XL": "RTs-Nv-XL",  "XXL": "RTs-Nv-XXL"},
+            "white": {"S": "UT27-WH-S", "M": "UT27-WH-M", "L": "UT27-WH-L", "XL": "UT27-WH-XL", "XXL": "UT27-WH-XXL"},
+            "black": {"S": "UT27-BK-S", "M": "UT27-BK-M", "L": "UT27-BK-L", "XL": "UT27-BK-XL", "XXL": "UT27-BK-XXL"},
         },
         "oversized_tshirt": {
-            "white": {"S": "OTs-Wh-S",  "M": "OTs-Wh-M",  "L": "OTs-Wh-L",  "XL": "OTs-Wh-XL",  "XXL": "OTs-Wh-XXL"},
-            "black": {"S": "OTs-Bk-S",  "M": "OTs-Bk-M",  "L": "OTs-Bk-L",  "XL": "OTs-Bk-XL",  "XXL": "OTs-Bk-XXL"},
+            "white": {"S": "UT27-WH-S", "M": "UT27-WH-M", "L": "UT27-WH-L", "XL": "UT27-WH-XL", "XXL": "UT27-WH-XXL"},
+            "black": {"S": "UT27-BK-S", "M": "UT27-BK-M", "L": "UT27-BK-L", "XL": "UT27-BK-XL", "XXL": "UT27-BK-XXL"},
         },
         "hoodie": {
-            "white": {"S": "Hd-Wh-S",   "M": "Hd-Wh-M",   "L": "Hd-Wh-L",   "XL": "Hd-Wh-XL",   "XXL": "Hd-Wh-XXL"},
-            "black": {"S": "Hd-Bk-S",   "M": "Hd-Bk-M",   "L": "Hd-Bk-L",   "XL": "Hd-Bk-XL",   "XXL": "Hd-Bk-XXL"},
+            "white": {"S": "UH24-WH-S", "M": "UH24-WH-M", "L": "UH24-WH-L", "XL": "UH24-WH-XL", "XXL": "UH24-WH-XXL"},
+            "black": {"S": "UH24-BK-S", "M": "UH24-BK-M", "L": "UH24-BK-L", "XL": "UH24-BK-XL", "XXL": "UH24-BK-XXL"},
         },
     }
 
@@ -94,8 +108,8 @@ class QikinkService:
         sku = by_size.get(size)
         if not sku:
             # Best-effort fallback so the order still reaches Qikink
-            logger.warning(f"Qikink: no SKU for {apparel_type}/{color}/{size}, using tshirt/white/{size}")
-            sku = self.SKU_MAP["tshirt"]["white"].get(size, f"RTs-Wh-{size}")
+            logger.warning(f"Qikink: no SKU for {apparel_type}/{color}/{size}, using UT27/white/{size}")
+            sku = self.SKU_MAP["UT27"]["white"].get(size, f"UT27-WH-{size}")
         return sku
 
     # ── Order creation ──────────────────────────────────────────────────────────

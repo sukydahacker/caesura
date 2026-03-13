@@ -223,7 +223,7 @@ export default function AdminPanel() {
   const handleApproveDesign = async () => {
     if (!selectedDesign) return;
     try {
-      await approveDesign(selectedDesign.design_id, selectedApparelType, false);
+      await approveDesign(selectedDesign.design_id, selectedDesign.product_type || 'UT27', false);
       toast.success('Design approved and product created!');
       setApproveDialogOpen(false);
       loadDesigns();
@@ -392,17 +392,23 @@ export default function AdminPanel() {
                     data-testid={`design-card-${index}`}
                   >
                     <div className="aspect-square bg-muted relative">
-                      <img 
-                        src="/mockups/tshirt-whitefront.jpg"
-                        alt="t-shirt"
-                        className="w-full h-full object-contain"
-                      />
-                      <img 
-                        src={design.image_url} 
-                        alt={design.title}
-                        className="absolute pointer-events-none"
-                        style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }}
-                      />
+                      {design.mockup_image_url ? (
+                        <img
+                          src={design.mockup_image_url}
+                          alt={design.title}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <>
+                          <img src="/mockups/tshirt-whitefront.jpg" alt="t-shirt" className="w-full h-full object-contain" />
+                          <img src={design.image_url} alt={design.title} className="absolute pointer-events-none" style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }} />
+                        </>
+                      )}
+                      {design.product_type && (
+                        <div className="absolute top-2 left-2 bg-black/70 text-xs text-[#C8FF00] px-2 py-1 rounded font-mono">
+                          {design.product_type}
+                        </div>
+                      )}
                     </div>
                     
                     <div className="p-6 space-y-4">
@@ -832,13 +838,14 @@ export default function AdminPanel() {
             <div className="space-y-4">
               {/* Mockup preview */}
               <div className="aspect-square bg-muted rounded overflow-hidden relative">
-                <img src="/mockups/tshirt-whitefront.jpg" alt="t-shirt mockup" className="w-full h-full object-contain" />
-                <img
-                  src={selectedDesign.image_url}
-                  alt={selectedDesign.title}
-                  className="absolute pointer-events-none"
-                  style={{ top: '26%', left: '30%', width: '40%', height: '30%', objectFit: 'contain' }}
-                />
+                {selectedDesign.mockup_image_url ? (
+                  <img src={selectedDesign.mockup_image_url} alt="mockup" className="w-full h-full object-contain" />
+                ) : (
+                  <>
+                    <img src="/mockups/tshirt-whitefront.jpg" alt="t-shirt mockup" className="w-full h-full object-contain" />
+                    <img src={selectedDesign.image_url} alt={selectedDesign.title} className="absolute pointer-events-none" style={{ top: '26%', left: '30%', width: '40%', height: '30%', objectFit: 'contain' }} />
+                  </>
+                )}
               </div>
 
               {/* Design info */}
@@ -848,19 +855,13 @@ export default function AdminPanel() {
                 <p className="text-sm font-semibold">Price: ₹{selectedDesign.price || '999'}</p>
               </div>
 
-              {/* Product type */}
-              <div>
-                <Label>Product Type (for Qikink)</Label>
-                <select
-                  value={selectedApparelType}
-                  onChange={(e) => setSelectedApparelType(e.target.value)}
-                  className="w-full mt-2 p-2 border border-border rounded bg-background"
-                >
-                  <option value="tshirt">T-Shirt</option>
-                  <option value="oversized_tshirt">Oversized T-Shirt</option>
-                  <option value="hoodie">Hoodie</option>
-                </select>
-              </div>
+              {/* Product type (baked in from design submission) */}
+              {selectedDesign?.product_type && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Product:</span>
+                  <span className="text-sm font-mono bg-muted px-2 py-1 rounded text-[#C8FF00]">{selectedDesign.product_type}</span>
+                </div>
+              )}
 
               <div className="flex gap-2">
                 <Button
