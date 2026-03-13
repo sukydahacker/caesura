@@ -5,7 +5,7 @@ import axios from 'axios';
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 
 export default function DevLogin() {
-  const [email, setEmail] = useState('sukrit.chawla@gmail.com');
+  const [email, setEmail] = useState('projectmark121224@gmail.com');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function DevLogin() {
         { withCredentials: true }
       );
       const user = res.data.user;
-      let dest = user.role === 'admin' ? '/admin' : user.role === 'buyer' ? '/explore' : '/dashboard';
+      const dest = '/dashboard';
       navigate(dest, { replace: true, state: { user } });
     } catch (e) {
       setError(e.response?.data?.detail || 'Login failed');

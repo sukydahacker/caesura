@@ -238,7 +238,7 @@ export default function Dashboard() {
 
   const fetchUserData = async () => {
     try { const r = await getMe(); setUser(r.data); } catch {
-      setUser({ name: 'Sukrit', email: 'sukrit.chawla@gmail.com', role: 'admin', creator_status: 'approved' });
+      setUser({ name: 'Dev', email: 'projectmark121224@gmail.com', role: 'admin', creator_status: 'approved' });
     }
   };
   const fetchEarnings = async () => {
