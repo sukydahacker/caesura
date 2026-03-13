@@ -58,7 +58,7 @@ export const rejectCreator = (userId, reason) => api.post(`/admin/creators/${use
 
 // Enhanced Admin - Design Management
 export const getPendingDesigns = () => api.get('/admin/designs/pending');
-export const approveDesign = (designId, blueprintId, featured) => api.post(`/admin/designs/${designId}/approve`, { blueprint_id: blueprintId, featured });
+export const approveDesign = (designId, apparelType, featured) => api.post(`/admin/designs/${designId}/approve`, { apparel_type: apparelType, featured });
 export const rejectDesign = (designId, reason) => api.post(`/admin/designs/${designId}/reject`, { reason });
 
 // Enhanced Admin - Printify & Analytics

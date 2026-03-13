@@ -12,10 +12,10 @@ import {
   Settings, Package, Clock, DollarSign, TrendingUp,
   AlertCircle, Loader2, ShoppingBag
 } from 'lucide-react';
-import { 
+import {
   getPendingCreators, approveCreator, suspendCreator, rejectCreator,
   getPendingDesigns, approveDesign, rejectDesign,
-  getPrintifyBlueprints, getAdminAnalytics, getMe, getAdminOrders,
+  getAdminAnalytics, getMe, getAdminOrders,
   getLiveProducts, updateProductStatus
 } from '@/lib/api';
 import { toast } from 'sonner';
@@ -35,8 +35,7 @@ export default function AdminPanel() {
   const [pendingDesigns, setPendingDesigns] = useState([]);
   const [loadingDesigns, setLoadingDesigns] = useState(false);
   const [selectedDesign, setSelectedDesign] = useState(null);
-  const [blueprints, setBlueprints] = useState([]);
-  const [selectedBlueprint, setSelectedBlueprint] = useState(6); // Default T-shirt
+  const [selectedApparelType, setSelectedApparelType] = useState('tshirt');
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
@@ -46,10 +45,6 @@ export default function AdminPanel() {
   const [analytics, setAnalytics] = useState(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   
-  // Printify
-  const [printifyData, setPrintifyData] = useState(null);
-  const [loadingPrintify, setLoadingPrintify] = useState(false);
-
   // Orders
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -119,19 +114,6 @@ export default function AdminPanel() {
       toast.error('Failed to load analytics');
     } finally {
       setLoadingAnalytics(false);
-    }
-  };
-
-  const loadPrintify = async () => {
-    setLoadingPrintify(true);
-    try {
-      const response = await getPrintifyBlueprints();
-      setPrintifyData(response.data);
-      setBlueprints(response.data.blueprints || []);
-    } catch (error) {
-      toast.error('Failed to load Printify data');
-    } finally {
-      setLoadingPrintify(false);
     }
   };
 
@@ -240,9 +222,8 @@ export default function AdminPanel() {
 
   const handleApproveDesign = async () => {
     if (!selectedDesign) return;
-    
     try {
-      await approveDesign(selectedDesign.design_id, selectedBlueprint, false);
+      await approveDesign(selectedDesign.design_id, selectedApparelType, false);
       toast.success('Design approved and product created!');
       setApproveDialogOpen(false);
       loadDesigns();
@@ -273,7 +254,6 @@ export default function AdminPanel() {
     if (value === 'orders') loadOrders();
     if (value === 'analytics') loadAnalytics();
     if (value === 'users') loadUsers();
-    if (value === 'printify') loadPrintify();
   };
 
   if (loading) {
@@ -431,7 +411,9 @@ export default function AdminPanel() {
                         {design.description && (
                           <p className="text-sm text-muted-foreground">{design.description}</p>
                         )}
-                        <p className="text-xs text-muted-foreground mt-2">
+                        <p className="text-sm font-semibold mt-1">₹{design.price || '—'}</p>
+                        <p className="text-xs text-muted-foreground">by {design.creator_name || 'Unknown'}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
                           Submitted: {new Date(design.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -842,29 +824,44 @@ export default function AdminPanel() {
           <DialogHeader>
             <DialogTitle className="font-heading text-2xl">Approve Design</DialogTitle>
             <DialogDescription>
-              Select product type and approve this design. A Printify product will be created automatically.
+              Select the product type. Qikink will print and ship every order automatically.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedDesign && (
             <div className="space-y-4">
+              {/* Mockup preview */}
               <div className="aspect-square bg-muted rounded overflow-hidden relative">
-                <img src="/mockups/tshirt-whitefront.jpg" alt="t-shirt" className="w-full h-full object-contain" />
-                <img src={selectedDesign.image_url} alt={selectedDesign.title} className="absolute pointer-events-none" style={{ top: '28%', left: '28%', width: '44%', height: '32%', objectFit: 'contain' }} />
+                <img src="/mockups/tshirt-whitefront.jpg" alt="t-shirt mockup" className="w-full h-full object-contain" />
+                <img
+                  src={selectedDesign.image_url}
+                  alt={selectedDesign.title}
+                  className="absolute pointer-events-none"
+                  style={{ top: '26%', left: '30%', width: '40%', height: '30%', objectFit: 'contain' }}
+                />
               </div>
-              
+
+              {/* Design info */}
+              <div className="space-y-1">
+                <p className="font-semibold">{selectedDesign.title}</p>
+                <p className="text-sm text-muted-foreground">by {selectedDesign.creator_name || 'Unknown'}</p>
+                <p className="text-sm font-semibold">Price: ₹{selectedDesign.price || '999'}</p>
+              </div>
+
+              {/* Product type */}
               <div>
-                <Label>Product Type</Label>
+                <Label>Product Type (for Qikink)</Label>
                 <select
-                  value={selectedBlueprint}
-                  onChange={(e) => setSelectedBlueprint(parseInt(e.target.value))}
+                  value={selectedApparelType}
+                  onChange={(e) => setSelectedApparelType(e.target.value)}
                   className="w-full mt-2 p-2 border border-border rounded bg-background"
                 >
-                  <option value={6}>T-Shirt (Unisex Heavy Cotton)</option>
-                  <option value={77}>Hoodie (Unisex Heavy Blend)</option>
+                  <option value="tshirt">T-Shirt</option>
+                  <option value="oversized_tshirt">Oversized T-Shirt</option>
+                  <option value="hoodie">Hoodie</option>
                 </select>
               </div>
-              
+
               <div className="flex gap-2">
                 <Button
                   onClick={handleApproveDesign}
@@ -872,7 +869,7 @@ export default function AdminPanel() {
                   data-testid="confirm-approve-design-btn"
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />
-                  Approve & Create Product
+                  Approve & Go Live
                 </Button>
                 <Button
                   onClick={() => setApproveDialogOpen(false)}

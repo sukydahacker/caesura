@@ -86,8 +86,9 @@ class Design(BaseModel):
     title: str
     description: Optional[str] = None
     image_url: str
+    price: Optional[float] = None
     tags: List[str] = []
-    approval_status: str = "draft"  # "draft", "submitted", "approved", "live", "rejected"
+    approval_status: str = "draft"  # "draft", "pending", "approved", "live", "rejected"
     rejection_reason: Optional[str] = None
     approved_by_admin_id: Optional[str] = None
     featured: bool = False
@@ -329,8 +330,9 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
     product_configs = body.get("products", [])
     design_analysis = body.get("analysis", None)
     
-    # Determine initial status
-    initial_status = "pending" if product_configs else "draft"
+    # Designs submitted with a price (from /sell) go straight to pending review.
+    # Designs without a price are saved as drafts.
+    initial_status = "pending" if (product_configs or body.get("price")) else "draft"
     
     # Build internal print metadata (not exposed to creators)
     print_metadata = None
@@ -355,6 +357,7 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
         "title": body["title"],
         "description": body.get("description"),
         "image_url": body["image_url"],
+        "price": body.get("price"),
         "tags": body.get("tags", []),
         "approval_status": initial_status,
         "featured": False,
@@ -895,11 +898,18 @@ async def reject_creator(user_id: str, request: Request, session_token: Optional
     
     return {"message": "Creator rejected", "user_id": user_id}
 
-@api_router.get("/admin/designs/pending", response_model=List[Design])
+@api_router.get("/admin/designs/pending")
 async def get_pending_designs(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
     designs = await db.designs.find({"approval_status": "pending"}, {"_id": 0}).to_list(1000)
-    return [Design(**d) for d in designs]
+    # Enrich each design with creator name
+    result = []
+    for d in designs:
+        creator = await db.users.find_one({"user_id": d["user_id"]}, {"_id": 0, "name": 1, "email": 1})
+        d["creator_name"] = creator.get("name", "Unknown") if creator else "Unknown"
+        d["creator_email"] = creator.get("email", "") if creator else ""
+        result.append(d)
+    return result
 
 def get_mockup_url(blueprint_id: int, product_configs: list) -> str:
     """Pick a real garment mockup image based on product type and color"""
@@ -931,83 +941,69 @@ def get_mockup_url(blueprint_id: int, product_configs: list) -> str:
 @api_router.post("/admin/designs/{design_id}/approve")
 async def approve_design_admin(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     admin_user = await require_admin(request, session_token)
-    
+
     body = await request.json()
-    blueprint_id = body.get("blueprint_id", 6)  # Default to T-shirt
-    featured = body.get("featured", False)
-    
-    # Get design
+    apparel_type = body.get("apparel_type", "tshirt")  # "tshirt" | "hoodie" | "oversized_tshirt"
+    featured     = body.get("featured", False)
+
+    # Mockup template images per apparel type (served from /public/mockups/)
+    MOCKUP_TEMPLATES = {
+        "tshirt":            "/mockups/tshirt-whitefront.jpg",
+        "hoodie":            "/mockups/tshirt-whitefront.jpg",
+        "oversized_tshirt":  "/mockups/tshirt-offwhitefront.png",
+    }
+
     design = await db.designs.find_one({"design_id": design_id}, {"_id": 0})
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
-    
-    # Update design status
+
+    # Update design status to approved
     await db.designs.update_one(
         {"design_id": design_id},
         {"$set": {
             "approval_status": "approved",
             "approved_by_admin_id": admin_user.user_id,
             "featured": featured,
-            "approved_at": datetime.now(timezone.utc)
-        }}
+            "approved_at": datetime.now(timezone.utc),
+        }},
     )
-    
-    # Create Printify product (or mock)
-    try:
-        printify_product = await printify_service.create_product(
-            design_image_url=design["image_url"],
-            title=design["title"],
-            description=design.get("description", ""),
-            blueprint_id=blueprint_id,
-            print_provider_id=1,
-            variants=[1, 2, 3, 4]  # S, M, L, XL
-        )
-        
-        printify_product_id = printify_product.get("id")
-        
-        # Publish product if real Printify
-        if not printify_product.get("mock"):
-            await printify_service.publish_product(printify_product_id)
-        
-    except Exception as e:
-        logger.error(f"Failed to create Printify product: {e}")
-        printify_product_id = None
-    
-    # Create product in our database
+
+    # Build product — use creator's submitted price, fall back to ₹999
+    price = design.get("price") or 999.0
+
     product_id = f"product_{uuid.uuid4().hex[:12]}"
     product_doc = {
-        "product_id": product_id,
-        "design_id": design_id,
-        "user_id": design["user_id"],
-        "title": design["title"],
-        "description": design.get("description"),
-        "apparel_type": "tshirt" if blueprint_id == 6 else "hoodie",
-        "sizes": ["S", "M", "L", "XL", "XXL"],
-        "price": 999.0,  # Default price
-        "design_image": design["image_url"],
-        "mockup_image": get_mockup_url(blueprint_id, design.get("product_configs", [])),
-        "printify_product_id": printify_product_id,
-        "printify_blueprint_id": blueprint_id,
-        "base_cost": 500.0,
+        "product_id":              product_id,
+        "design_id":               design_id,
+        "user_id":                 design["user_id"],
+        "title":                   design["title"],
+        "description":             design.get("description"),
+        "apparel_type":            apparel_type,
+        "sizes":                   ["S", "M", "L", "XL", "XXL"],
+        "price":                   price,
+        # design_image is the raw uploaded artwork; mockup_image is the template thumbnail
+        "design_image":            design["image_url"],
+        "mockup_image":            MOCKUP_TEMPLATES.get(apparel_type, MOCKUP_TEMPLATES["tshirt"]),
+        # Qikink uses design_id as the design_code in order payloads
+        "qikink_design_code":      design_id,
+        "base_cost":               500.0,
         "creator_commission_rate": 0.8,
         "platform_commission_rate": 0.2,
-        "product_status": "live",  # Default to live
-        "units_sold": 0,
-        "created_at": datetime.now(timezone.utc),
-        "is_active": True,
-        "is_approved": True,
-        "approved_at": datetime.now(timezone.utc)
+        "product_status":          "live",
+        "units_sold":              0,
+        "created_at":              datetime.now(timezone.utc),
+        "is_active":               True,
+        "is_approved":             True,
+        "approved_at":             datetime.now(timezone.utc),
     }
-    
+
     await db.products.insert_one(product_doc)
-    
-    logger.info(f"Design {design_id} approved and product {product_id} created by admin {admin_user.user_id}")
-    
+    logger.info(f"Design {design_id} approved → product {product_id} (apparel={apparel_type}, price=₹{price}) by admin {admin_user.user_id}")
+
     return {
-        "message": "Design approved and product created",
-        "design_id": design_id,
+        "message":    "Design approved and product created",
+        "design_id":  design_id,
         "product_id": product_id,
-        "printify_product_id": printify_product_id
     }
 
 @api_router.post("/admin/designs/{design_id}/reject")
