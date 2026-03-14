@@ -27,7 +27,7 @@ export const PRINT_PRESETS = {
     basePrice: 799,
     availableColors: ['white', 'black', 'yellow', 'grey'],
     mockupImages: {
-      white: 'https://d91ztqmtx7u1k.cloudfront.net/ClientContent/Images/ExtraLarge/t-shirt-cotton-blank-t-shirt--20240515090954038.jpg',
+      white: '/mockups/tshirt-whitefront.jpg',
       black: '/mockups/tshirt-black.jpg',
       yellow: '/mockups/tshirt-yellow.jpg',
       grey: '/mockups/tshirt-grey.jpg',
@@ -55,7 +55,7 @@ export const PRINT_PRESETS = {
     availableColors: ['white', 'black', 'yellow', 'grey'],
     mockupImages: {
       white: '/mockups/tshirt-white.jpg',
-      black: 'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800',
+      black: '/mockups/hoodie-grey.jpg',
       yellow: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800',
       grey: 'https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?w=800'
     }

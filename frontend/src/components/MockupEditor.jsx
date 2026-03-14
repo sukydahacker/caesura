@@ -40,8 +40,8 @@ const MOCKUP_IMAGES = {
     back:  { white: '/mockups/tshirt-whitebackog.png', black: '/mockups/tshirt-blackback.jpg' }
   },
   hoodie: {
-    front: { white: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800', black: 'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800', grey: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800' },
-    back:  { white: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800', black: 'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800' }
+    front: { white: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800', black: '/mockups/hoodie-grey.jpg', grey: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800' },
+    back:  { white: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800', black: '/mockups/hoodie-grey.jpg' }
   },
   oversized_tshirt: {
     front: { white: 'https://images.unsplash.com/photo-1627225793904-a2f900a6e4cf?w=800', black: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800', grey: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800' },

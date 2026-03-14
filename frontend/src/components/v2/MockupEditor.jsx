@@ -92,12 +92,12 @@ const MOCKUP_IMAGES = {
   hoodie: {
     front: {
       white: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800',
-      black: 'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800',
+      black: '/mockups/hoodie-grey.jpg',
       grey: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800',
     },
     back: {
       white: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800',
-      black: 'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800',
+      black: '/mockups/hoodie-grey.jpg',
     }
   },
   oversized_tshirt: {

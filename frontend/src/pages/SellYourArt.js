@@ -17,8 +17,8 @@ const body    = { fontFamily: '"DM Sans", system-ui, sans-serif' };
 const display = { fontFamily: '"Clash Display", "Bebas Neue", sans-serif' };
 const mono    = { fontFamily: '"JetBrains Mono", monospace' };
 
-const CANVAS_W = 480;
-const CANVAS_H = 572;
+const CANVAS_W = 420;
+const CANVAS_H = 600;
 
 // ── Product collection groupings ────────────────────────────────────────────────
 const COLLECTIONS = [
@@ -121,19 +121,31 @@ function categorizeProduct(categoryName) {
 // Products that have mockup templates for the canvas editor
 const PRODUCT_TEMPLATES = {
   'Terry Oversized Tee | UT27': {
-    template: '/mockups/tshirt-offwhitefront.png',
-    printArea: { x: 96, y: 122, w: 288, h: 278 },
+    template: '/mockups/oversized-tee-white.jpg',
+    printArea: { x: 92, y: 138, w: 236, h: 222 },
   },
   'Hoodie': {
-    template: '/mockups/tshirt-whitefront.jpg',
-    printArea: { x: 110, y: 158, w: 260, h: 226 },
+    template: '/mockups/hoodie-white.jpg',
+    printArea: { x: 100, y: 155, w: 220, h: 200 },
+  },
+  'Oversized Classic T-Shirt | UC22': {
+    template: '/mockups/oversized-tee-white.jpg',
+    printArea: { x: 92, y: 138, w: 236, h: 222 },
+  },
+  'Classic Crew T-Shirt': {
+    template: '/mockups/crew-tee-white.jpg',
+    printArea: { x: 94, y: 128, w: 232, h: 238 },
+  },
+  'Sweatshirt | UH26': {
+    template: '/mockups/sweatshirt-white.jpg',
+    printArea: { x: 97, y: 140, w: 226, h: 230 },
   },
 };
 
 // Default print area for products without a specific template
 const DEFAULT_TEMPLATE = {
-  template: '/mockups/tshirt-offwhitefront.png',
-  printArea: { x: 96, y: 122, w: 288, h: 278 },
+  template: '/mockups/oversized-tee-white.jpg',
+  printArea: { x: 92, y: 138, w: 236, h: 222 },
 };
 
 const MAX_FILE_MB = 20;
