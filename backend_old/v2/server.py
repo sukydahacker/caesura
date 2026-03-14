@@ -245,7 +245,7 @@ async def create_session(request: Request, response: Response):
             "picture": auth_data.get("picture"),
             "updated_at": datetime.now(timezone.utc)
         }
-        if auth_data["email"] == "sukrit.chawla@gmail.com":
+        if auth_data["email"] == "projectmark121224@gmail.com":
             update_fields["role"] = "admin"
         await db.users.update_one(
             {"user_id": user_id},
@@ -860,7 +860,7 @@ def get_mockup_url(blueprint_id: int, product_configs: list) -> str:
         },
         "hoodie": {
             "white": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800",
-            "black": "https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800",
+            "black": "/mockups/hoodie-grey.jpg",
             "grey": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800",
         }
     }

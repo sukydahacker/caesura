@@ -1,7 +1,8 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Cookie, Response, Request
-from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+load_dotenv()
+
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -25,13 +26,6 @@ load_dotenv(ROOT_DIR / '.env')
 # Import services
 from services.printify_service import printify_service
 from services.revenue_service import revenue_service
-from services.qikink_service import qikink_service
-
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
-
-# Media directory — stores uploaded design images and serves them as static files
-MEDIA_DIR = ROOT_DIR / "media" / "designs"
-MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -44,9 +38,6 @@ razorpay_client = razorpay.Client(auth=(os.environ.get('RAZORPAY_KEY_ID', ''), o
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
-
-# Serve uploaded design images at /media/designs/<filename>
-app.mount("/media/designs", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
 # Pydantic Models
 class User(BaseModel):
@@ -86,9 +77,8 @@ class Design(BaseModel):
     title: str
     description: Optional[str] = None
     image_url: str
-    price: Optional[float] = None
     tags: List[str] = []
-    approval_status: str = "draft"  # "draft", "pending", "approved", "live", "rejected"
+    approval_status: str = "draft"  # "draft", "submitted", "approved", "live", "rejected"
     rejection_reason: Optional[str] = None
     approved_by_admin_id: Optional[str] = None
     featured: bool = False
@@ -142,7 +132,6 @@ class Order(BaseModel):
     razorpay_order_id: Optional[str] = None
     razorpay_payment_id: Optional[str] = None
     printify_order_id: Optional[str] = None
-    qikink_order_id: Optional[int] = None
     fulfillment_status: str = "pending"  # "pending", "printing", "shipped", "delivered", "cancelled"
     tracking_number: Optional[str] = None
     tracking_url: Optional[str] = None
@@ -201,6 +190,29 @@ async def require_admin(request: Request, session_token: Optional[str] = Cookie(
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
+# Dev login — creates a real session for an existing user by email (dev only)
+@api_router.post("/auth/dev-login")
+async def dev_login(request: Request, response: Response):
+    body = await request.json()
+    if body.get("secret") != "caesura-dev-2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    email = body.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="email required")
+    user_doc = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found — log in via Emergent preview first")
+    session_token = f"dev_{uuid.uuid4().hex}"
+    await db.user_sessions.insert_one({
+        "user_id": user_doc["user_id"],
+        "session_token": session_token,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+        "created_at": datetime.now(timezone.utc)
+    })
+    response.set_cookie(key="session_token", value=session_token, httponly=True,
+                        secure=False, samesite="lax", path="/", max_age=7*24*60*60)
+    return {"ok": True, "session_token": session_token, "user": user_doc}
+
 # Auth Routes
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):
@@ -229,13 +241,16 @@ async def create_session(request: Request, response: Response):
     if user_doc:
         user_id = user_doc["user_id"]
         # Update user data
+        update_fields = {
+            "name": auth_data["name"],
+            "picture": auth_data.get("picture"),
+            "updated_at": datetime.now(timezone.utc)
+        }
+        if auth_data["email"] == "projectmark121224@gmail.com":
+            update_fields["role"] = "admin"
         await db.users.update_one(
             {"user_id": user_id},
-            {"$set": {
-                "name": auth_data["name"],
-                "picture": auth_data.get("picture"),
-                "updated_at": datetime.now(timezone.utc)
-            }}
+            {"$set": update_fields}
         )
     else:
         # Create new user
@@ -295,29 +310,20 @@ async def logout(request: Request, response: Response, session_token: Optional[s
 @api_router.post("/upload/design")
 async def upload_design(request: Request, file: UploadFile = File(...), session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-
+    
+    # Read and validate image
     contents = await file.read()
-
-    # Validate image
     try:
-        img = Image.open(io.BytesIO(contents))
-        img.verify()
+        image = Image.open(io.BytesIO(contents))
+        image.verify()
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image file")
-
-    # Determine file extension
-    ext = (file.filename or "design.png").rsplit(".", 1)[-1].lower()
-    if ext not in {"png", "jpg", "jpeg", "webp", "gif"}:
-        ext = "png"
-
-    # Save to disk with a unique filename
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    dest = MEDIA_DIR / filename
-    dest.write_bytes(contents)
-
-    # Return a publicly accessible URL (Qikink will fetch this during order creation)
-    image_url = f"{BACKEND_URL}/media/designs/{filename}"
-    return {"image_url": image_url, "url": image_url}
+    
+    # Convert to base64 for storage (mock upload)
+    image_data = base64.b64encode(contents).decode('utf-8')
+    image_url = f"data:image/png;base64,{image_data}"
+    
+    return {"image_url": image_url}
 
 @api_router.post("/designs", response_model=Design)
 async def create_design(request: Request, session_token: Optional[str] = Cookie(None)):
@@ -330,9 +336,8 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
     product_configs = body.get("products", [])
     design_analysis = body.get("analysis", None)
     
-    # Designs submitted with a price (from /sell) go straight to pending review.
-    # Designs without a price are saved as drafts.
-    initial_status = "pending_approval" if (product_configs or body.get("price")) else "draft"
+    # Determine initial status
+    initial_status = "pending" if product_configs else "draft"
     
     # Build internal print metadata (not exposed to creators)
     print_metadata = None
@@ -357,10 +362,6 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
         "title": body["title"],
         "description": body.get("description"),
         "image_url": body["image_url"],
-        "mockup_image_url": body.get("mockup_image_url"),
-        "product_type": body.get("product_type", "UT27"),
-        "placement_coordinates": body.get("placement_coordinates"),
-        "price": body.get("price"),
         "tags": body.get("tags", []),
         "approval_status": initial_status,
         "featured": False,
@@ -624,74 +625,56 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
         "updated_at": datetime.now(timezone.utc)
     }
     await db.orders.insert_one(order_doc)
-
-    # ── Per-item: revenue splits + build Qikink line items ────────────────────
-    qikink_items = []
-
+    
+    # Process each item for Printify order and revenue split
     for item in body["items"]:
         product_id = item["product_id"]
         product = await db.products.find_one({"product_id": product_id}, {"_id": 0})
-
-        if not product:
-            continue
-
-        # Revenue split
-        split_data = revenue_service.calculate_split(
-            retail_price=item["price"],
-            base_cost=product.get("base_cost", 500),
-            creator_commission_rate=product.get("creator_commission_rate", 0.8),
-            platform_commission_rate=product.get("platform_commission_rate", 0.2),
-        )
-        creator_earnings  = split_data["creator_amount"] * item["quantity"]
-        platform_earnings = split_data["platform_amount"] * item["quantity"]
-        split_id = await revenue_service.record_split(
-            db=db,
-            order_id=order_id,
-            creator_id=product["user_id"],
-            creator_amount=creator_earnings,
-            platform_amount=platform_earnings,
-        )
-        logger.info(f"Revenue split {split_id}: order={order_id}, creator=₹{creator_earnings}, platform=₹{platform_earnings}")
-
-        # Gather design data for Qikink
-        design = await db.designs.find_one({"design_id": product.get("design_id")}, {"_id": 0})
-        if design:
-            qikink_items.append({
-                "product":  product,
-                "design":   design,
-                "size":     item.get("size", "M"),
-                "color":    item.get("color", "white"),
-                "quantity": item["quantity"],
-                "price":    item["price"],
-            })
-
-    # ── Forward to Qikink ────────────────────────────────────────────────────────
-    if qikink_items and qikink_service.is_configured:
-        try:
-            qikink_result = await qikink_service.create_order(
-                order_number=order_id,
-                items=qikink_items,
-                shipping_address=body["shipping_address"],
-                total_order_value=body["total_amount"],
+        
+        if product and product.get("printify_product_id"):
+            # Place Printify order
+            try:
+                printify_order = await printify_service.create_order(
+                    product_id=product["printify_product_id"],
+                    variant_id=1,  # TODO: Map size to variant
+                    quantity=item["quantity"],
+                    shipping_address=body["shipping_address"]
+                )
+                
+                # Update order with Printify order ID
+                await db.orders.update_one(
+                    {"order_id": order_id},
+                    {"$set": {
+                        "printify_order_id": printify_order.get("id"),
+                        "tracking_number": printify_order.get("tracking_number"),
+                        "tracking_url": printify_order.get("tracking_url")
+                    }}
+                )
+            except Exception as e:
+                logger.error(f"Failed to create Printify order: {e}")
+        
+        # Calculate and record revenue split
+        if product:
+            split_data = revenue_service.calculate_split(
+                retail_price=item["price"],
+                base_cost=product.get("base_cost", 500),
+                creator_commission_rate=product.get("creator_commission_rate", 0.8),
+                platform_commission_rate=product.get("platform_commission_rate", 0.2)
             )
-            qikink_order_id = qikink_result.get("order_id")
-            await db.orders.update_one(
-                {"order_id": order_id},
-                {"$set": {
-                    "qikink_order_id":    qikink_order_id,
-                    "fulfillment_status": "printing",
-                    "updated_at":         datetime.now(timezone.utc),
-                }},
+            
+            creator_earnings = split_data["creator_amount"] * item["quantity"]
+            platform_earnings = split_data["platform_amount"] * item["quantity"]
+            
+            split_id = await revenue_service.record_split(
+                db=db,
+                order_id=order_id,
+                creator_id=product["user_id"],
+                creator_amount=creator_earnings,
+                platform_amount=platform_earnings
             )
-            order_doc["qikink_order_id"]    = qikink_order_id
-            order_doc["fulfillment_status"] = "printing"
-            logger.info(f"Qikink order created: qikink_order_id={qikink_order_id} for caesura order={order_id}")
-        except Exception as e:
-            # Qikink failure must not block the customer — log and continue
-            logger.error(f"Qikink order creation failed for {order_id}: {e}")
-    elif qikink_items and not qikink_service.is_configured:
-        logger.warning("Qikink not configured — skipping print fulfillment. Set QIKINK_CLIENT_ID and QIKINK_CLIENT_SECRET in .env")
-
+            
+            logger.info(f"Revenue split created: split_id={split_id}, order={order_id}, creator_amount={creator_earnings}, platform_amount={platform_earnings}")
+    
     # Clear cart
     await db.cart_items.delete_many({"user_id": user.user_id})
     
@@ -712,68 +695,6 @@ async def get_order(order_id: str, request: Request, session_token: Optional[str
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return Order(**order)
-
-@api_router.post("/orders/{order_id}/sync-fulfillment")
-async def sync_order_fulfillment(order_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
-    """Poll Qikink for the latest fulfillment status and update our DB."""
-    user = await get_current_user(request, session_token)
-    order = await db.orders.find_one({"order_id": order_id, "user_id": user.user_id}, {"_id": 0})
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    qikink_order_id = order.get("qikink_order_id")
-    if not qikink_order_id:
-        return {"message": "No Qikink order linked to this order", "fulfillment_status": order.get("fulfillment_status")}
-
-    try:
-        qk = await qikink_service.get_order_status(qikink_order_id)
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Qikink API error: {e}")
-
-    # Map Qikink status → our fulfillment_status
-    status_map = {
-        "Pending":    "pending",
-        "Processing": "printing",
-        "Shipped":    "shipped",
-        "Delivered":  "delivered",
-        "Cancelled":  "cancelled",
-        "Archived":   "delivered",
-    }
-    qk_status = qk.get("status", "")
-    fulfillment_status = status_map.get(qk_status, order.get("fulfillment_status", "pending"))
-
-    shipping = qk.get("shipping", {})
-    tracking_number = shipping.get("awb")
-    tracking_url    = shipping.get("tracking_link")
-
-    await db.orders.update_one(
-        {"order_id": order_id},
-        {"$set": {
-            "fulfillment_status": fulfillment_status,
-            "tracking_number":    tracking_number,
-            "tracking_url":       tracking_url,
-            "updated_at":         datetime.now(timezone.utc),
-        }},
-    )
-
-    return {
-        "fulfillment_status": fulfillment_status,
-        "qikink_status":      qk_status,
-        "tracking_number":    tracking_number,
-        "tracking_url":       tracking_url,
-    }
-
-@api_router.get("/admin/qikink/status")
-async def qikink_status(request: Request, session_token: Optional[str] = Cookie(None)):
-    """Admin endpoint: verify Qikink credentials are working."""
-    await require_admin(request, session_token)
-    ok = await qikink_service.ping()
-    return {
-        "configured": qikink_service.is_configured,
-        "reachable":  ok,
-        "sandbox":    os.environ.get("QIKINK_SANDBOX", "true").lower() != "false",
-        "base_url":   qikink_service.base_url,
-    }
 
 @api_router.get("/creator/earnings")
 async def get_creator_earnings(request: Request, session_token: Optional[str] = Cookie(None)):
@@ -901,18 +822,11 @@ async def reject_creator(user_id: str, request: Request, session_token: Optional
     
     return {"message": "Creator rejected", "user_id": user_id}
 
-@api_router.get("/admin/designs/pending")
+@api_router.get("/admin/designs/pending", response_model=List[Design])
 async def get_pending_designs(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    designs = await db.designs.find({"approval_status": {"$in": ["pending", "pending_approval"]}}, {"_id": 0}).to_list(1000)
-    # Enrich each design with creator name
-    result = []
-    for d in designs:
-        creator = await db.users.find_one({"user_id": d["user_id"]}, {"_id": 0, "name": 1, "email": 1})
-        d["creator_name"] = creator.get("name", "Unknown") if creator else "Unknown"
-        d["creator_email"] = creator.get("email", "") if creator else ""
-        result.append(d)
-    return result
+    designs = await db.designs.find({"approval_status": "pending"}, {"_id": 0}).to_list(1000)
+    return [Design(**d) for d in designs]
 
 def get_mockup_url(blueprint_id: int, product_configs: list) -> str:
     """Pick a real garment mockup image based on product type and color"""
@@ -944,77 +858,83 @@ def get_mockup_url(blueprint_id: int, product_configs: list) -> str:
 @api_router.post("/admin/designs/{design_id}/approve")
 async def approve_design_admin(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     admin_user = await require_admin(request, session_token)
-
+    
     body = await request.json()
-    apparel_type = body.get("apparel_type", "tshirt")  # "tshirt" | "hoodie" | "oversized_tshirt"
-    featured     = body.get("featured", False)
-
+    blueprint_id = body.get("blueprint_id", 6)  # Default to T-shirt
+    featured = body.get("featured", False)
+    
+    # Get design
     design = await db.designs.find_one({"design_id": design_id}, {"_id": 0})
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
-
-    # Use product_type from the design (UT27 or UH24) if stored, else fall back to apparel_type param
-    product_type = design.get("product_type") or apparel_type or "UT27"
-
-    # Use the canvas-exported mockup if stored, otherwise fall back to a static template
-    FALLBACK_MOCKUPS = {
-        "UT27": "/mockups/tshirt-offwhitefront.png",
-        "UH24": "/mockups/tshirt-whitefront.jpg",
-        "tshirt": "/mockups/tshirt-whitefront.jpg",
-        "hoodie": "/mockups/tshirt-whitefront.jpg",
-        "oversized_tshirt": "/mockups/tshirt-offwhitefront.png",
-    }
-    mockup_image = design.get("mockup_image_url") or FALLBACK_MOCKUPS.get(product_type, "/mockups/tshirt-whitefront.jpg")
-
-    # Update design status to approved
+    
+    # Update design status
     await db.designs.update_one(
         {"design_id": design_id},
         {"$set": {
             "approval_status": "approved",
             "approved_by_admin_id": admin_user.user_id,
             "featured": featured,
-            "approved_at": datetime.now(timezone.utc),
-        }},
+            "approved_at": datetime.now(timezone.utc)
+        }}
     )
-
-    # Build product — use creator's submitted price, fall back to ₹999
-    price = design.get("price") or 999.0
-
+    
+    # Create Printify product (or mock)
+    try:
+        printify_product = await printify_service.create_product(
+            design_image_url=design["image_url"],
+            title=design["title"],
+            description=design.get("description", ""),
+            blueprint_id=blueprint_id,
+            print_provider_id=1,
+            variants=[1, 2, 3, 4]  # S, M, L, XL
+        )
+        
+        printify_product_id = printify_product.get("id")
+        
+        # Publish product if real Printify
+        if not printify_product.get("mock"):
+            await printify_service.publish_product(printify_product_id)
+        
+    except Exception as e:
+        logger.error(f"Failed to create Printify product: {e}")
+        printify_product_id = None
+    
+    # Create product in our database
     product_id = f"product_{uuid.uuid4().hex[:12]}"
     product_doc = {
-        "product_id":              product_id,
-        "design_id":               design_id,
-        "user_id":                 design["user_id"],
-        "title":                   design["title"],
-        "description":             design.get("description"),
-        "apparel_type":            product_type,
-        "sizes":                   ["S", "M", "L", "XL", "XXL"],
-        "price":                   price,
-        # design_image = raw uploaded artwork (used by Qikink for printing)
-        # mockup_image = canvas-exported merged image (shown on marketplace)
-        "design_image":            design["image_url"],
-        "mockup_image":            mockup_image,
-        "placement_coordinates":   design.get("placement_coordinates"),
-        # Qikink uses design_id as the design_code in order payloads
-        "qikink_design_code":      design_id,
-        "base_cost":               500.0,
+        "product_id": product_id,
+        "design_id": design_id,
+        "user_id": design["user_id"],
+        "title": design["title"],
+        "description": design.get("description"),
+        "apparel_type": "tshirt" if blueprint_id == 6 else "hoodie",
+        "sizes": ["S", "M", "L", "XL", "XXL"],
+        "price": 999.0,  # Default price
+        "design_image": design["image_url"],
+        "mockup_image": get_mockup_url(blueprint_id, design.get("product_configs", [])),
+        "printify_product_id": printify_product_id,
+        "printify_blueprint_id": blueprint_id,
+        "base_cost": 500.0,
         "creator_commission_rate": 0.8,
         "platform_commission_rate": 0.2,
-        "product_status":          "live",
-        "units_sold":              0,
-        "created_at":              datetime.now(timezone.utc),
-        "is_active":               True,
-        "is_approved":             True,
-        "approved_at":             datetime.now(timezone.utc),
+        "product_status": "live",  # Default to live
+        "units_sold": 0,
+        "created_at": datetime.now(timezone.utc),
+        "is_active": True,
+        "is_approved": True,
+        "approved_at": datetime.now(timezone.utc)
     }
-
+    
     await db.products.insert_one(product_doc)
-    logger.info(f"Design {design_id} approved → product {product_id} (apparel={apparel_type}, price=₹{price}) by admin {admin_user.user_id}")
-
+    
+    logger.info(f"Design {design_id} approved and product {product_id} created by admin {admin_user.user_id}")
+    
     return {
-        "message":    "Design approved and product created",
-        "design_id":  design_id,
+        "message": "Design approved and product created",
+        "design_id": design_id,
         "product_id": product_id,
+        "printify_product_id": printify_product_id
     }
 
 @api_router.post("/admin/designs/{design_id}/reject")
@@ -1059,7 +979,7 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
     approved_creators = await db.users.count_documents({"creator_status": "approved"})
     
     total_designs = await db.designs.count_documents({})
-    pending_designs = await db.designs.count_documents({"approval_status": {"$in": ["pending", "pending_approval"]}})
+    pending_designs = await db.designs.count_documents({"approval_status": "pending"})
     approved_designs = await db.designs.count_documents({"approval_status": "approved"})
     
     total_products = await db.products.count_documents({"is_approved": True})
@@ -1275,6 +1195,24 @@ async def update_product_status(product_id: str, request: Request, session_token
         "new_status": new_status
     }
 
+# ── TEMPORARY BOOTSTRAP: delete after use ──────────────────
+@api_router.post("/bootstrap/make-admin")
+async def bootstrap_make_admin(request: Request):
+    body = await request.json()
+    if body.get("secret") != "caesura-bootstrap-2026":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    email = body.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="email required")
+    result = await db.users.update_one(
+        {"email": email},
+        {"$set": {"role": "admin"}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found — log in first, then retry")
+    return {"ok": True, "email": email, "role": "admin"}
+# ── END TEMPORARY BOOTSTRAP ─────────────────────────────────
+
 # Include router
 app.include_router(api_router)
 
@@ -1297,26 +1235,3 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-@app.post("/api/auth/dev-login")
-async def dev_login(request: Request, response: Response):
-    body = await request.json()
-    email = body.get("email")
-    secret = body.get("secret")
-    
-    if secret != "caesura-dev-2026":
-        raise HTTPException(status_code=403, detail="Invalid secret")
-    
-    user_doc = await db.users.find_one({"email": email}, {"_id": 0})
-    if not user_doc:
-        raise HTTPException(status_code=404, detail="Not Found")
-    
-    session_token = str(uuid.uuid4())
-    await db.user_sessions.insert_one({
-        "user_id": user_doc["user_id"],
-        "session_token": session_token,
-        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
-        "created_at": datetime.now(timezone.utc)
-    })
-    
-    response.set_cookie(key="session_token", value=session_token, httponly=False, samesite="lax", secure=False)
-    return {"user": user_doc}

@@ -55,7 +55,7 @@ export const PRINT_PRESETS = {
     availableColors: ['white', 'black', 'yellow', 'grey'],
     mockupImages: {
       white: '/mockups/tshirt-white.jpg',
-      black: 'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800',
+      black: '/mockups/hoodie-grey.jpg',
       yellow: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800',
       grey: 'https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?w=800'
     }
