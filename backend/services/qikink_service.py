@@ -8,8 +8,10 @@ Status:    GET  /api/order?id=...  → order details + tracking
 """
 
 import os
+import json
 import logging
 import httpx
+from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
 
@@ -18,39 +20,45 @@ logger = logging.getLogger(__name__)
 _SANDBOX_URL = "https://sandbox.qikink.com"
 _LIVE_URL    = "https://api.qikink.com"
 
+# Load full SKU catalog from JSON (generated from sku_descriptions.xlsx)
+_SKU_FILE = Path(__file__).parent / "qikink_skus.json"
+_META_FILE = Path(__file__).parent / "qikink_meta.json"
+
+def _load_sku_map() -> Dict[str, Dict[str, Dict[str, str]]]:
+    """Load SKU map from JSON file, with case-insensitive color keys."""
+    if _SKU_FILE.exists():
+        with open(_SKU_FILE) as f:
+            raw = json.load(f)
+        # Normalise color keys to lowercase for easier lookup
+        normalised = {}
+        for cat, colors in raw.items():
+            normalised[cat] = {color.lower(): sizes for color, sizes in colors.items()}
+        return normalised
+    logger.warning(f"SKU file not found: {_SKU_FILE} — using empty map")
+    return {}
+
+def _load_product_meta() -> Dict[str, Any]:
+    """Load product metadata (base prices, genders, weights, tax)."""
+    if _META_FILE.exists():
+        with open(_META_FILE) as f:
+            return json.load(f)
+    return {}
+
 
 class QikinkService:
-    # ── Qikink SKU map: apparel_type → color → size → SKU
-    # These must match the SKUs shown in your Qikink dashboard.
-    # Update when new product types are added.
-    # SKU format: {product_code}-{color_code}-{size}
-    # Verify these against your Qikink dashboard → Products → SKU column
-    SKU_MAP: Dict[str, Dict[str, Dict[str, str]]] = {
-        # Unisex Terry Oversized Tee (UT27)
-        "UT27": {
-            "white": {"S": "UT27-WH-S", "M": "UT27-WH-M", "L": "UT27-WH-L", "XL": "UT27-WH-XL", "XXL": "UT27-WH-XXL"},
-            "black": {"S": "UT27-BK-S", "M": "UT27-BK-M", "L": "UT27-BK-L", "XL": "UT27-BK-XL", "XXL": "UT27-BK-XXL"},
-            "navy":  {"S": "UT27-NV-S", "M": "UT27-NV-M", "L": "UT27-NV-L", "XL": "UT27-NV-XL", "XXL": "UT27-NV-XXL"},
-        },
-        # Unisex Hoodie (UH24)
-        "UH24": {
-            "white": {"S": "UH24-WH-S", "M": "UH24-WH-M", "L": "UH24-WH-L", "XL": "UH24-WH-XL", "XXL": "UH24-WH-XXL"},
-            "black": {"S": "UH24-BK-S", "M": "UH24-BK-M", "L": "UH24-BK-L", "XL": "UH24-BK-XL", "XXL": "UH24-BK-XXL"},
-            "navy":  {"S": "UH24-NV-S", "M": "UH24-NV-M", "L": "UH24-NV-L", "XL": "UH24-NV-XL", "XXL": "UH24-NV-XXL"},
-        },
-        # Legacy aliases for any existing data
-        "tshirt": {
-            "white": {"S": "UT27-WH-S", "M": "UT27-WH-M", "L": "UT27-WH-L", "XL": "UT27-WH-XL", "XXL": "UT27-WH-XXL"},
-            "black": {"S": "UT27-BK-S", "M": "UT27-BK-M", "L": "UT27-BK-L", "XL": "UT27-BK-XL", "XXL": "UT27-BK-XXL"},
-        },
-        "oversized_tshirt": {
-            "white": {"S": "UT27-WH-S", "M": "UT27-WH-M", "L": "UT27-WH-L", "XL": "UT27-WH-XL", "XXL": "UT27-WH-XXL"},
-            "black": {"S": "UT27-BK-S", "M": "UT27-BK-M", "L": "UT27-BK-L", "XL": "UT27-BK-XL", "XXL": "UT27-BK-XXL"},
-        },
-        "hoodie": {
-            "white": {"S": "UH24-WH-S", "M": "UH24-WH-M", "L": "UH24-WH-L", "XL": "UH24-WH-XL", "XXL": "UH24-WH-XXL"},
-            "black": {"S": "UH24-BK-S", "M": "UH24-BK-M", "L": "UH24-BK-L", "XL": "UH24-BK-XL", "XXL": "UH24-BK-XXL"},
-        },
+    # Full SKU catalog: category name → color → size → SKU
+    # Loaded from qikink_skus.json (2,700+ SKUs across 142 product types)
+    SKU_MAP = _load_sku_map()
+    PRODUCT_META = _load_product_meta()
+
+    # Legacy aliases so existing DB records still resolve
+    _ALIASES: Dict[str, str] = {
+        "tshirt": "Terry Oversized Tee | UT27",
+        "oversized_tshirt": "Terry Oversized Tee | UT27",
+        "hoodie": "Hoodie",
+        "UT27": "Terry Oversized Tee | UT27",
+        "UH24": "Hoodie",
+        "UH83": "Pullover Hoodie | UH83",
     }
 
     # print_type_id 17 = DTF — prints on all fabric types, best default for POD
@@ -102,15 +110,55 @@ class QikinkService:
     # ── SKU helpers ─────────────────────────────────────────────────────────────
 
     def resolve_sku(self, apparel_type: str, color: str, size: str) -> str:
-        """Map product attributes → Qikink variant SKU."""
-        by_color = self.SKU_MAP.get(apparel_type, self.SKU_MAP["tshirt"])
-        by_size  = by_color.get(color.lower(), by_color.get("white", {}))
+        """Map product attributes → Qikink variant SKU.
+
+        Tries exact category match first, then aliases, then fallback.
+        """
+        color_lower = color.lower()
+
+        # Try exact category name
+        by_color = self.SKU_MAP.get(apparel_type)
+
+        # Try alias (e.g. "tshirt" → "Terry Oversized Tee | UT27")
+        if not by_color:
+            alias = self._ALIASES.get(apparel_type)
+            if alias:
+                by_color = self.SKU_MAP.get(alias)
+
+        # Fallback to UT27
+        if not by_color:
+            fallback_key = self._ALIASES.get("tshirt", "Terry Oversized Tee | UT27")
+            by_color = self.SKU_MAP.get(fallback_key, {})
+            logger.warning(f"Qikink: unknown apparel_type '{apparel_type}', falling back to {fallback_key}")
+
+        by_size = by_color.get(color_lower, by_color.get("white", by_color.get("black", {})))
         sku = by_size.get(size)
         if not sku:
-            # Best-effort fallback so the order still reaches Qikink
-            logger.warning(f"Qikink: no SKU for {apparel_type}/{color}/{size}, using UT27/white/{size}")
-            sku = self.SKU_MAP["UT27"]["white"].get(size, f"UT27-WH-{size}")
-        return sku
+            logger.warning(f"Qikink: no SKU for {apparel_type}/{color}/{size}")
+            # Last resort: pick any available size from the first color
+            for c, sizes in by_color.items():
+                if size in sizes:
+                    sku = sizes[size]
+                    break
+        return sku or f"UNKNOWN-{apparel_type}-{color}-{size}"
+
+    def get_product_catalog(self) -> List[Dict[str, Any]]:
+        """Return the full product catalog with metadata for the frontend."""
+        catalog = []
+        for category, meta in self.PRODUCT_META.items():
+            colors = list(self.SKU_MAP.get(category, {}).keys())
+            sizes = set()
+            for color_sizes in self.SKU_MAP.get(category, {}).values():
+                sizes.update(color_sizes.keys())
+            catalog.append({
+                "category": category,
+                "genders": meta.get("genders", []),
+                "colors": colors,
+                "sizes": sorted(sizes),
+                "base_prices": meta.get("base_prices", []),
+                "tax_rate": meta.get("tax_rate", 5),
+            })
+        return catalog
 
     # ── Order creation ──────────────────────────────────────────────────────────
 

@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
@@ -17,6 +16,7 @@ import base64
 from PIL import Image
 import io
 import sys
+import json
 
 ROOT_DIR = Path(__file__).parent
 sys.path.insert(0, str(ROOT_DIR))
@@ -27,16 +27,14 @@ from services.printify_service import printify_service
 from services.revenue_service import revenue_service
 from services.qikink_service import qikink_service
 
+# Import async PostgreSQL helpers
+from db import fetch_one, fetch_all, fetch_val, execute, get_pool, close_pool, to_jsonb
+
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
 
 # Media directory — stores uploaded design images and serves them as static files
 MEDIA_DIR = ROOT_DIR / "media" / "designs"
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
 
 # Razorpay client
 razorpay_client = razorpay.Client(auth=(os.environ.get('RAZORPAY_KEY_ID', ''), os.environ.get('RAZORPAY_KEY_SECRET', '')))
@@ -161,6 +159,19 @@ class RevenueSplit(BaseModel):
     status: str  # "pending", "completed"
     created_at: datetime
 
+# ─── Helper: parse JSONB fields that come back as strings ───────────────────
+def _parse_jsonb(row: dict, *keys) -> dict:
+    """Parse JSONB columns that asyncpg may return as strings."""
+    for k in keys:
+        v = row.get(k)
+        if isinstance(v, str):
+            try:
+                row[k] = json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                pass
+    return row
+
+
 # Auth Helper
 async def get_current_user(request: Request, session_token: Optional[str] = Cookie(None)) -> User:
     # Check cookie first, then Authorization header as fallback
@@ -169,15 +180,18 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
         auth_header = request.headers.get('Authorization')
         if auth_header and auth_header.startswith('Bearer '):
             token = auth_header.split(' ')[1]
-    
+
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     # Find session
-    session_doc = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    session_doc = await fetch_one(
+        "SELECT user_id, session_token, expires_at FROM user_sessions WHERE session_token = $1",
+        token,
+    )
     if not session_doc:
         raise HTTPException(status_code=401, detail="Invalid session")
-    
+
     # Check expiry
     expires_at = session_doc["expires_at"]
     if isinstance(expires_at, str):
@@ -186,12 +200,14 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
         expires_at = expires_at.replace(tzinfo=timezone.utc)
     if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="Session expired")
-    
+
     # Get user
-    user_doc = await db.users.find_one({"user_id": session_doc["user_id"]}, {"_id": 0})
+    user_doc = await fetch_one(
+        "SELECT * FROM users WHERE user_id = $1", session_doc["user_id"]
+    )
     if not user_doc:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     return User(**user_doc)
 
 async def require_admin(request: Request, session_token: Optional[str] = Cookie(None)) -> User:
@@ -207,76 +223,69 @@ async def create_session(request: Request, response: Response):
     body = await request.json()
     session_id = body.get("session_id")
     is_creator = body.get("is_creator", False)
-    
+
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id required")
-    
+
     # Call Emergent Auth API
     async with httpx.AsyncClient() as http_client:
         auth_response = await http_client.get(
             "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
             headers={"X-Session-ID": session_id}
         )
-        
+
         if auth_response.status_code != 200:
             raise HTTPException(status_code=400, detail="Invalid session_id")
-        
+
         auth_data = auth_response.json()
-    
+
     # Check if user exists
-    user_doc = await db.users.find_one({"email": auth_data["email"]}, {"_id": 0})
-    
+    user_doc = await fetch_one("SELECT * FROM users WHERE email = $1", auth_data["email"])
+
     if user_doc:
         user_id = user_doc["user_id"]
         # Update user data
-        await db.users.update_one(
-            {"user_id": user_id},
-            {"$set": {
-                "name": auth_data["name"],
-                "picture": auth_data.get("picture"),
-                "updated_at": datetime.now(timezone.utc)
-            }}
+        await execute(
+            "UPDATE users SET name = $1, picture = $2, updated_at = $3 WHERE user_id = $4",
+            auth_data["name"], auth_data.get("picture"),
+            datetime.now(timezone.utc), user_id,
         )
     else:
         # Create new user
         user_id = f"user_{uuid.uuid4().hex[:12]}"
         role = "creator" if is_creator else "buyer"
         creator_status = "pending" if is_creator else None
-        
-        user_doc = {
-            "user_id": user_id,
-            "email": auth_data["email"],
-            "name": auth_data["name"],
-            "picture": auth_data.get("picture"),
-            "role": role,
-            "creator_status": creator_status,
-            "created_at": datetime.now(timezone.utc)
-        }
-        await db.users.insert_one(user_doc)
-    
+
+        await execute(
+            """INSERT INTO users (user_id, email, name, picture, role, creator_status, created_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)""",
+            user_id, auth_data["email"], auth_data["name"], auth_data.get("picture"),
+            role, creator_status, datetime.now(timezone.utc),
+        )
+
     # Create session
-    session_token = auth_data["session_token"]
-    session_doc = {
-        "user_id": user_id,
-        "session_token": session_token,
-        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
-        "created_at": datetime.now(timezone.utc)
-    }
-    await db.user_sessions.insert_one(session_doc)
-    
+    session_token_val = auth_data["session_token"]
+    await execute(
+        """INSERT INTO user_sessions (user_id, session_token, expires_at, created_at)
+           VALUES ($1, $2, $3, $4)""",
+        user_id, session_token_val,
+        datetime.now(timezone.utc) + timedelta(days=7),
+        datetime.now(timezone.utc),
+    )
+
     # Set httpOnly cookie
     response.set_cookie(
         key="session_token",
-        value=session_token,
+        value=session_token_val,
         httponly=True,
         secure=True,
         samesite="none",
         path="/",
         max_age=7*24*60*60
     )
-    
+
     # Get user data
-    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    user = await fetch_one("SELECT * FROM users WHERE user_id = $1", user_id)
     return User(**user)
 
 @api_router.get("/auth/me")
@@ -287,7 +296,7 @@ async def get_me(request: Request, session_token: Optional[str] = Cookie(None)):
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response, session_token: Optional[str] = Cookie(None)):
     if session_token:
-        await db.user_sessions.delete_one({"session_token": session_token})
+        await execute("DELETE FROM user_sessions WHERE session_token = $1", session_token)
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
 
@@ -323,18 +332,16 @@ async def upload_design(request: Request, file: UploadFile = File(...), session_
 async def create_design(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
     body = await request.json()
-    
+
     design_id = f"design_{uuid.uuid4().hex[:12]}"
-    
+
     # Extract product configurations if provided
     product_configs = body.get("products", [])
     design_analysis = body.get("analysis", None)
-    
-    # Designs submitted with a price (from /sell) go straight to pending review.
-    # Designs without a price are saved as drafts.
+
     initial_status = "pending_approval" if (product_configs or body.get("price")) else "draft"
-    
-    # Build internal print metadata (not exposed to creators)
+
+    # Build internal print metadata
     print_metadata = None
     if product_configs:
         print_metadata = {
@@ -343,14 +350,33 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
                     "product_type": pc.get("productType"),
                     "print_method": pc.get("printMethod"),
                     "preset_id": pc.get("preset"),
-                    "placement": "front",  # Default placement
+                    "placement": "front",
                     "final_print_size": calculate_print_size(pc.get("productType"), design_analysis)
                 }
                 for pc in product_configs
             ],
             "submitted_at": datetime.now(timezone.utc).isoformat()
         }
-    
+
+    now = datetime.now(timezone.utc)
+    tags = body.get("tags", [])
+
+    await execute(
+        """INSERT INTO designs
+               (design_id, user_id, title, description, image_url, mockup_image_url,
+                product_type, placement_coordinates, price, tags, approval_status,
+                featured, product_configs, design_analysis, print_metadata,
+                created_at, updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)""",
+        design_id, user.user_id, body["title"], body.get("description"),
+        body["image_url"], body.get("mockup_image_url"),
+        body.get("product_type", "UT27"),
+        to_jsonb(body.get("placement_coordinates")),
+        body.get("price"), tags, initial_status,
+        False, to_jsonb(product_configs), to_jsonb(design_analysis),
+        to_jsonb(print_metadata), now, now,
+    )
+
     design_doc = {
         "design_id": design_id,
         "user_id": user.user_id,
@@ -361,25 +387,23 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
         "product_type": body.get("product_type", "UT27"),
         "placement_coordinates": body.get("placement_coordinates"),
         "price": body.get("price"),
-        "tags": body.get("tags", []),
+        "tags": tags,
         "approval_status": initial_status,
         "featured": False,
         "product_configs": product_configs,
         "design_analysis": design_analysis,
         "print_metadata": print_metadata,
-        "created_at": datetime.now(timezone.utc),
-        "updated_at": datetime.now(timezone.utc)
+        "created_at": now,
+        "updated_at": now,
     }
-    await db.designs.insert_one(design_doc)
-    
+
     logger.info(f"New design {design_id} submitted by user {user.user_id} with {len(product_configs)} products")
-    
+
     return Design(**design_doc)
 
 
 def calculate_print_size(product_type: str, analysis: dict) -> dict:
     """Calculate final print dimensions based on preset and design analysis"""
-    # Internal print presets (matching frontend config)
     presets = {
         "tshirt": {"max_width_cm": 38, "max_height_cm": 48, "scale_ratio": 0.85},
         "hoodie": {"max_width_cm": 38, "max_height_cm": 48, "scale_ratio": 0.85},
@@ -387,29 +411,29 @@ def calculate_print_size(product_type: str, analysis: dict) -> dict:
         "varsity_jacket": {"max_width_cm": 9, "max_height_cm": 9, "scale_ratio": 0.9},
         "cap": {"max_width_cm": 6.5, "max_height_cm": 5, "scale_ratio": 0.9}
     }
-    
+
     preset = presets.get(product_type, presets["tshirt"])
-    
+
     if not analysis:
         return {
             "width_cm": preset["max_width_cm"] * preset["scale_ratio"],
             "height_cm": preset["max_height_cm"] * preset["scale_ratio"]
         }
-    
+
     design_width = analysis.get("width", 4500)
     design_height = analysis.get("height", 5400)
     aspect_ratio = design_width / design_height
-    
+
     max_w = preset["max_width_cm"] * preset["scale_ratio"]
     max_h = preset["max_height_cm"] * preset["scale_ratio"]
-    
+
     if aspect_ratio > (max_w / max_h):
         final_w = max_w
         final_h = max_w / aspect_ratio
     else:
         final_h = max_h
         final_w = max_h * aspect_ratio
-    
+
     return {
         "width_cm": round(final_w, 2),
         "height_cm": round(final_h, 2)
@@ -418,21 +442,28 @@ def calculate_print_size(product_type: str, analysis: dict) -> dict:
 @api_router.get("/designs", response_model=List[Design])
 async def get_designs(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-    designs = await db.designs.find({"user_id": user.user_id}, {"_id": 0}).to_list(1000)
-    return [Design(**d) for d in designs]
+    rows = await fetch_all("SELECT * FROM designs WHERE user_id = $1", user.user_id)
+    for r in rows:
+        _parse_jsonb(r, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
+    return [Design(**d) for d in rows]
 
 @api_router.get("/designs/{design_id}", response_model=Design)
 async def get_design(design_id: str):
-    design = await db.designs.find_one({"design_id": design_id}, {"_id": 0})
+    design = await fetch_one("SELECT * FROM designs WHERE design_id = $1", design_id)
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
+    _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
     return Design(**design)
 
 @api_router.delete("/designs/{design_id}")
 async def delete_design(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-    result = await db.designs.delete_one({"design_id": design_id, "user_id": user.user_id})
-    if result.deleted_count == 0:
+    result = await execute(
+        "DELETE FROM designs WHERE design_id = $1 AND user_id = $2",
+        design_id, user.user_id,
+    )
+    # asyncpg execute returns status string like "DELETE 1"
+    if result == "DELETE 0":
         raise HTTPException(status_code=404, detail="Design not found")
     return {"message": "Design deleted"}
 
@@ -441,13 +472,31 @@ async def delete_design(design_id: str, request: Request, session_token: Optiona
 async def create_product(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
     body = await request.json()
-    
+
     # Verify design exists and belongs to user
-    design = await db.designs.find_one({"design_id": body["design_id"], "user_id": user.user_id}, {"_id": 0})
+    design = await fetch_one(
+        "SELECT * FROM designs WHERE design_id = $1 AND user_id = $2",
+        body["design_id"], user.user_id,
+    )
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
-    
+
     product_id = f"product_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    sizes = body.get("sizes", ["S", "M", "L", "XL", "XXL"])
+
+    await execute(
+        """INSERT INTO products
+               (product_id, design_id, user_id, title, description, apparel_type,
+                sizes, price, design_image, mockup_image, overlay_image, created_at, is_active)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)""",
+        product_id, body["design_id"], user.user_id,
+        body["title"], body.get("description"), body["apparel_type"],
+        sizes, body["price"],
+        design["image_url"], body.get("mockup_image", design["image_url"]),
+        design["image_url"], now, True,
+    )
+
     product_doc = {
         "product_id": product_id,
         "design_id": body["design_id"],
@@ -455,108 +504,110 @@ async def create_product(request: Request, session_token: Optional[str] = Cookie
         "title": body["title"],
         "description": body.get("description"),
         "apparel_type": body["apparel_type"],
-        "sizes": body.get("sizes", ["S", "M", "L", "XL", "XXL"]),
+        "sizes": sizes,
         "price": body["price"],
         "design_image": design["image_url"],
         "mockup_image": body.get("mockup_image", design["image_url"]),
-        "overlay_image": design["image_url"],
-        "created_at": datetime.now(timezone.utc),
-        "is_active": True
+        "created_at": now,
+        "is_active": True,
     }
-    await db.products.insert_one(product_doc)
-    
+
     return Product(**product_doc)
 
 @api_router.get("/products", response_model=List[Product])
 async def get_products(skip: int = 0, limit: int = 50):
-    # Only show approved AND live/out_of_stock products on marketplace (disabled products hidden)
-    products = await db.products.find({
-        "is_active": True, 
-        "is_approved": True,
-        "product_status": {"$in": ["live", "out_of_stock"]}
-    }, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
-    return [Product(**p) for p in products]
+    rows = await fetch_all(
+        """SELECT * FROM products
+           WHERE is_active = true AND is_approved = true
+                 AND product_status IN ('live', 'out_of_stock')
+           OFFSET $1 LIMIT $2""",
+        skip, limit,
+    )
+    return [Product(**p) for p in rows]
 
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str):
-    product = await db.products.find_one({"product_id": product_id}, {"_id": 0})
+    product = await fetch_one("SELECT * FROM products WHERE product_id = $1", product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    _parse_jsonb(product, 'placement_coordinates')
     return Product(**product)
 
 # Cart Routes
 @api_router.get("/cart", response_model=List[dict])
 async def get_cart(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-    cart_items = await db.cart_items.find({"user_id": user.user_id}, {"_id": 0}).to_list(1000)
-    
+    cart_items = await fetch_all(
+        "SELECT * FROM cart_items WHERE user_id = $1", user.user_id
+    )
+
     # Populate with product details
     result = []
     for item in cart_items:
-        product = await db.products.find_one({"product_id": item["product_id"]}, {"_id": 0})
+        product = await fetch_one(
+            "SELECT * FROM products WHERE product_id = $1", item["product_id"]
+        )
         if product:
-            result.append({
-                **item,
-                "product": product
-            })
-    
+            _parse_jsonb(product, 'placement_coordinates')
+            result.append({**item, "product": product})
+
     return result
 
 @api_router.post("/cart")
 async def add_to_cart(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
     body = await request.json()
-    
+
     # Check if item already exists
-    existing = await db.cart_items.find_one({
-        "user_id": user.user_id,
-        "product_id": body["product_id"],
-        "size": body["size"]
-    })
-    
+    existing = await fetch_one(
+        """SELECT * FROM cart_items
+           WHERE user_id = $1 AND product_id = $2 AND size = $3""",
+        user.user_id, body["product_id"], body["size"],
+    )
+
     if existing:
-        # Update quantity
-        await db.cart_items.update_one(
-            {"cart_item_id": existing["cart_item_id"]},
-            {"$set": {"quantity": existing["quantity"] + body.get("quantity", 1)}}
+        await execute(
+            "UPDATE cart_items SET quantity = $1 WHERE cart_item_id = $2",
+            existing["quantity"] + body.get("quantity", 1),
+            existing["cart_item_id"],
         )
         return {"message": "Cart updated"}
     else:
-        # Add new item
-        cart_item = {
-            "cart_item_id": f"cart_{uuid.uuid4().hex[:12]}",
-            "user_id": user.user_id,
-            "product_id": body["product_id"],
-            "size": body["size"],
-            "quantity": body.get("quantity", 1),
-            "added_at": datetime.now(timezone.utc)
-        }
-        await db.cart_items.insert_one(cart_item)
-        return {"message": "Added to cart", "cart_item_id": cart_item["cart_item_id"]}
+        cart_item_id = f"cart_{uuid.uuid4().hex[:12]}"
+        await execute(
+            """INSERT INTO cart_items (cart_item_id, user_id, product_id, size, quantity, added_at)
+               VALUES ($1,$2,$3,$4,$5,$6)""",
+            cart_item_id, user.user_id, body["product_id"],
+            body["size"], body.get("quantity", 1), datetime.now(timezone.utc),
+        )
+        return {"message": "Added to cart", "cart_item_id": cart_item_id}
 
 @api_router.put("/cart/{cart_item_id}")
 async def update_cart_item(cart_item_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
     body = await request.json()
-    
-    result = await db.cart_items.update_one(
-        {"cart_item_id": cart_item_id, "user_id": user.user_id},
-        {"$set": {"quantity": body["quantity"]}}
+
+    result = await execute(
+        "UPDATE cart_items SET quantity = $1 WHERE cart_item_id = $2 AND user_id = $3",
+        body["quantity"], cart_item_id, user.user_id,
     )
-    
-    if result.matched_count == 0:
+
+    if result == "UPDATE 0":
         raise HTTPException(status_code=404, detail="Cart item not found")
-    
+
     return {"message": "Cart updated"}
 
 @api_router.delete("/cart/{cart_item_id}")
 async def remove_from_cart(cart_item_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-    result = await db.cart_items.delete_one({"cart_item_id": cart_item_id, "user_id": user.user_id})
-    
-    if result.deleted_count == 0:
+    result = await execute(
+        "DELETE FROM cart_items WHERE cart_item_id = $1 AND user_id = $2",
+        cart_item_id, user.user_id,
+    )
+
+    if result == "DELETE 0":
         raise HTTPException(status_code=404, detail="Cart item not found")
-    
+
     return {"message": "Removed from cart"}
 
 # Payment Routes
@@ -564,7 +615,7 @@ async def remove_from_cart(cart_item_id: str, request: Request, session_token: O
 async def create_payment_order(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
     body = await request.json()
-    
+
     try:
         # Create Razorpay order
         razorpay_order = razorpay_client.order.create({
@@ -572,7 +623,7 @@ async def create_payment_order(request: Request, session_token: Optional[str] = 
             "currency": "INR",
             "payment_capture": 1
         })
-        
+
         return {
             "order_id": razorpay_order["id"],
             "amount": razorpay_order["amount"],
@@ -591,11 +642,11 @@ async def create_payment_order(request: Request, session_token: Optional[str] = 
 async def verify_payment(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
     body = await request.json()
-    
+
     # For mock orders, skip verification
     if body.get("mock"):
         return {"verified": True, "mock": True}
-    
+
     try:
         # Verify Razorpay signature
         razorpay_client.utility.verify_payment_signature(body)
@@ -608,8 +659,22 @@ async def verify_payment(request: Request, session_token: Optional[str] = Cookie
 async def create_order(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
     body = await request.json()
-    
+
     order_id = f"order_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    status = "paid" if body.get("razorpay_payment_id") else "pending"
+
+    await execute(
+        """INSERT INTO orders
+               (order_id, user_id, items, total_amount, razorpay_order_id,
+                razorpay_payment_id, fulfillment_status, status, shipping_address,
+                created_at, updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,'pending',$7,$8,$9,$10)""",
+        order_id, user.user_id, to_jsonb(body["items"]), body["total_amount"],
+        body.get("razorpay_order_id"), body.get("razorpay_payment_id"),
+        status, to_jsonb(body["shipping_address"]), now, now,
+    )
+
     order_doc = {
         "order_id": order_id,
         "user_id": user.user_id,
@@ -618,19 +683,18 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
         "razorpay_order_id": body.get("razorpay_order_id"),
         "razorpay_payment_id": body.get("razorpay_payment_id"),
         "fulfillment_status": "pending",
-        "status": "paid" if body.get("razorpay_payment_id") else "pending",
+        "status": status,
         "shipping_address": body["shipping_address"],
-        "created_at": datetime.now(timezone.utc),
-        "updated_at": datetime.now(timezone.utc)
+        "created_at": now,
+        "updated_at": now,
     }
-    await db.orders.insert_one(order_doc)
 
     # ── Per-item: revenue splits + build Qikink line items ────────────────────
     qikink_items = []
 
     for item in body["items"]:
         product_id = item["product_id"]
-        product = await db.products.find_one({"product_id": product_id}, {"_id": 0})
+        product = await fetch_one("SELECT * FROM products WHERE product_id = $1", product_id)
 
         if not product:
             continue
@@ -638,14 +702,13 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
         # Revenue split
         split_data = revenue_service.calculate_split(
             retail_price=item["price"],
-            base_cost=product.get("base_cost", 500),
-            creator_commission_rate=product.get("creator_commission_rate", 0.8),
-            platform_commission_rate=product.get("platform_commission_rate", 0.2),
+            base_cost=float(product.get("base_cost", 500)),
+            creator_commission_rate=float(product.get("creator_commission_rate", 0.8)),
+            platform_commission_rate=float(product.get("platform_commission_rate", 0.2)),
         )
         creator_earnings  = split_data["creator_amount"] * item["quantity"]
         platform_earnings = split_data["platform_amount"] * item["quantity"]
         split_id = await revenue_service.record_split(
-            db=db,
             order_id=order_id,
             creator_id=product["user_id"],
             creator_amount=creator_earnings,
@@ -654,8 +717,9 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
         logger.info(f"Revenue split {split_id}: order={order_id}, creator=₹{creator_earnings}, platform=₹{platform_earnings}")
 
         # Gather design data for Qikink
-        design = await db.designs.find_one({"design_id": product.get("design_id")}, {"_id": 0})
+        design = await fetch_one("SELECT * FROM designs WHERE design_id = $1", product.get("design_id"))
         if design:
+            _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
             qikink_items.append({
                 "product":  product,
                 "design":   design,
@@ -675,49 +739,54 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
                 total_order_value=body["total_amount"],
             )
             qikink_order_id = qikink_result.get("order_id")
-            await db.orders.update_one(
-                {"order_id": order_id},
-                {"$set": {
-                    "qikink_order_id":    qikink_order_id,
-                    "fulfillment_status": "printing",
-                    "updated_at":         datetime.now(timezone.utc),
-                }},
+            await execute(
+                """UPDATE orders SET qikink_order_id = $1, fulfillment_status = 'printing',
+                       updated_at = $2 WHERE order_id = $3""",
+                qikink_order_id, datetime.now(timezone.utc), order_id,
             )
             order_doc["qikink_order_id"]    = qikink_order_id
             order_doc["fulfillment_status"] = "printing"
             logger.info(f"Qikink order created: qikink_order_id={qikink_order_id} for caesura order={order_id}")
         except Exception as e:
-            # Qikink failure must not block the customer — log and continue
             logger.error(f"Qikink order creation failed for {order_id}: {e}")
     elif qikink_items and not qikink_service.is_configured:
         logger.warning("Qikink not configured — skipping print fulfillment. Set QIKINK_CLIENT_ID and QIKINK_CLIENT_SECRET in .env")
 
     # Clear cart
-    await db.cart_items.delete_many({"user_id": user.user_id})
-    
+    await execute("DELETE FROM cart_items WHERE user_id = $1", user.user_id)
+
     logger.info(f"Order created: order_id={order_id}, total_amount={body['total_amount']}, status={order_doc['status']}")
-    
+
     return Order(**order_doc)
 
 @api_router.get("/orders", response_model=List[Order])
 async def get_orders(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-    orders = await db.orders.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    return [Order(**o) for o in orders]
+    rows = await fetch_all(
+        "SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC", user.user_id
+    )
+    for r in rows:
+        _parse_jsonb(r, 'items', 'shipping_address')
+    return [Order(**o) for o in rows]
 
 @api_router.get("/orders/{order_id}", response_model=Order)
 async def get_order(order_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-    order = await db.orders.find_one({"order_id": order_id, "user_id": user.user_id}, {"_id": 0})
+    order = await fetch_one(
+        "SELECT * FROM orders WHERE order_id = $1 AND user_id = $2", order_id, user.user_id
+    )
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    _parse_jsonb(order, 'items', 'shipping_address')
     return Order(**order)
 
 @api_router.post("/orders/{order_id}/sync-fulfillment")
 async def sync_order_fulfillment(order_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     """Poll Qikink for the latest fulfillment status and update our DB."""
     user = await get_current_user(request, session_token)
-    order = await db.orders.find_one({"order_id": order_id, "user_id": user.user_id}, {"_id": 0})
+    order = await fetch_one(
+        "SELECT * FROM orders WHERE order_id = $1 AND user_id = $2", order_id, user.user_id
+    )
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
@@ -730,7 +799,6 @@ async def sync_order_fulfillment(order_id: str, request: Request, session_token:
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Qikink API error: {e}")
 
-    # Map Qikink status → our fulfillment_status
     status_map = {
         "Pending":    "pending",
         "Processing": "printing",
@@ -746,14 +814,11 @@ async def sync_order_fulfillment(order_id: str, request: Request, session_token:
     tracking_number = shipping.get("awb")
     tracking_url    = shipping.get("tracking_link")
 
-    await db.orders.update_one(
-        {"order_id": order_id},
-        {"$set": {
-            "fulfillment_status": fulfillment_status,
-            "tracking_number":    tracking_number,
-            "tracking_url":       tracking_url,
-            "updated_at":         datetime.now(timezone.utc),
-        }},
+    await execute(
+        """UPDATE orders SET fulfillment_status = $1, tracking_number = $2,
+               tracking_url = $3, updated_at = $4 WHERE order_id = $5""",
+        fulfillment_status, tracking_number, tracking_url,
+        datetime.now(timezone.utc), order_id,
     )
 
     return {
@@ -778,51 +843,51 @@ async def qikink_status(request: Request, session_token: Optional[str] = Cookie(
 @api_router.get("/creator/earnings")
 async def get_creator_earnings(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-    earnings = await revenue_service.get_creator_earnings(db, user.user_id)
+    earnings = await revenue_service.get_creator_earnings(user.user_id)
     return earnings
 
 # Admin Routes
 @api_router.get("/admin/products/pending", response_model=List[Product])
 async def get_pending_products(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    products = await db.products.find({"is_approved": False, "is_active": True}, {"_id": 0}).to_list(1000)
+    products = await fetch_all(
+        "SELECT * FROM products WHERE is_approved = false AND is_active = true"
+    )
     return [Product(**p) for p in products]
 
 @api_router.post("/admin/products/{product_id}/approve")
 async def approve_product(product_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     user = await require_admin(request, session_token)
-    
-    result = await db.products.update_one(
-        {"product_id": product_id},
-        {"$set": {
-            "is_approved": True,
-            "approved_at": datetime.now(timezone.utc)
-        }}
+
+    result = await execute(
+        "UPDATE products SET is_approved = true, approved_at = $1 WHERE product_id = $2",
+        datetime.now(timezone.utc), product_id,
     )
-    
-    if result.matched_count == 0:
+
+    if result == "UPDATE 0":
         raise HTTPException(status_code=404, detail="Product not found")
-    
+
     return {"message": "Product approved"}
 
 @api_router.post("/admin/products/{product_id}/reject")
 async def reject_product(product_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    
-    result = await db.products.update_one(
-        {"product_id": product_id},
-        {"$set": {"is_active": False}}
+
+    result = await execute(
+        "UPDATE products SET is_active = false WHERE product_id = $1", product_id
     )
-    
-    if result.matched_count == 0:
+
+    if result == "UPDATE 0":
         raise HTTPException(status_code=404, detail="Product not found")
-    
+
     return {"message": "Product rejected"}
 
 @api_router.get("/products/my-products", response_model=List[Product])
 async def get_my_products(request: Request, session_token: Optional[str] = Cookie(None)):
     user = await get_current_user(request, session_token)
-    products = await db.products.find({"user_id": user.user_id}, {"_id": 0}).to_list(1000)
+    products = await fetch_all(
+        "SELECT * FROM products WHERE user_id = $1", user.user_id
+    )
     return [Product(**p) for p in products]
 
 # Enhanced Admin Routes
@@ -830,85 +895,81 @@ async def get_my_products(request: Request, session_token: Optional[str] = Cooki
 @api_router.get("/admin/creators/pending", response_model=List[User])
 async def get_pending_creators(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    creators = await db.users.find({"role": "creator", "creator_status": "pending"}, {"_id": 0}).to_list(1000)
+    creators = await fetch_all(
+        "SELECT * FROM users WHERE role = 'creator' AND creator_status = 'pending'"
+    )
     return [User(**c) for c in creators]
 
 @api_router.post("/admin/creators/{user_id}/approve")
 async def approve_creator(user_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     admin_user = await require_admin(request, session_token)
-    
-    result = await db.users.update_one(
-        {"user_id": user_id},
-        {"$set": {
-            "creator_status": "approved",
-            "approved_at": datetime.now(timezone.utc)
-        }}
+
+    result = await execute(
+        "UPDATE users SET creator_status = 'approved', approved_at = $1 WHERE user_id = $2",
+        datetime.now(timezone.utc), user_id,
     )
-    
-    if result.matched_count == 0:
+
+    if result == "UPDATE 0":
         raise HTTPException(status_code=404, detail="Creator not found")
-    
-    # TODO: Send email notification
+
     logger.info(f"Creator {user_id} approved by admin {admin_user.user_id}")
-    
+
     return {"message": "Creator approved", "user_id": user_id}
 
 @api_router.post("/admin/creators/{user_id}/suspend")
 async def suspend_creator(user_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     admin_user = await require_admin(request, session_token)
-    
-    result = await db.users.update_one(
-        {"user_id": user_id},
-        {"$set": {
-            "creator_status": "suspended",
-            "suspended_at": datetime.now(timezone.utc)
-        }}
+
+    result = await execute(
+        "UPDATE users SET creator_status = 'suspended', suspended_at = $1 WHERE user_id = $2",
+        datetime.now(timezone.utc), user_id,
     )
-    
-    if result.matched_count == 0:
+
+    if result == "UPDATE 0":
         raise HTTPException(status_code=404, detail="Creator not found")
-    
+
     # Also deactivate all their products
-    await db.products.update_many(
-        {"user_id": user_id},
-        {"$set": {"is_active": False}}
+    await execute(
+        "UPDATE products SET is_active = false WHERE user_id = $1", user_id
     )
-    
+
     logger.info(f"Creator {user_id} suspended by admin {admin_user.user_id}")
-    
+
     return {"message": "Creator suspended", "user_id": user_id}
 
 @api_router.post("/admin/creators/{user_id}/reject")
 async def reject_creator(user_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     admin_user = await require_admin(request, session_token)
-    
+
     body = await request.json()
     reason = body.get("reason", "Application rejected")
-    
-    result = await db.users.update_one(
-        {"user_id": user_id},
-        {"$set": {
-            "creator_status": "rejected",
-            "rejection_reason": reason,
-            "rejected_at": datetime.now(timezone.utc)
-        }}
+
+    result = await execute(
+        """UPDATE users SET creator_status = 'rejected', rejection_reason = $1,
+               rejected_at = $2 WHERE user_id = $3""",
+        reason, datetime.now(timezone.utc), user_id,
     )
-    
-    if result.matched_count == 0:
+
+    if result == "UPDATE 0":
         raise HTTPException(status_code=404, detail="Creator not found")
-    
+
     logger.info(f"Creator {user_id} rejected by admin {admin_user.user_id}")
-    
+
     return {"message": "Creator rejected", "user_id": user_id}
 
 @api_router.get("/admin/designs/pending")
 async def get_pending_designs(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    designs = await db.designs.find({"approval_status": {"$in": ["pending", "pending_approval"]}}, {"_id": 0}).to_list(1000)
+    designs = await fetch_all(
+        "SELECT * FROM designs WHERE approval_status IN ('pending', 'pending_approval')"
+    )
     # Enrich each design with creator name
     result = []
     for d in designs:
-        creator = await db.users.find_one({"user_id": d["user_id"]}, {"_id": 0, "name": 1, "email": 1})
+        _parse_jsonb(d, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
+        creator = await fetch_one(
+            "SELECT name, email FROM users WHERE user_id = $1", d["user_id"]
+        )
         d["creator_name"] = creator.get("name", "Unknown") if creator else "Unknown"
         d["creator_email"] = creator.get("email", "") if creator else ""
         result.append(d)
@@ -916,13 +977,11 @@ async def get_pending_designs(request: Request, session_token: Optional[str] = C
 
 def get_mockup_url(blueprint_id: int, product_configs: list) -> str:
     """Pick a real garment mockup image based on product type and color"""
-    # Detect color from product_configs if available
     color = "white"
     if product_configs:
         first = product_configs[0] if isinstance(product_configs[0], dict) else {}
         color = first.get("color", "white").lower()
 
-    # Mockup image map: product type + color → real garment photo
     mockups = {
         "tshirt": {
             "white": "/mockups/tshirt-whitefront.jpg",
@@ -946,17 +1005,16 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
     admin_user = await require_admin(request, session_token)
 
     body = await request.json()
-    apparel_type = body.get("apparel_type", "tshirt")  # "tshirt" | "hoodie" | "oversized_tshirt"
+    apparel_type = body.get("apparel_type", "tshirt")
     featured     = body.get("featured", False)
 
-    design = await db.designs.find_one({"design_id": design_id}, {"_id": 0})
+    design = await fetch_one("SELECT * FROM designs WHERE design_id = $1", design_id)
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
+    _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
 
-    # Use product_type from the design (UT27 or UH24) if stored, else fall back to apparel_type param
     product_type = design.get("product_type") or apparel_type or "UT27"
 
-    # Use the canvas-exported mockup if stored, otherwise fall back to a static template
     FALLBACK_MOCKUPS = {
         "UT27": "/mockups/tshirt-offwhitefront.png",
         "UH24": "/mockups/tshirt-whitefront.jpg",
@@ -967,48 +1025,34 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
     mockup_image = design.get("mockup_image_url") or FALLBACK_MOCKUPS.get(product_type, "/mockups/tshirt-whitefront.jpg")
 
     # Update design status to approved
-    await db.designs.update_one(
-        {"design_id": design_id},
-        {"$set": {
-            "approval_status": "approved",
-            "approved_by_admin_id": admin_user.user_id,
-            "featured": featured,
-            "approved_at": datetime.now(timezone.utc),
-        }},
+    now = datetime.now(timezone.utc)
+    await execute(
+        """UPDATE designs SET approval_status = 'approved', approved_by_admin_id = $1,
+               featured = $2, approved_at = $3 WHERE design_id = $4""",
+        admin_user.user_id, featured, now, design_id,
     )
 
-    # Build product — use creator's submitted price, fall back to ₹999
+    # Build product
     price = design.get("price") or 999.0
-
     product_id = f"product_{uuid.uuid4().hex[:12]}"
-    product_doc = {
-        "product_id":              product_id,
-        "design_id":               design_id,
-        "user_id":                 design["user_id"],
-        "title":                   design["title"],
-        "description":             design.get("description"),
-        "apparel_type":            product_type,
-        "sizes":                   ["S", "M", "L", "XL", "XXL"],
-        "price":                   price,
-        # design_image = raw uploaded artwork (used by Qikink for printing)
-        # mockup_image = canvas-exported merged image (shown on marketplace)
-        "design_image":            design["image_url"],
-        "mockup_image":            mockup_image,
-        "placement_coordinates":   design.get("placement_coordinates"),
-        # Qikink uses design_id as the design_code in order payloads
-        "qikink_design_code":      design_id,
-        "base_cost":               500.0,
-        "creator_commission_rate": 0.8,
-        "platform_commission_rate": 0.2,
-        "product_status":          "live",
-        "units_sold":              0,
-        "created_at":              datetime.now(timezone.utc),
-        "is_active":               True,
-        "is_approved":             True,
-        "approved_at":             datetime.now(timezone.utc),
-    }
 
-    await db.products.insert_one(product_doc)
+    await execute(
+        """INSERT INTO products
+               (product_id, design_id, user_id, title, description, apparel_type,
+                sizes, price, design_image, mockup_image,
+                placement_coordinates, qikink_design_code,
+                base_cost, creator_commission_rate, platform_commission_rate,
+                product_status, units_sold, created_at, is_active, is_approved, approved_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)""",
+        product_id, design_id, design["user_id"], design["title"],
+        design.get("description"), product_type,
+        ["S", "M", "L", "XL", "XXL"], float(price),
+        design["image_url"], mockup_image,
+        to_jsonb(design.get("placement_coordinates")), design_id,
+        500.0, 0.8, 0.2,
+        "live", 0, now, True, True, now,
+    )
+
     logger.info(f"Design {design_id} approved → product {product_id} (apparel={apparel_type}, price=₹{price}) by admin {admin_user.user_id}")
 
     return {
@@ -1020,104 +1064,79 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
 @api_router.post("/admin/designs/{design_id}/reject")
 async def reject_design_admin(design_id: str, request: Request, session_token: Optional[str] = Cookie(None)):
     admin_user = await require_admin(request, session_token)
-    
+
     body = await request.json()
     reason = body.get("reason", "Design rejected")
-    
-    result = await db.designs.update_one(
-        {"design_id": design_id},
-        {"$set": {
-            "approval_status": "rejected",
-            "rejection_reason": reason,
-            "approved_by_admin_id": admin_user.user_id,
-            "rejected_at": datetime.now(timezone.utc)
-        }}
+
+    result = await execute(
+        """UPDATE designs SET approval_status = 'rejected', rejection_reason = $1,
+               approved_by_admin_id = $2, rejected_at = $3 WHERE design_id = $4""",
+        reason, admin_user.user_id, datetime.now(timezone.utc), design_id,
     )
-    
-    if result.matched_count == 0:
+
+    if result == "UPDATE 0":
         raise HTTPException(status_code=404, detail="Design not found")
-    
+
     logger.info(f"Design {design_id} rejected by admin {admin_user.user_id}")
-    
+
     return {"message": "Design rejected", "design_id": design_id}
 
 @api_router.get("/admin/printify/blueprints")
 async def get_printify_blueprints(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    
+
     blueprints = await printify_service.get_blueprints()
     return {"blueprints": blueprints, "mock_mode": printify_service.mock_mode}
 
 @api_router.get("/admin/analytics")
 async def get_admin_analytics(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    
+
     # Get counts
-    total_users = await db.users.count_documents({})
-    total_creators = await db.users.count_documents({"role": "creator"})
-    pending_creators = await db.users.count_documents({"creator_status": "pending"})
-    approved_creators = await db.users.count_documents({"creator_status": "approved"})
-    
-    total_designs = await db.designs.count_documents({})
-    pending_designs = await db.designs.count_documents({"approval_status": {"$in": ["pending", "pending_approval"]}})
-    approved_designs = await db.designs.count_documents({"approval_status": "approved"})
-    
-    total_products = await db.products.count_documents({"is_approved": True})
-    live_products = await db.products.count_documents({"is_approved": True, "product_status": "live"})
-    total_orders = await db.orders.count_documents({})
-    
-    # Calculate revenue from ORDERS (not just paid orders)
-    pipeline = [
-        {"$match": {"status": {"$in": ["paid", "pending"]}}},
-        {"$group": {
-            "_id": None,
-            "total_revenue": {"$sum": "$total_amount"},
-            "total_orders": {"$sum": 1}
-        }}
-    ]
-    
-    revenue_data = await db.orders.aggregate(pipeline).to_list(1)
-    total_revenue = revenue_data[0]["total_revenue"] if revenue_data else 0
-    
-    # Platform earnings from revenue_splits (only completed/pending ones)
-    platform_earnings_pipeline = [
-        {"$match": {"status": {"$in": ["completed", "pending"]}}},
-        {"$group": {
-            "_id": None,
-            "total": {"$sum": "$platform_amount"}
-        }}
-    ]
-    
-    platform_earnings_data = await db.revenue_splits.aggregate(platform_earnings_pipeline).to_list(1)
-    platform_earnings = platform_earnings_data[0]["total"] if platform_earnings_data else 0
-    
+    total_users = await fetch_val("SELECT COUNT(*) FROM users")
+    total_creators = await fetch_val("SELECT COUNT(*) FROM users WHERE role = 'creator'")
+    pending_creators = await fetch_val("SELECT COUNT(*) FROM users WHERE creator_status = 'pending'")
+    approved_creators = await fetch_val("SELECT COUNT(*) FROM users WHERE creator_status = 'approved'")
+
+    total_designs = await fetch_val("SELECT COUNT(*) FROM designs")
+    pending_designs = await fetch_val(
+        "SELECT COUNT(*) FROM designs WHERE approval_status IN ('pending', 'pending_approval')"
+    )
+    approved_designs = await fetch_val(
+        "SELECT COUNT(*) FROM designs WHERE approval_status = 'approved'"
+    )
+
+    total_products = await fetch_val("SELECT COUNT(*) FROM products WHERE is_approved = true")
+    live_products = await fetch_val(
+        "SELECT COUNT(*) FROM products WHERE is_approved = true AND product_status = 'live'"
+    )
+    total_orders = await fetch_val("SELECT COUNT(*) FROM orders")
+
+    # Total revenue from orders
+    total_revenue = await fetch_val(
+        "SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE status IN ('paid', 'pending')"
+    ) or 0
+
+    # Platform earnings from revenue_splits
+    platform_earnings = await fetch_val(
+        "SELECT COALESCE(SUM(platform_amount), 0) FROM revenue_splits WHERE status IN ('completed', 'pending')"
+    ) or 0
+
     # Creator earnings from revenue_splits
-    creator_earnings_pipeline = [
-        {"$match": {"status": {"$in": ["completed", "pending"]}}},
-        {"$group": {
-            "_id": None,
-            "total": {"$sum": "$creator_amount"}
-        }}
-    ]
-    
-    creator_earnings_data = await db.revenue_splits.aggregate(creator_earnings_pipeline).to_list(1)
-    creator_earnings = creator_earnings_data[0]["total"] if creator_earnings_data else 0
-    
-    # Calculate units sold
-    units_sold_pipeline = [
-        {"$match": {"status": {"$in": ["paid", "pending"]}}},
-        {"$unwind": "$items"},
-        {"$group": {
-            "_id": None,
-            "total_units": {"$sum": "$items.quantity"}
-        }}
-    ]
-    
-    units_data = await db.orders.aggregate(units_sold_pipeline).to_list(1)
-    total_units = units_data[0]["total_units"] if units_data else 0
-    
+    creator_earnings = await fetch_val(
+        "SELECT COALESCE(SUM(creator_amount), 0) FROM revenue_splits WHERE status IN ('completed', 'pending')"
+    ) or 0
+
+    # Units sold — items is JSONB array, we need to sum quantities
+    # Using a lateral join to unwind the JSONB array
+    total_units = await fetch_val(
+        """SELECT COALESCE(SUM((item->>'quantity')::int), 0)
+           FROM orders, jsonb_array_elements(items) AS item
+           WHERE status IN ('paid', 'pending')"""
+    ) or 0
+
     logger.info(f"Analytics: Orders={total_orders}, Revenue={total_revenue}, Platform={platform_earnings}, Creator={creator_earnings}, Units={total_units}")
-    
+
     return {
         "users": {
             "total": total_users,
@@ -1139,37 +1158,50 @@ async def get_admin_analytics(request: Request, session_token: Optional[str] = C
             "total_units": total_units
         },
         "revenue": {
-            "total_revenue": total_revenue,
-            "platform_earnings": platform_earnings,
-            "creator_earnings": creator_earnings
+            "total_revenue": float(total_revenue),
+            "platform_earnings": float(platform_earnings),
+            "creator_earnings": float(creator_earnings)
         }
     }
 
 @api_router.get("/admin/users")
 async def get_admin_users(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    users = await db.users.find({}, {"_id": 0, "user_id": 1, "name": 1, "email": 1, "role": 1, "creator_status": 1, "picture": 1, "created_at": 1}).sort("created_at", -1).to_list(1000)
+    users = await fetch_all(
+        """SELECT user_id, name, email, role, creator_status, picture, created_at
+           FROM users ORDER BY created_at DESC"""
+    )
     return users
 
 @api_router.get("/admin/orders")
 async def get_admin_orders(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    
-    # Get all orders with revenue split info
-    orders = await db.orders.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    
+
+    # Get all orders
+    orders = await fetch_all("SELECT * FROM orders ORDER BY created_at DESC")
+
     # Enrich with creator info and revenue splits
     enriched_orders = []
     for order in orders:
+        _parse_jsonb(order, 'items', 'shipping_address')
+
         # Get revenue splits for this order
-        splits = await db.revenue_splits.find({"order_id": order["order_id"]}, {"_id": 0}).to_list(100)
-        
+        splits = await fetch_all(
+            "SELECT * FROM revenue_splits WHERE order_id = $1", order["order_id"]
+        )
+
         # Get creator info for each item
         items_with_creators = []
         for item in order.get("items", []):
-            product = await db.products.find_one({"product_id": item["product_id"]}, {"_id": 0, "user_id": 1, "title": 1})
+            product = await fetch_one(
+                "SELECT user_id, title FROM products WHERE product_id = $1",
+                item["product_id"],
+            )
             if product:
-                creator = await db.users.find_one({"user_id": product["user_id"]}, {"_id": 0, "name": 1, "email": 1})
+                creator = await fetch_one(
+                    "SELECT name, email FROM users WHERE user_id = $1",
+                    product["user_id"],
+                )
                 items_with_creators.append({
                     **item,
                     "creator_name": creator["name"] if creator else "Unknown",
@@ -1177,56 +1209,53 @@ async def get_admin_orders(request: Request, session_token: Optional[str] = Cook
                 })
             else:
                 items_with_creators.append(item)
-        
+
         enriched_orders.append({
             **order,
             "items": items_with_creators,
             "revenue_splits": splits
         })
-    
+
     logger.info(f"Admin orders query returned {len(enriched_orders)} orders")
-    
+
     return enriched_orders
 
 @api_router.get("/admin/products/live")
 async def get_live_products(request: Request, session_token: Optional[str] = Cookie(None)):
     await require_admin(request, session_token)
-    
-    # Get all approved products (live, out of stock, or disabled)
-    products = await db.products.find({
-        "is_approved": True,
-        "is_active": True
-    }, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    
-    # Enrich with creator info and units sold
+
+    products = await fetch_all(
+        """SELECT * FROM products
+           WHERE is_approved = true AND is_active = true
+           ORDER BY created_at DESC"""
+    )
+
     enriched_products = []
     for product in products:
+        _parse_jsonb(product, 'placement_coordinates')
         # Get creator info
-        creator = await db.users.find_one({"user_id": product["user_id"]}, {"_id": 0, "name": 1, "email": 1})
-        
+        creator = await fetch_one(
+            "SELECT name, email FROM users WHERE user_id = $1", product["user_id"]
+        )
+
         # Calculate units sold from orders
-        pipeline = [
-            {"$match": {"status": {"$in": ["paid", "pending"]}}},
-            {"$unwind": "$items"},
-            {"$match": {"items.product_id": product["product_id"]}},
-            {"$group": {
-                "_id": None,
-                "total_units": {"$sum": "$items.quantity"}
-            }}
-        ]
-        
-        units_data = await db.orders.aggregate(pipeline).to_list(1)
-        units_sold = units_data[0]["total_units"] if units_data else 0
-        
+        units_sold = await fetch_val(
+            """SELECT COALESCE(SUM((item->>'quantity')::int), 0)
+               FROM orders, jsonb_array_elements(items) AS item
+               WHERE status IN ('paid', 'pending')
+                     AND item->>'product_id' = $1""",
+            product["product_id"],
+        ) or 0
+
         enriched_products.append({
             **product,
             "creator_name": creator["name"] if creator else "Unknown",
             "creator_email": creator["email"] if creator else "Unknown",
             "units_sold": units_sold
         })
-    
+
     logger.info(f"Admin live products query returned {len(enriched_products)} products")
-    
+
     return enriched_products
 
 @api_router.put("/admin/products/{product_id}/status")
@@ -1234,41 +1263,39 @@ async def update_product_status(product_id: str, request: Request, session_token
     admin_user = await require_admin(request, session_token)
     body = await request.json()
     new_status = body.get("status")  # "live", "out_of_stock", "disabled"
-    
+
     if new_status not in ["live", "out_of_stock", "disabled"]:
         raise HTTPException(status_code=400, detail="Invalid status. Must be: live, out_of_stock, or disabled")
-    
+
     # Get product
-    product = await db.products.find_one({"product_id": product_id}, {"_id": 0})
+    product = await fetch_one("SELECT * FROM products WHERE product_id = $1", product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    
+
     # Safety check: if disabling, check if product has orders
     if new_status == "disabled":
-        has_orders = await db.orders.find_one({
-            "items.product_id": product_id,
-            "status": {"$in": ["paid", "pending"]}
-        })
-        
+        has_orders = await fetch_one(
+            """SELECT 1 FROM orders, jsonb_array_elements(items) AS item
+               WHERE item->>'product_id' = $1
+                     AND status IN ('paid', 'pending')
+               LIMIT 1""",
+            product_id,
+        )
         if has_orders:
             logger.warning(f"Admin tried to disable product {product_id} which has existing orders")
-            # Still allow disable but log it
-    
+
     # Update product status
-    result = await db.products.update_one(
-        {"product_id": product_id},
-        {"$set": {
-            "product_status": new_status,
-            "status_updated_at": datetime.now(timezone.utc),
-            "status_updated_by": admin_user.user_id
-        }}
+    result = await execute(
+        """UPDATE products SET product_status = $1, status_updated_at = $2,
+               status_updated_by = $3 WHERE product_id = $4""",
+        new_status, datetime.now(timezone.utc), admin_user.user_id, product_id,
     )
-    
-    if result.matched_count == 0:
+
+    if result == "UPDATE 0":
         raise HTTPException(status_code=404, detail="Product not found")
-    
+
     logger.info(f"Product {product_id} status changed to '{new_status}' by admin {admin_user.user_id}")
-    
+
     return {
         "message": f"Product status updated to {new_status}",
         "product_id": product_id,
@@ -1294,29 +1321,36 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@api_router.get("/catalog/products")
+async def get_product_catalog():
+    """Return the full Qikink product catalog (categories, colors, sizes, base prices)."""
+    return qikink_service.get_product_catalog()
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    client.close()
+    await close_pool()
+
 @app.post("/api/auth/dev-login")
 async def dev_login(request: Request, response: Response):
     body = await request.json()
     email = body.get("email")
     secret = body.get("secret")
-    
+
     if secret != "caesura-dev-2026":
         raise HTTPException(status_code=403, detail="Invalid secret")
-    
-    user_doc = await db.users.find_one({"email": email}, {"_id": 0})
+
+    user_doc = await fetch_one("SELECT * FROM users WHERE email = $1", email)
     if not user_doc:
         raise HTTPException(status_code=404, detail="Not Found")
-    
-    session_token = str(uuid.uuid4())
-    await db.user_sessions.insert_one({
-        "user_id": user_doc["user_id"],
-        "session_token": session_token,
-        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
-        "created_at": datetime.now(timezone.utc)
-    })
-    
-    response.set_cookie(key="session_token", value=session_token, httponly=False, samesite="lax", secure=False)
+
+    session_token_val = str(uuid.uuid4())
+    await execute(
+        """INSERT INTO user_sessions (user_id, session_token, expires_at, created_at)
+           VALUES ($1, $2, $3, $4)""",
+        user_doc["user_id"], session_token_val,
+        datetime.now(timezone.utc) + timedelta(days=7),
+        datetime.now(timezone.utc),
+    )
+
+    response.set_cookie(key="session_token", value=session_token_val, httponly=False, samesite="lax", secure=False)
     return {"user": user_doc}

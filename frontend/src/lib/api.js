@@ -68,6 +68,9 @@ export const getAdminOrders = () => api.get('/admin/orders');
 export const getLiveProducts = () => api.get('/admin/products/live');
 export const updateProductStatus = (productId, status) => api.put(`/admin/products/${productId}/status`, { status });
 
+// Product Catalog (Qikink)
+export const getProductCatalog = () => api.get('/catalog/products');
+
 // Creator Earnings
 export const getCreatorEarnings = () => api.get('/creator/earnings');
 

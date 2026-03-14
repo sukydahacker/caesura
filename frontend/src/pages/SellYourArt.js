@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as fabric from 'fabric';
-import { uploadDesignImage, createDesign } from '@/lib/api';
+import { uploadDesignImage, createDesign, getProductCatalog } from '@/lib/api';
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const BG   = '#0A0A0B';
@@ -20,24 +20,120 @@ const mono    = { fontFamily: '"JetBrains Mono", monospace' };
 const CANVAS_W = 480;
 const CANVAS_H = 572;
 
-// Product configurations for the canvas editor
-const PRODUCTS = {
-  UT27: {
-    label: 'Unisex Terry Oversized Tee | UT27',
-    name: 'Unisex Terry Oversized Tee',
-    code: 'UT27',
+// ── Product collection groupings ────────────────────────────────────────────────
+const COLLECTIONS = [
+  {
+    name: 'T-Shirts',
+    icon: '👕',
+    description: 'Crew necks, oversized, acid wash & more',
+    keywords: ['T-Shirt', 'Tee', 'Baby Tee'],
+  },
+  {
+    name: 'Hoodies & Jackets',
+    icon: '🧥',
+    description: 'Hoodies, sweatshirts, bombers & varsity',
+    keywords: ['Hoodie', 'Sweatshirt', 'Bomber', 'Varsity', 'Zip Hoodie'],
+  },
+  {
+    name: 'Bottomwear',
+    icon: '👖',
+    description: 'Joggers, shorts & sweatpants',
+    keywords: ['Jogger', 'Short', 'Sweatpants', 'Legging'],
+  },
+  {
+    name: 'Women\'s Wear',
+    icon: '👗',
+    description: 'Crop tops, dresses, skirts, tanks & more',
+    keywords: ['Crop', 'Dress', 'Tank Top', 'Maternity', 'Kaftan', 'Skirt', 'Tube Top', 'Scrunchie', 'Bodycon', 'A Line', 'Womens'],
+  },
+  {
+    name: 'Kids & Baby',
+    icon: '🧒',
+    description: 'Rompers, kids tees & outerwear',
+    keywords: ['Kids', 'Romper'],
+  },
+  {
+    name: 'Headwear',
+    icon: '🧢',
+    description: 'Caps, bucket hats, snapbacks & balaclava',
+    keywords: ['Cap', 'Hat', 'Snapback', 'Trucker', 'Balaclava', 'Bucket'],
+  },
+  {
+    name: 'Drinkware',
+    icon: '☕',
+    description: 'Mugs, sippers, tumblers & bottles',
+    keywords: ['Mug', 'Sipper', 'Tumbler', 'Bottle', 'Enamel'],
+  },
+  {
+    name: 'Bags & Accessories',
+    icon: '👜',
+    description: 'Tote bags, drawstring bags, keychains & more',
+    keywords: ['Tote', 'Bag', 'Keychain', 'Badge', 'Luggage', 'Fridge Magnet', 'Dog Tag', 'Phone', 'Grip', 'Pen', 'Bookmark', 'Arm Sleeves'],
+  },
+  {
+    name: 'Home & Living',
+    icon: '🏠',
+    description: 'Posters, cushions, coasters, puzzles & more',
+    keywords: ['Poster', 'Canvas', 'Cushion', 'Pillow', 'Coaster', 'Mouse Pad', 'Puzzle', 'Tapestry', 'Tablerunner', 'Placemat', 'Napkin', 'Ornament', 'Acrylic', 'Gaming Pad'],
+  },
+  {
+    name: 'Stationery',
+    icon: '📓',
+    description: 'Notebooks, planners, stickers & greeting cards',
+    keywords: ['Sticker', 'NotePad', 'Notebook', 'Planner', 'Sketchbook', 'Greeting', 'Postcard'],
+  },
+  {
+    name: 'Phone Cases',
+    icon: '📱',
+    description: 'iPhone, Samsung, OnePlus & Redmi cases',
+    keywords: ['IPHONE', 'iPhone', 'OnePlus', 'Samsung', 'Redmi', 'Mobile Case', 'Glass Case', 'Hard Clear'],
+  },
+  {
+    name: 'Pet Wear',
+    icon: '🐕',
+    description: 'Dog tees & pet tags',
+    keywords: ['Dog', 'Pet'],
+  },
+  {
+    name: 'AOP (All-Over Print)',
+    icon: '🎨',
+    description: 'Full all-over print apparel & accessories',
+    keywords: ['AOP'],
+  },
+  {
+    name: 'Wearable Art',
+    icon: '✨',
+    description: 'Tattoos, patches, bandanas & scarves',
+    keywords: ['Tattoo', 'Patch', 'Bandana', 'Scarf', 'Stole', 'Apron'],
+  },
+];
+
+// Map a catalog category to a collection
+function categorizeProduct(categoryName) {
+  for (const col of COLLECTIONS) {
+    if (col.keywords.some(kw => categoryName.toLowerCase().includes(kw.toLowerCase()))) {
+      return col.name;
+    }
+  }
+  return null; // uncategorized
+}
+
+// Products that have mockup templates for the canvas editor
+const PRODUCT_TEMPLATES = {
+  'Terry Oversized Tee | UT27': {
     template: '/mockups/tshirt-offwhitefront.png',
     printArea: { x: 96, y: 122, w: 288, h: 278 },
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
   },
-  UH24: {
-    label: 'Unisex Hoodie | UH24',
-    name: 'Unisex Hoodie',
-    code: 'UH24',
+  'Hoodie': {
     template: '/mockups/tshirt-whitefront.jpg',
     printArea: { x: 110, y: 158, w: 260, h: 226 },
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
   },
+};
+
+// Default print area for products without a specific template
+const DEFAULT_TEMPLATE = {
+  template: '/mockups/tshirt-offwhitefront.png',
+  printArea: { x: 96, y: 122, w: 288, h: 278 },
 };
 
 const MAX_FILE_MB = 20;
@@ -80,20 +176,26 @@ export default function SellYourArt() {
   const [step, setStep] = useState(1);
   const [dragOver, setDragOver] = useState(false);
 
-  // Step 1 — file
+  // Step 1 — product selection
+  const [catalog, setCatalog] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Step 2 — file upload
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null); // local dataURL for canvas
-  const [imageUrl, setImageUrl] = useState('');           // hosted URL (for Qikink orders)
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [fileError, setFileError] = useState('');
 
-  // Step 2 — canvas editor
-  const [selectedProduct, setSelectedProduct] = useState('UT27');
+  // Step 3 — canvas editor
   const [exporting, setExporting] = useState(false);
   const [mockupImageUrl, setMockupImageUrl] = useState('');
   const [placement, setPlacement] = useState(null);
 
-  // Step 3 — details
+  // Step 4 — details
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -101,6 +203,38 @@ export default function SellYourArt() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  const TOTAL_STEPS = 4;
+
+  // ── Load catalog ─────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (step === 1 && catalog.length === 0) {
+      setCatalogLoading(true);
+      getProductCatalog()
+        .then(res => setCatalog(res.data || []))
+        .catch(() => setCatalog([]))
+        .finally(() => setCatalogLoading(false));
+    }
+  }, [step, catalog.length]);
+
+  // Group catalog by collection
+  const catalogByCollection = {};
+  const uncategorized = [];
+  catalog.forEach(item => {
+    const col = categorizeProduct(item.category);
+    if (col) {
+      if (!catalogByCollection[col]) catalogByCollection[col] = [];
+      catalogByCollection[col].push(item);
+    } else {
+      uncategorized.push(item);
+    }
+  });
+
+  // Filter products by search
+  const filteredCatalog = searchQuery.trim()
+    ? catalog.filter(c => c.category.toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
 
   // ── File validation ────────────────────────────────────────────────────────
 
@@ -138,7 +272,7 @@ export default function SellYourArt() {
     try {
       const res = await uploadDesignImage(imageFile);
       setImageUrl(res.data.url || res.data.image_url || '');
-      setStep(2);
+      setStep(3);
     } catch (e) {
       setFileError(e.response?.data?.detail || 'Upload failed. Please try again.');
     } finally {
@@ -146,22 +280,28 @@ export default function SellYourArt() {
     }
   };
 
+  // ── Get template for selected product ────────────────────────────────────────
+
+  const getProductTemplate = () => {
+    if (!selectedCategory) return DEFAULT_TEMPLATE;
+    return PRODUCT_TEMPLATES[selectedCategory.category] || DEFAULT_TEMPLATE;
+  };
+
   // ── Canvas initialisation ──────────────────────────────────────────────────
 
   useEffect(() => {
-    if (step !== 2 || !canvasElRef.current) return;
+    if (step !== 3 || !canvasElRef.current) return;
 
     let cancelled = false;
 
     const init = async () => {
-      // Clean up any previous canvas
       if (fabricRef.current) {
         fabricRef.current.dispose();
         fabricRef.current = null;
         designObjRef.current = null;
       }
 
-      const product = PRODUCTS[selectedProduct];
+      const tmpl = getProductTemplate();
 
       const canvas = new fabric.Canvas(canvasElRef.current, {
         width: CANVAS_W,
@@ -172,9 +312,8 @@ export default function SellYourArt() {
       if (cancelled) { canvas.dispose(); return; }
       fabricRef.current = canvas;
 
-      // Load product template as background (fetch → dataURL to avoid canvas taint)
       try {
-        const bgDataUrl = await toDataURL(product.template);
+        const bgDataUrl = await toDataURL(tmpl.template);
         if (cancelled) return;
         const bgImg = await fabric.FabricImage.fromURL(bgDataUrl);
         if (cancelled) return;
@@ -191,8 +330,7 @@ export default function SellYourArt() {
         canvas.renderAll();
       } catch (_) {}
 
-      // Draw print area boundary
-      const pa = product.printArea;
+      const pa = tmpl.printArea;
       const boundary = new fabric.Rect({
         left: pa.x, top: pa.y,
         width: pa.w, height: pa.h,
@@ -205,7 +343,6 @@ export default function SellYourArt() {
       });
       canvas.add(boundary);
 
-      // Add label inside top-left of print area
       const label = new fabric.IText('PRINT AREA', {
         left: pa.x + 6, top: pa.y + 4,
         fontSize: 9,
@@ -217,7 +354,6 @@ export default function SellYourArt() {
       });
       canvas.add(label);
 
-      // Add design image if uploaded
       if (imagePreview) {
         const designImg = await fabric.FabricImage.fromURL(imagePreview);
         if (cancelled) return;
@@ -255,7 +391,7 @@ export default function SellYourArt() {
         designObjRef.current = null;
       }
     };
-  }, [step, selectedProduct, imagePreview]);
+  }, [step, selectedCategory, imagePreview]);
 
   // ── Export mockup ─────────────────────────────────────────────────────────
 
@@ -267,11 +403,10 @@ export default function SellYourArt() {
     setError('');
 
     try {
-      const product = PRODUCTS[selectedProduct];
-      const pa = product.printArea;
+      const tmpl = getProductTemplate();
+      const pa = tmpl.printArea;
       const designObj = designObjRef.current;
 
-      // Capture placement coordinates
       let placementCoords = null;
       if (designObj) {
         placementCoords = {
@@ -290,14 +425,11 @@ export default function SellYourArt() {
         };
       }
 
-      // Hide selection handles before export
       canvas.discardActiveObject();
       canvas.renderAll();
 
-      // Export canvas as PNG
       const dataUrl = canvas.toDataURL({ format: 'png', multiplier: 1 });
 
-      // Convert dataURL → Blob → File → upload
       const fetchRes = await fetch(dataUrl);
       const blob = await fetchRes.blob();
       const mockupFile = new File([blob], 'mockup.png', { type: 'image/png' });
@@ -306,7 +438,7 @@ export default function SellYourArt() {
 
       setMockupImageUrl(mockupUrl);
       setPlacement(placementCoords);
-      setStep(3);
+      setStep(4);
     } catch (e) {
       setError('Failed to export mockup. Please try again.');
       console.error(e);
@@ -333,7 +465,7 @@ export default function SellYourArt() {
         price: Number(price),
         image_url: imageUrl,
         mockup_image_url: mockupImageUrl,
-        product_type: selectedProduct,
+        product_type: selectedCategory?.category || 'Terry Oversized Tee | UT27',
         placement_coordinates: placement,
       });
       setSuccess(true);
@@ -343,6 +475,10 @@ export default function SellYourArt() {
       setSubmitting(false);
     }
   };
+
+  // ── Step labels ──────────────────────────────────────────────────────────────
+
+  const STEP_LABELS = ['Product', 'Upload', 'Position', 'Details'];
 
   // ── Success ────────────────────────────────────────────────────────────────
 
@@ -360,7 +496,7 @@ export default function SellYourArt() {
           <p style={{ ...mono, fontSize: '11px', color: TT, margin: '0 0 40px' }}>You keep 80% of every sale.</p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
             <button
-              onClick={() => { setSuccess(false); setStep(1); setImageFile(null); setImagePreview(null); setImageUrl(''); setMockupImageUrl(''); setPlacement(null); setTitle(''); setDescription(''); setPrice(''); }}
+              onClick={() => { setSuccess(false); setStep(1); setImageFile(null); setImagePreview(null); setImageUrl(''); setMockupImageUrl(''); setPlacement(null); setTitle(''); setDescription(''); setPrice(''); setSelectedCategory(null); setSelectedCollection(null); }}
               style={{ ...body, padding: '12px 28px', borderRadius: '999px', background: BG3, border: `1px solid ${BS}`, color: TP, fontWeight: 500, cursor: 'pointer', fontSize: '14px' }}
             >
               Upload Another
@@ -382,36 +518,242 @@ export default function SellYourArt() {
       {/* Header */}
       <div style={{ padding: '20px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${BS}` }}>
         <button
-          onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
+          onClick={() => {
+            if (step === 1 && selectedCollection) {
+              setSelectedCollection(null);
+              setSelectedCategory(null);
+            } else if (step > 1) {
+              setStep(step - 1);
+            } else {
+              navigate('/');
+            }
+          }}
           style={{ ...body, background: 'none', border: 'none', color: TS, cursor: 'pointer', fontSize: '14px', padding: 0 }}
         >
-          ← {step > 1 ? 'Back' : 'Home'}
+          ← {step > 1 ? 'Back' : (selectedCollection ? 'Collections' : 'Home')}
         </button>
         <span style={{ ...mono, fontSize: '11px', color: TT, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
           Caesura / Sell Your Art
         </span>
         {/* Step indicator */}
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          {[1, 2, 3].map(s => (
-            <div key={s} style={{ width: s === step ? '20px' : '6px', height: '6px', borderRadius: '999px', background: s === step ? AS : s < step ? 'rgba(200,255,0,0.4)' : BS, transition: 'all 0.3s' }} />
-          ))}
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          {STEP_LABELS.map((label, i) => {
+            const s = i + 1;
+            const isActive = s === step;
+            const isDone = s < step;
+            return (
+              <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{
+                  width: '20px', height: '20px', borderRadius: '50%',
+                  background: isActive ? AS : isDone ? 'rgba(200,255,0,0.4)' : BG3,
+                  border: `1px solid ${isActive ? AS : isDone ? 'rgba(200,255,0,0.3)' : BS}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '10px', fontWeight: 700, color: isActive ? BG : isDone ? AS : TT,
+                  ...mono, transition: 'all 0.3s',
+                }}>
+                  {isDone ? '✓' : s}
+                </div>
+                {i < STEP_LABELS.length - 1 && (
+                  <div style={{ width: '16px', height: '1px', background: isDone ? 'rgba(200,255,0,0.3)' : BS }} />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 24px 80px' }}>
 
-        {/* ── STEP 1: Upload ── */}
+        {/* ── STEP 1: Choose Product ── */}
         {step === 1 && (
+          <div>
+            <span style={{ ...mono, fontSize: '11px', color: TT, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
+              Step 1 of {TOTAL_STEPS} — Choose Product
+            </span>
+            <h1 style={{ ...display, fontWeight: 700, fontSize: 'clamp(28px, 5vw, 52px)', margin: '0 0 8px', lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
+              Product Library
+            </h1>
+            <p style={{ ...body, fontSize: '15px', color: TS, margin: '12px 0 28px', lineHeight: 1.6 }}>
+              Choose what product to print your design on. We support <span style={{ color: AS }}>140+ product types</span> across apparel, accessories, home decor & more.
+            </p>
+
+            {/* Search bar */}
+            <div style={{ maxWidth: '480px', marginBottom: '32px', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: TT, fontSize: '16px', pointerEvents: 'none' }}>🔍</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products — e.g. hoodie, mug, poster..."
+                style={{ ...inputStyle(false), paddingLeft: '44px', background: BG2 }}
+              />
+            </div>
+
+            {catalogLoading ? (
+              <div style={{ textAlign: 'center', padding: '80px 0' }}>
+                <p style={{ ...mono, fontSize: '13px', color: TT }}>Loading product catalog...</p>
+              </div>
+            ) : searchQuery.trim() ? (
+              /* Search results */
+              <div>
+                <p style={{ ...mono, fontSize: '11px', color: TT, marginBottom: '16px' }}>
+                  {filteredCatalog.length} result{filteredCatalog.length !== 1 ? 's' : ''} for "{searchQuery}"
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
+                  {filteredCatalog.map(item => (
+                    <ProductCard
+                      key={item.category}
+                      item={item}
+                      selected={selectedCategory?.category === item.category}
+                      onSelect={() => {
+                        setSelectedCategory(item);
+                        setSearchQuery('');
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : selectedCollection ? (
+              /* Products within a collection */
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '28px' }}>
+                    {COLLECTIONS.find(c => c.name === selectedCollection)?.icon}
+                  </span>
+                  <h2 style={{ ...display, fontSize: '24px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>
+                    {selectedCollection}
+                  </h2>
+                  <span style={{ ...mono, fontSize: '11px', color: TT, marginLeft: '8px' }}>
+                    {(catalogByCollection[selectedCollection] || []).length} products
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
+                  {(catalogByCollection[selectedCollection] || []).map(item => (
+                    <ProductCard
+                      key={item.category}
+                      item={item}
+                      selected={selectedCategory?.category === item.category}
+                      onSelect={() => setSelectedCategory(item)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* Collection grid */
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+                {COLLECTIONS.map(col => {
+                  const count = (catalogByCollection[col.name] || []).length;
+                  if (count === 0) return null;
+                  return (
+                    <button
+                      key={col.name}
+                      onClick={() => setSelectedCollection(col.name)}
+                      style={{
+                        background: BG2,
+                        border: `1px solid ${BS}`,
+                        borderRadius: '16px',
+                        padding: '28px 24px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(200,255,0,0.3)';
+                        e.currentTarget.style.background = 'rgba(200,255,0,0.04)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = BS;
+                        e.currentTarget.style.background = BG2;
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div style={{ fontSize: '36px', lineHeight: 1 }}>{col.icon}</div>
+                      <div>
+                        <h3 style={{ ...body, fontSize: '16px', fontWeight: 700, color: TP, margin: '0 0 4px' }}>
+                          {col.name}
+                        </h3>
+                        <p style={{ ...body, fontSize: '13px', color: TS, margin: '0 0 8px', lineHeight: 1.4 }}>
+                          {col.description}
+                        </p>
+                        <span style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.1em' }}>
+                          {count} PRODUCT{count !== 1 ? 'S' : ''}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Selected product confirmation bar */}
+            {selectedCategory && (
+              <div style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0,
+                background: BG2, borderTop: `1px solid rgba(200,255,0,0.2)`,
+                padding: '16px 40px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                zIndex: 50,
+                backdropFilter: 'blur(20px)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{
+                    background: 'rgba(200,255,0,0.1)', border: `1px solid rgba(200,255,0,0.2)`,
+                    borderRadius: '10px', padding: '8px 16px',
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                  }}>
+                    <span style={{ ...mono, fontSize: '11px', color: AS }}>SELECTED</span>
+                  </div>
+                  <div>
+                    <p style={{ ...body, fontSize: '15px', fontWeight: 600, color: TP, margin: 0 }}>
+                      {selectedCategory.category}
+                    </p>
+                    <p style={{ ...mono, fontSize: '11px', color: TT, margin: 0 }}>
+                      {selectedCategory.sizes?.length || 0} sizes · {selectedCategory.colors?.length || 0} colors · Base ₹{Math.min(...(selectedCategory.base_prices || [0]))}
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    style={{ ...body, padding: '10px 20px', borderRadius: '999px', background: 'transparent', border: `1px solid ${BS}`, color: TS, fontSize: '13px', cursor: 'pointer' }}
+                  >
+                    Change
+                  </button>
+                  <button
+                    onClick={() => setStep(2)}
+                    style={{ ...body, padding: '12px 32px', borderRadius: '999px', background: AS, border: 'none', color: BG, fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Upload Design →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── STEP 2: Upload Design ── */}
+        {step === 2 && (
           <div style={{ maxWidth: '640px' }}>
             <span style={{ ...mono, fontSize: '11px', color: TT, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
-              Step 1 of 3 — Upload Design
+              Step 2 of {TOTAL_STEPS} — Upload Design
             </span>
             <h1 style={{ ...display, fontWeight: 700, fontSize: 'clamp(36px, 6vw, 64px)', margin: '0 0 8px', lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
-              Sell Your Art
+              Upload Your Art
             </h1>
-            <p style={{ ...body, fontSize: '16px', color: TS, margin: '16px 0 40px', lineHeight: 1.6 }}>
-              Upload your design — we'll put it on our editor where you can position it exactly how you want.
+            <p style={{ ...body, fontSize: '16px', color: TS, margin: '16px 0 12px', lineHeight: 1.6 }}>
+              Upload your design — we'll put it on our editor where you can position it on your <span style={{ color: AS }}>{selectedCategory?.category || 'product'}</span>.
             </p>
+
+            {/* Selected product badge */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(200,255,0,0.08)', border: `1px solid rgba(200,255,0,0.2)`, borderRadius: '999px', padding: '6px 14px', marginBottom: '32px' }}>
+              <span style={{ ...mono, fontSize: '10px', color: AS, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                {selectedCategory?.category || 'T-Shirt'}
+              </span>
+            </div>
 
             {/* Guidelines */}
             <div style={{ background: BG2, border: `1px solid ${BS}`, borderRadius: '10px', padding: '16px 20px', marginBottom: '28px', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
@@ -486,11 +828,11 @@ export default function SellYourArt() {
           </div>
         )}
 
-        {/* ── STEP 2: Canvas Editor ── */}
-        {step === 2 && (
+        {/* ── STEP 3: Canvas Editor ── */}
+        {step === 3 && (
           <div>
             <span style={{ ...mono, fontSize: '11px', color: TT, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
-              Step 2 of 3 — Position Your Design
+              Step 3 of {TOTAL_STEPS} — Position Your Design
             </span>
             <h1 style={{ ...display, fontWeight: 700, fontSize: 'clamp(28px, 5vw, 52px)', margin: '0 0 8px', lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
               Design Editor
@@ -498,31 +840,6 @@ export default function SellYourArt() {
             <p style={{ ...body, fontSize: '15px', color: TS, margin: '12px 0 28px', lineHeight: 1.6 }}>
               Drag, resize, and rotate your design. Keep it inside the <span style={{ color: AS }}>dashed print area</span>.
             </p>
-
-            {/* Product tab selector */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              {Object.entries(PRODUCTS).map(([code, p]) => (
-                <button
-                  key={code}
-                  onClick={() => setSelectedProduct(code)}
-                  style={{
-                    ...mono,
-                    fontSize: '11px',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    padding: '8px 18px',
-                    borderRadius: '999px',
-                    border: `1px solid ${selectedProduct === code ? AS : BS}`,
-                    background: selectedProduct === code ? 'rgba(200,255,0,0.1)' : 'transparent',
-                    color: selectedProduct === code ? AS : TS,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: `${CANVAS_W}px 1fr`, gap: '40px', alignItems: 'start' }}>
               {/* Canvas */}
@@ -539,14 +856,24 @@ export default function SellYourArt() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: '8px' }}>
                 <div style={{ background: BG2, borderRadius: '12px', padding: '20px', border: `1px solid ${BS}` }}>
                   <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '14px' }}>Product</p>
-                  <p style={{ ...body, fontWeight: 600, fontSize: '15px', color: TP, margin: '0 0 4px' }}>{PRODUCTS[selectedProduct].name}</p>
-                  <p style={{ ...mono, fontSize: '11px', color: TT, margin: '0 0 12px' }}>Code: {selectedProduct}</p>
-                  <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 6px' }}>Available sizes</p>
+                  <p style={{ ...body, fontWeight: 600, fontSize: '15px', color: TP, margin: '0 0 4px' }}>
+                    {selectedCategory?.category || 'T-Shirt'}
+                  </p>
+                  <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.12em', textTransform: 'uppercase', margin: '12px 0 6px' }}>Available sizes</p>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {PRODUCTS[selectedProduct].sizes.map(s => (
+                    {(selectedCategory?.sizes || ['S', 'M', 'L', 'XL', 'XXL']).map(s => (
                       <span key={s} style={{ ...mono, fontSize: '11px', color: TS, background: BG3, border: `1px solid ${BS}`, borderRadius: '4px', padding: '3px 8px' }}>{s}</span>
                     ))}
                   </div>
+                  {selectedCategory?.colors?.length > 0 && (
+                    <>
+                      <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.12em', textTransform: 'uppercase', margin: '12px 0 6px' }}>Available colors</p>
+                      <p style={{ ...body, fontSize: '12px', color: TS, margin: 0 }}>
+                        {selectedCategory.colors.slice(0, 8).join(', ')}
+                        {selectedCategory.colors.length > 8 ? ` +${selectedCategory.colors.length - 8} more` : ''}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <div style={{ background: 'rgba(200,255,0,0.04)', border: `1px solid rgba(200,255,0,0.15)`, borderRadius: '12px', padding: '16px 20px' }}>
@@ -583,8 +910,8 @@ export default function SellYourArt() {
           </div>
         )}
 
-        {/* ── STEP 3: Details & submit ── */}
-        {step === 3 && (
+        {/* ── STEP 4: Details & submit ── */}
+        {step === 4 && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'start', maxWidth: '900px' }}>
             {/* Left: mockup preview */}
             <div>
@@ -600,7 +927,7 @@ export default function SellYourArt() {
             {/* Right: form */}
             <div>
               <span style={{ ...mono, fontSize: '11px', color: TT, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>
-                Step 3 of 3 — Details
+                Step 4 of {TOTAL_STEPS} — Details
               </span>
               <h1 style={{ ...display, fontWeight: 700, fontSize: 'clamp(28px, 4vw, 44px)', margin: '0 0 28px', lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
                 Publish Your Design
@@ -609,7 +936,7 @@ export default function SellYourArt() {
               {/* Product type badge */}
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(200,255,0,0.08)', border: `1px solid rgba(200,255,0,0.2)`, borderRadius: '999px', padding: '6px 14px', marginBottom: '24px' }}>
                 <span style={{ ...mono, fontSize: '10px', color: AS, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                  {PRODUCTS[selectedProduct].label}
+                  {selectedCategory?.category || 'T-Shirt'}
                 </span>
               </div>
 
@@ -683,5 +1010,76 @@ export default function SellYourArt() {
         )}
       </div>
     </div>
+  );
+}
+
+// ── Product Card Component ──────────────────────────────────────────────────────
+
+function ProductCard({ item, selected, onSelect }) {
+  const basePrice = item.base_prices?.length ? Math.min(...item.base_prices) : 0;
+  const sizeCount = item.sizes?.length || 0;
+  const colorCount = item.colors?.length || 0;
+  const genders = item.genders?.join(', ') || '';
+
+  return (
+    <button
+      onClick={onSelect}
+      style={{
+        background: selected ? 'rgba(200,255,0,0.06)' : BG2,
+        border: `1.5px solid ${selected ? AS : BS}`,
+        borderRadius: '12px',
+        padding: '18px 20px',
+        cursor: 'pointer',
+        textAlign: 'left',
+        transition: 'all 0.2s',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+      }}
+      onMouseEnter={(e) => {
+        if (!selected) {
+          e.currentTarget.style.borderColor = 'rgba(250,250,249,0.2)';
+          e.currentTarget.style.background = BG3;
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!selected) {
+          e.currentTarget.style.borderColor = BS;
+          e.currentTarget.style.background = BG2;
+        }
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h4 style={{
+          ...body, fontSize: '14px', fontWeight: 600, color: selected ? AS : TP,
+          margin: 0, lineHeight: 1.3,
+        }}>
+          {item.category}
+        </h4>
+        {selected && (
+          <div style={{
+            width: '20px', height: '20px', borderRadius: '50%', background: AS,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '12px', color: BG, fontWeight: 700, flexShrink: 0,
+          }}>✓</div>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        {sizeCount > 0 && (
+          <span style={{ ...mono, fontSize: '10px', color: TT }}>{sizeCount} sizes</span>
+        )}
+        {colorCount > 0 && (
+          <span style={{ ...mono, fontSize: '10px', color: TT }}>{colorCount} colors</span>
+        )}
+        {basePrice > 0 && (
+          <span style={{ ...mono, fontSize: '10px', color: TT }}>from ₹{basePrice}</span>
+        )}
+      </div>
+      {genders && (
+        <span style={{ ...mono, fontSize: '9px', color: TT, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          {genders}
+        </span>
+      )}
+    </button>
   );
 }

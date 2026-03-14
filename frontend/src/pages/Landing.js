@@ -528,43 +528,6 @@ function TrendingCarousel({ products, loading }) {
   );
 }
 
-// ─── Vibe Grid ────────────────────────────────────────────────────────────────
-const VIBES = [
-  { label: 'streetwear',    span: 2, img: 'https://images.pexels.com/photos/4710336/pexels-photo-4710336.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=500&w=800' },
-  { label: 'anime',         span: 1, img: 'https://images.pexels.com/photos/9558583/pexels-photo-9558583.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=500&w=400' },
-  { label: 'desi remix',    span: 1, img: 'https://images.pexels.com/photos/8904575/pexels-photo-8904575.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=500&w=400' },
-  { label: 'minimal',       span: 1, img: 'https://images.pexels.com/photos/9558752/pexels-photo-9558752.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=500&w=400' },
-  { label: 'dark academia', span: 1, img: 'https://images.pexels.com/photos/19461585/pexels-photo-19461585.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=500&w=400' },
-  { label: 'absurd humor',  span: 1, img: 'https://images.pexels.com/photos/3137064/pexels-photo-3137064.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=500&w=400' },
-];
-
-function VibeGrid() {
-  const navigate = useNavigate();
-  return (
-    <section style={{ background: BG, borderTop: `1px solid ${BS}`, padding: '80px 0' }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 48px' }}>
-        <FV style={{ marginBottom: '40px' }}>
-          <h2 style={{ ...display, fontSize: 'clamp(28px, 4vw, 48px)', color: TP, margin: 0, letterSpacing: '-0.02em' }}>Find Your Vibe</h2>
-        </FV>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 260px)', gap: '10px' }}>
-          {VIBES.map((v, i) => (
-            <motion.div
-              key={v.label}
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.3 }}
-              onClick={() => navigate(`/explore?category=${v.label}`)}
-              style={{ position: 'relative', overflow: 'hidden', borderRadius: '4px', cursor: 'pointer', gridColumn: i === 0 ? 'span 2' : 'span 1' }}
-            >
-              <img src={v.img} alt={v.label} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', display: 'block' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,11,0.85) 0%, transparent 55%)' }} />
-              <span style={{ position: 'absolute', bottom: '20px', left: '20px', ...display, fontSize: 'clamp(16px, 2.2vw, 24px)', color: TP, letterSpacing: '-0.01em', textTransform: 'uppercase' }}>{v.label}</span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // ─── Quality Promise ──────────────────────────────────────────────────────────
 function QualityPromise() {
@@ -812,7 +775,6 @@ export default function Landing() {
       <HowItWorks />
       <ForCreators />
       <TrendingCarousel products={products} loading={loading} />
-      <VibeGrid />
       <QualityPromise />
       <FreshDrops products={products} loading={loading} />
       <FinalCTA user={user} />

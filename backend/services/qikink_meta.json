@@ -1,0 +1,1864 @@
+{
+  "V Neck T-Shirt | UV34": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      160.0,
+      180.0
+    ],
+    "weights": [
+      240.0,
+      270.0
+    ],
+    "tax_rate": 5
+  },
+  "Classic Crew T-Shirt": {
+    "genders": [
+      "Boy",
+      "Female",
+      "Girl",
+      "Male"
+    ],
+    "base_prices": [
+      100.0,
+      120.0,
+      130.0,
+      150.0,
+      160.0,
+      180.0,
+      200.0,
+      220.0,
+      240.0,
+      260.0
+    ],
+    "weights": [
+      150.0,
+      180.0,
+      225.0,
+      240.0,
+      260.0,
+      280.0,
+      300.0,
+      310.0
+    ],
+    "tax_rate": 5
+  },
+  "Full Sleeve T-Shirt": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      190.0,
+      230.0
+    ],
+    "weights": [
+      340.0,
+      350.0
+    ],
+    "tax_rate": 5
+  },
+  "Raglan T-Shirt | UR37": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      220.0
+    ],
+    "weights": [
+      270.0,
+      275.0
+    ],
+    "tax_rate": 5
+  },
+  "Sleeveless T-Shirt | MS36": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      140.0,
+      160.0,
+      180.0
+    ],
+    "weights": [
+      190.0,
+      200.0,
+      240.0,
+      260.0
+    ],
+    "tax_rate": 5
+  },
+  "Polo | MP25": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      280.0,
+      320.0
+    ],
+    "weights": [
+      290.0,
+      335.0
+    ],
+    "tax_rate": 5
+  },
+  "Womens Tank Top | FT37": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      130.0
+    ],
+    "weights": [
+      170.0
+    ],
+    "tax_rate": 5
+  },
+  "Hoodie": {
+    "genders": [
+      "Kids",
+      "Unisex"
+    ],
+    "base_prices": [
+      250.0,
+      300.0,
+      430.0,
+      470.0
+    ],
+    "weights": [
+      480.0,
+      500.0,
+      740.0,
+      750.0
+    ],
+    "tax_rate": 5
+  },
+  "Tote Bag Non Zipper": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      100.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 5
+  },
+  "Tote Bag Zipper": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      130.0
+    ],
+    "weights": [
+      150.0,
+      160.0
+    ],
+    "tax_rate": 5
+  },
+  "Womens AOP T-Shirt | FA21": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      300.0
+    ],
+    "weights": [
+      220.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP T-Shirt | UA21": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      330.0
+    ],
+    "weights": [
+      240.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Sleeveless Tee | MA29": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      300.0
+    ],
+    "weights": [
+      200.0
+    ],
+    "tax_rate": 5
+  },
+  "Womens AOP Tank Top | FA37": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      300.0,
+      320.0
+    ],
+    "weights": [
+      200.0
+    ],
+    "tax_rate": 5
+  },
+  "Mouse Pad": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      60.0
+    ],
+    "weights": [
+      100.0,
+      110.0
+    ],
+    "tax_rate": 18
+  },
+  "Coasters": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      55.0
+    ],
+    "weights": [
+      270.0
+    ],
+    "tax_rate": 18
+  },
+  "Sipper Bottle": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      250.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 18
+  },
+  "Maternity Dress | FM44": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      210.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 5
+  },
+  "Poster": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      80.0,
+      120.0,
+      250.0
+    ],
+    "weights": [
+      400.0,
+      500.0,
+      800.0,
+      1500.0
+    ],
+    "tax_rate": 18
+  },
+  "Framed Poster": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      250.0,
+      300.0,
+      350.0,
+      400.0,
+      450.0
+    ],
+    "weights": [
+      500.0,
+      1000.0,
+      1500.0,
+      2000.0,
+      2500.0,
+      3500.0
+    ],
+    "tax_rate": 18
+  },
+  "NotePad": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      120.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 18
+  },
+  "Magic Coffee Mug": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      200.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Color Coffee Mug": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      150.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "T-Shirt Dress | FC43": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      235.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 5
+  },
+  "Crop Top | FC39": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      120.0
+    ],
+    "weights": [
+      190.0,
+      200.0
+    ],
+    "tax_rate": 5
+  },
+  "Rompers | KR23": {
+    "genders": [
+      "Kids"
+    ],
+    "base_prices": [
+      100.0
+    ],
+    "weights": [
+      225.0
+    ],
+    "tax_rate": 5
+  },
+  "Zip Hoodie | UH38": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      680.0,
+      730.0
+    ],
+    "weights": [
+      950.0,
+      1300.0
+    ],
+    "tax_rate": 5
+  },
+  "Badge": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      20.0,
+      25.0,
+      30.0,
+      32.0
+    ],
+    "weights": [
+      35.0,
+      40.0,
+      50.0
+    ],
+    "tax_rate": 18
+  },
+  "Canvas": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      250.0,
+      300.0,
+      550.0,
+      800.0
+    ],
+    "weights": [
+      500.0,
+      750.0,
+      2000.0,
+      3500.0
+    ],
+    "tax_rate": 5
+  },
+  "Womens AOP Crop Top | FA32": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      250.0
+    ],
+    "weights": [
+      150.0,
+      180.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Tote bags NonZipper": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      200.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 18
+  },
+  "Stickers": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      25.0,
+      30.0,
+      35.0,
+      40.0,
+      45.0,
+      55.0,
+      65.0,
+      70.0,
+      85.0
+    ],
+    "weights": [
+      180.0,
+      250.0,
+      300.0,
+      350.0
+    ],
+    "tax_rate": 18
+  },
+  "IPHONESublimation Mobile Cases": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      100.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 18
+  },
+  "OnePlus Sublimation Mobile Cases": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      100.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 18
+  },
+  "Redmi Sublimation Phone Cases": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      100.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 18
+  },
+  "SamsungSublimation Mobile Cases": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      100.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 18
+  },
+  "Black Coffee Mug": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      180.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "White Coffee Mug": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      115.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Face Bandana": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      90.0
+    ],
+    "weights": [
+      110.0
+    ],
+    "tax_rate": 5
+  },
+  "Sweatshirt | UH26": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      330.0,
+      370.0
+    ],
+    "weights": [
+      620.0,
+      630.0,
+      650.0
+    ],
+    "tax_rate": 5
+  },
+  "Cropped Hoodie | FC32": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      290.0
+    ],
+    "weights": [
+      580.0,
+      600.0
+    ],
+    "tax_rate": 5
+  },
+  "Joggers | UJ29": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      400.0
+    ],
+    "weights": [
+      500.0,
+      600.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Sports Bra | FA50": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      460.0,
+      490.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Crop Tank | FC40": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      100.0
+    ],
+    "weights": [
+      130.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Cushion Cover": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      140.0,
+      260.0
+    ],
+    "weights": [
+      250.0,
+      450.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Full Sleeve Tee | MA27": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      380.0
+    ],
+    "weights": [
+      350.0
+    ],
+    "tax_rate": 5
+  },
+  "Womens AOP Crop Tank | FA33": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      230.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 5
+  },
+  "Keychain": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      60.0
+    ],
+    "weights": [
+      180.0
+    ],
+    "tax_rate": 18
+  },
+  "iPhone Glass Case": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      150.0
+    ],
+    "weights": [
+      200.0
+    ],
+    "tax_rate": 18
+  },
+  "Fridge Magnet": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      70.0
+    ],
+    "weights": [
+      290.0
+    ],
+    "tax_rate": 18
+  },
+  "Acrylic Poster": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      160.0,
+      220.0,
+      250.0,
+      360.0,
+      400.0,
+      570.0
+    ],
+    "weights": [
+      500.0,
+      1000.0,
+      1500.0,
+      2000.0
+    ],
+    "tax_rate": 18
+  },
+  "Luggage Tag": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      70.0
+    ],
+    "weights": [
+      210.0
+    ],
+    "tax_rate": 18
+  },
+  "Acrylic Coaster": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      70.0
+    ],
+    "weights": [
+      210.0
+    ],
+    "tax_rate": 18
+  },
+  "Oversized Classic T-Shirt | UC22": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      240.0
+    ],
+    "weights": [
+      350.0,
+      370.0
+    ],
+    "tax_rate": 5
+  },
+  "OnePlus Glass Case": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      150.0
+    ],
+    "weights": [
+      200.0
+    ],
+    "tax_rate": 18
+  },
+  "AOP Pillow Cover": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      220.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Drawstring Bag": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      200.0
+    ],
+    "weights": [
+      220.0
+    ],
+    "tax_rate": 18
+  },
+  "AOP Bomber Jacket | UA30": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      750.0
+    ],
+    "weights": [
+      790.0
+    ],
+    "tax_rate": 5
+  },
+  "Black Badge": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      30.0
+    ],
+    "weights": [
+      170.0
+    ],
+    "tax_rate": 18
+  },
+  "Kids AOP Bomber Jacket | KA30": {
+    "genders": [
+      "Kids"
+    ],
+    "base_prices": [
+      550.0
+    ],
+    "weights": [
+      600.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Sweatshirt | UA26": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      450.0
+    ],
+    "weights": [
+      690.0,
+      750.0
+    ],
+    "tax_rate": 5
+  },
+  "Kids AOP Sweatshirt | KA35": {
+    "genders": [
+      "Kids"
+    ],
+    "base_prices": [
+      350.0
+    ],
+    "weights": [
+      550.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Tote bags Zipper": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      200.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 18
+  },
+  "Womens AOP Bomber Jacket | FA30": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      700.0
+    ],
+    "weights": [
+      690.0
+    ],
+    "tax_rate": 5
+  },
+  "Oversized Standard T-Shirt | US22": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      190.0
+    ],
+    "weights": [
+      330.0
+    ],
+    "tax_rate": 5
+  },
+  "Standard Crew T-Shirt | US21": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      140.0
+    ],
+    "weights": [
+      240.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP T-Shirt Dress | FA35": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      430.0
+    ],
+    "weights": [
+      420.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Oversized Tee | UA22": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      360.0
+    ],
+    "weights": [
+      350.0
+    ],
+    "tax_rate": 5
+  },
+  "Greeting Cards": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      30.0
+    ],
+    "weights": [
+      100.0
+    ],
+    "tax_rate": 5
+  },
+  "Postcards": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      30.0
+    ],
+    "weights": [
+      100.0
+    ],
+    "tax_rate": 5
+  },
+  "Jigsaw Puzzle": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      120.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 18
+  },
+  "Tumbler Bottle": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      440.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 18
+  },
+  "White Enamel Mugs": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      220.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Classic baseball Cap |  BC33": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      200.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Apron": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      220.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Drawstring Bag": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      130.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 5
+  },
+  "Oversized Hoodie | UH32": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      580.0,
+      620.0
+    ],
+    "weights": [
+      900.0,
+      1500.0
+    ],
+    "tax_rate": 5
+  },
+  "Oversized Sweatshirt | UH35": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      460.0,
+      500.0
+    ],
+    "weights": [
+      850.0,
+      1100.0,
+      1250.0
+    ],
+    "tax_rate": 5
+  },
+  "Samsung Glass Case": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      150.0
+    ],
+    "weights": [
+      200.0
+    ],
+    "tax_rate": 18
+  },
+  "Supima T-Shirt | UC23": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      260.0,
+      285.0,
+      310.0,
+      335.0
+    ],
+    "weights": [
+      250.0,
+      280.0,
+      300.0,
+      350.0,
+      400.0
+    ],
+    "tax_rate": 5
+  },
+  "Temporary Tattoos": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      65.0,
+      90.0,
+      135.0,
+      150.0,
+      260.0
+    ],
+    "weights": [
+      180.0
+    ],
+    "tax_rate": 18
+  },
+  "Embroidery Patches": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      90.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 5
+  },
+  "Terry Oversized Tee | UT27": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      280.0,
+      310.0
+    ],
+    "weights": [
+      380.0,
+      420.0,
+      650.0
+    ],
+    "tax_rate": 5
+  },
+  "Terry Shorts | MT45": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      330.0
+    ],
+    "weights": [
+      440.0,
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Shorts | MA45": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      340.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 5
+  },
+  "Tapestry": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      150.0,
+      190.0,
+      240.0,
+      315.0,
+      345.0,
+      440.0,
+      760.0
+    ],
+    "weights": [
+      220.0,
+      250.0,
+      270.0,
+      440.0,
+      1000.0
+    ],
+    "tax_rate": 5
+  },
+  "Metal Posters": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      300.0,
+      500.0
+    ],
+    "weights": [
+      1000.0,
+      1500.0
+    ],
+    "tax_rate": 18
+  },
+  "Oversized Shirt | UC28": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      290.0,
+      320.0
+    ],
+    "weights": [
+      300.0,
+      350.0
+    ],
+    "tax_rate": 5
+  },
+  "Everyday Large Tote bag": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      200.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Acid Wash Oversized Tee | UC61": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      340.0
+    ],
+    "weights": [
+      350.0
+    ],
+    "tax_rate": 5
+  },
+  "Acid Wash Hoodie | UH62": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      650.0,
+      690.0
+    ],
+    "weights": [
+      740.0
+    ],
+    "tax_rate": 5
+  },
+  "Classic Bucket Hat | BH35": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      260.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Classic Snapback Cap | SB30": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      220.0
+    ],
+    "weights": [
+      480.0
+    ],
+    "tax_rate": 5
+  },
+  "Varsity Jacket | UJ31": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      685.0,
+      725.0
+    ],
+    "weights": [
+      1000.0,
+      1100.0,
+      1500.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Gym legging | FA41": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      400.0
+    ],
+    "weights": [
+      480.0
+    ],
+    "tax_rate": 5
+  },
+  "Tablerunner": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      165.0
+    ],
+    "weights": [
+      200.0
+    ],
+    "tax_rate": 5
+  },
+  "Placemat": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      65.0
+    ],
+    "weights": [
+      100.0
+    ],
+    "tax_rate": 5
+  },
+  "Cloth Napkin": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      70.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Sports T-Shirt | UA51": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      300.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Sports Shorts | UA52": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      350.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 5
+  },
+  "Kids AOP Sports T-Shirt | KA51": {
+    "genders": [
+      "Kids"
+    ],
+    "base_prices": [
+      240.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 5
+  },
+  "Kids AOP Sports Shorts | KA52": {
+    "genders": [
+      "Kids"
+    ],
+    "base_prices": [
+      310.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 5
+  },
+  "Classic Trucker Cap | TC55": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      200.0
+    ],
+    "weights": [
+      450.0
+    ],
+    "tax_rate": 5
+  },
+  "Sports Cap | SP45": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      250.0
+    ],
+    "weights": [
+      450.0
+    ],
+    "tax_rate": 5
+  },
+  "Baseball Ottoman Cap | BC50": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      220.0
+    ],
+    "weights": [
+      450.0
+    ],
+    "tax_rate": 5
+  },
+  "Dog T-Shirts | DT59": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      150.0,
+      170.0,
+      190.0,
+      210.0
+    ],
+    "weights": [
+      450.0,
+      480.0
+    ],
+    "tax_rate": 5
+  },
+  "Pet Tags": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      120.0
+    ],
+    "weights": [
+      200.0
+    ],
+    "tax_rate": 18
+  },
+  "Basic T-Shirt PC | UB73": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      90.0
+    ],
+    "weights": [
+      240.0
+    ],
+    "tax_rate": 5
+  },
+  "Kids AOP T-Shirt | KA71": {
+    "genders": [
+      "Kids"
+    ],
+    "base_prices": [
+      240.0
+    ],
+    "weights": [
+      240.0
+    ],
+    "tax_rate": 5
+  },
+  "Steel Water bottle": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      250.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 18
+  },
+  "Bike Rider T-Shirt | MA39": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      350.0
+    ],
+    "weights": [
+      350.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Womens Scrunchies": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      40.0
+    ],
+    "weights": [
+      220.0
+    ],
+    "tax_rate": 18
+  },
+  "Daily Planner": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      240.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 18
+  },
+  "Notebook": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      160.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 18
+  },
+  "Gaming Pad": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      200.0,
+      250.0
+    ],
+    "weights": [
+      650.0,
+      700.0
+    ],
+    "tax_rate": 18
+  },
+  "Cotton Stretch T-Shirt | UC48": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      230.0,
+      250.0
+    ],
+    "weights": [
+      500.0
+    ],
+    "tax_rate": 5
+  },
+  "Tie Dye Oversized T-Shirt | UT58": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      350.0,
+      380.0
+    ],
+    "weights": [
+      380.0,
+      610.0
+    ],
+    "tax_rate": 5
+  },
+  "Tie Dye Shorts | UT68": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      350.0
+    ],
+    "weights": [
+      440.0
+    ],
+    "tax_rate": 5
+  },
+  "Dog Tag": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      120.0
+    ],
+    "weights": [
+      75.0
+    ],
+    "tax_rate": 18
+  },
+  "Bookmark": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      60.0
+    ],
+    "weights": [
+      50.0
+    ],
+    "tax_rate": 18
+  },
+  "Acrylic Display Stand": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      140.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 18
+  },
+  "Baby Tee | FT47": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      160.0
+    ],
+    "weights": [
+      120.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP A Line Dress | FD16": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      450.0
+    ],
+    "weights": [
+      350.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Bodycon Dress | FD74": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      400.0
+    ],
+    "weights": [
+      350.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Tube Top | FT12": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      110.0
+    ],
+    "weights": [
+      120.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Pencil Skirt | FS58": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      330.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Scarf": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      80.0,
+      115.0
+    ],
+    "weights": [
+      100.0,
+      120.0
+    ],
+    "tax_rate": 5
+  },
+  "AOP Stole": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      170.0
+    ],
+    "weights": [
+      100.0
+    ],
+    "tax_rate": 5
+  },
+  "Balaclava": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      130.0
+    ],
+    "weights": [
+      110.0
+    ],
+    "tax_rate": 5
+  },
+  "Arm Sleeves": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      105.0
+    ],
+    "weights": [
+      100.0
+    ],
+    "tax_rate": 5
+  },
+  "MDF Wooden Puzzles": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      240.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 18
+  },
+  "Christmas Ornaments": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      70.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 18
+  },
+  "Sketchbook": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      230.0
+    ],
+    "weights": [
+      180.0
+    ],
+    "tax_rate": 18
+  },
+  "Sweatpants | US52": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      420.0
+    ],
+    "weights": [
+      750.0
+    ],
+    "tax_rate": 5
+  },
+  "Personalised Pens": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      100.0
+    ],
+    "weights": [
+      150.0
+    ],
+    "tax_rate": 18
+  },
+  "Hard Clear Case": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      220.0
+    ],
+    "weights": [
+      320.0
+    ],
+    "tax_rate": 18
+  },
+  "Phone Grip": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      70.0
+    ],
+    "weights": [
+      250.0
+    ],
+    "tax_rate": 18
+  },
+  "Pullover Hoodie | UH83": {
+    "genders": [
+      "Unisex"
+    ],
+    "base_prices": [
+      390.0,
+      430.0
+    ],
+    "weights": [
+      400.0,
+      420.0,
+      640.0,
+      730.0,
+      800.0,
+      850.0
+    ],
+    "tax_rate": 5
+  },
+  "Kaftan | FK87": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      430.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 5
+  },
+  "Mini Dress | FD62": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      390.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 5
+  },
+  "Mini Skirt | FS59": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      220.0
+    ],
+    "weights": [
+      310.0
+    ],
+    "tax_rate": 5
+  },
+  "Bow Scrunchies": {
+    "genders": [
+      "Female"
+    ],
+    "base_prices": [
+      60.0
+    ],
+    "weights": [
+      300.0
+    ],
+    "tax_rate": 18
+  }
+}
