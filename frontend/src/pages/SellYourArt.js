@@ -17,27 +17,69 @@ const body    = { fontFamily: '"DM Sans", system-ui, sans-serif' };
 const display = { fontFamily: '"Clash Display", "Bebas Neue", sans-serif' };
 const mono    = { fontFamily: '"JetBrains Mono", monospace' };
 
-const CANVAS_W = 480;
-const CANVAS_H = 572;
+// Canvas matches Printful image aspect ratio (700×1000 → 0.6× = 420×600)
+const CANVAS_W = 420;
+const CANVAS_H = 600;
 
-// Product configurations for the canvas editor
+// Product configurations — templates from Printful (temporary placeholders until Qikink provides official assets)
 const PRODUCTS = {
   UT27: {
-    label: 'Unisex Terry Oversized Tee | UT27',
-    name: 'Unisex Terry Oversized Tee',
+    label: 'Unisex Oversized Tee | UT27',
+    name: 'Unisex Oversized Tee',
     code: 'UT27',
-    template: '/mockups/tshirt-offwhitefront.png',
-    printArea: { x: 96, y: 122, w: 288, h: 278 },
+    colors: {
+      white: '/mockups/oversized-tee-white.jpg',
+      black: '/mockups/oversized-tee-black.jpg',
+    },
+    // Print area in canvas px (canvas 420×600, image fills exactly at 0.6× scale)
+    // Garment chest area: ~23% from top, ~22% from left, ~56% wide, ~37% tall
+    printArea: { x: 92, y: 138, w: 236, h: 222 },
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
   },
   UH24: {
     label: 'Unisex Hoodie | UH24',
     name: 'Unisex Hoodie',
     code: 'UH24',
-    template: '/mockups/tshirt-whitefront.jpg',
-    printArea: { x: 110, y: 158, w: 260, h: 226 },
+    colors: {
+      white: '/mockups/hoodie-white.jpg',
+      black: '/mockups/hoodie-black.jpg',
+      grey:  '/mockups/hoodie-grey.jpg',
+    },
+    // Hoodie chest print area starts lower (below drawstrings)
+    printArea: { x: 100, y: 155, w: 220, h: 200 },
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
   },
+  CT01: {
+    label: 'Unisex Crew Tee | CT01',
+    name: 'Unisex Crew Tee',
+    code: 'CT01',
+    colors: {
+      white: '/mockups/crew-tee-white.jpg',
+      black: '/mockups/crew-tee-black.jpg',
+      grey:  '/mockups/crew-tee-grey.jpg',
+    },
+    printArea: { x: 94, y: 128, w: 232, h: 238 },
+    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+  },
+  SW18: {
+    label: 'Unisex Crewneck Sweatshirt | SW18',
+    name: 'Unisex Crewneck Sweatshirt',
+    code: 'SW18',
+    colors: {
+      white: '/mockups/sweatshirt-white.jpg',
+      black: '/mockups/sweatshirt-black.jpg',
+      grey:  '/mockups/sweatshirt-grey.jpg',
+    },
+    // Sweatshirt: wider collar, print area a touch lower
+    printArea: { x: 97, y: 140, w: 226, h: 230 },
+    sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
+  },
+};
+
+const COLOR_SWATCHES = {
+  white: '#F0EFE9',
+  black: '#1A1A1A',
+  grey:  '#A0A0A0',
 };
 
 const MAX_FILE_MB = 20;
@@ -89,6 +131,7 @@ export default function SellYourArt() {
 
   // Step 2 — canvas editor
   const [selectedProduct, setSelectedProduct] = useState('UT27');
+  const [selectedColor, setSelectedColor] = useState('white');
   const [exporting, setExporting] = useState(false);
   const [mockupImageUrl, setMockupImageUrl] = useState('');
   const [placement, setPlacement] = useState(null);
@@ -162,6 +205,8 @@ export default function SellYourArt() {
       }
 
       const product = PRODUCTS[selectedProduct];
+      // Pick template based on selected color, fallback to first available
+      const templateUrl = product.colors[selectedColor] || Object.values(product.colors)[0];
 
       const canvas = new fabric.Canvas(canvasElRef.current, {
         width: CANVAS_W,
@@ -174,13 +219,14 @@ export default function SellYourArt() {
 
       // Load product template as background (fetch → dataURL to avoid canvas taint)
       try {
-        const bgDataUrl = await toDataURL(product.template);
+        const bgDataUrl = await toDataURL(templateUrl);
         if (cancelled) return;
         const bgImg = await fabric.FabricImage.fromURL(bgDataUrl);
         if (cancelled) return;
+        // Images are 700×1000, canvas is 420×600 → exact 0.6× fill
         const scaleX = CANVAS_W / bgImg.width;
         const scaleY = CANVAS_H / bgImg.height;
-        const bgScale = Math.max(scaleX, scaleY);
+        const bgScale = Math.min(scaleX, scaleY); // contain — show full garment
         bgImg.set({
           originX: 'center', originY: 'center',
           left: CANVAS_W / 2, top: CANVAS_H / 2,
@@ -255,7 +301,7 @@ export default function SellYourArt() {
         designObjRef.current = null;
       }
     };
-  }, [step, selectedProduct, imagePreview]);
+  }, [step, selectedProduct, selectedColor, imagePreview]);
 
   // ── Export mockup ─────────────────────────────────────────────────────────
 
@@ -499,24 +545,19 @@ export default function SellYourArt() {
               Drag, resize, and rotate your design. Keep it inside the <span style={{ color: AS }}>dashed print area</span>.
             </p>
 
-            {/* Product tab selector */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            {/* Product tabs + color selector row */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
               {Object.entries(PRODUCTS).map(([code, p]) => (
                 <button
                   key={code}
-                  onClick={() => setSelectedProduct(code)}
+                  onClick={() => { setSelectedProduct(code); setSelectedColor('white'); }}
                   style={{
-                    ...mono,
-                    fontSize: '11px',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    padding: '8px 18px',
-                    borderRadius: '999px',
+                    ...mono, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase',
+                    padding: '7px 14px', borderRadius: '999px',
                     border: `1px solid ${selectedProduct === code ? AS : BS}`,
                     background: selectedProduct === code ? 'rgba(200,255,0,0.1)' : 'transparent',
                     color: selectedProduct === code ? AS : TS,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
+                    cursor: 'pointer', transition: 'all 0.15s',
                   }}
                 >
                   {p.label}
@@ -524,44 +565,65 @@ export default function SellYourArt() {
               ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: `${CANVAS_W}px 1fr`, gap: '40px', alignItems: 'start' }}>
+            {/* Color swatches */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', alignItems: 'center' }}>
+              <span style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Colour:</span>
+              {Object.keys(PRODUCTS[selectedProduct].colors).map(color => (
+                <button
+                  key={color}
+                  title={color.charAt(0).toUpperCase() + color.slice(1)}
+                  onClick={() => setSelectedColor(color)}
+                  style={{
+                    width: '22px', height: '22px', borderRadius: '50%',
+                    background: COLOR_SWATCHES[color] || '#888',
+                    border: selectedColor === color ? `2px solid ${AS}` : `2px solid ${BS}`,
+                    cursor: 'pointer', outline: 'none', transition: 'border 0.15s',
+                    boxShadow: selectedColor === color ? `0 0 0 2px #0A0A0B, 0 0 0 4px ${AS}` : 'none',
+                  }}
+                />
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: `${CANVAS_W}px 1fr`, gap: '32px', alignItems: 'start' }}>
               {/* Canvas */}
               <div>
-                <div style={{ border: `1px solid ${BS}`, borderRadius: '12px', overflow: 'hidden', display: 'inline-block', lineHeight: 0 }}>
+                <div style={{ border: `1px solid ${BS}`, borderRadius: '12px', overflow: 'hidden', display: 'inline-block', lineHeight: 0, background: '#fff' }}>
                   <canvas ref={canvasElRef} />
                 </div>
                 <p style={{ ...mono, fontSize: '10px', color: TT, marginTop: '8px', textAlign: 'center' }}>
-                  Scroll to zoom · Drag to reposition · Corner handles to resize/rotate
+                  Drag · Scale (corner handles) · Rotate (top handle)
                 </p>
               </div>
 
               {/* Sidebar */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: '8px' }}>
-                <div style={{ background: BG2, borderRadius: '12px', padding: '20px', border: `1px solid ${BS}` }}>
-                  <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '14px' }}>Product</p>
-                  <p style={{ ...body, fontWeight: 600, fontSize: '15px', color: TP, margin: '0 0 4px' }}>{PRODUCTS[selectedProduct].name}</p>
-                  <p style={{ ...mono, fontSize: '11px', color: TT, margin: '0 0 12px' }}>Code: {selectedProduct}</p>
-                  <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 6px' }}>Available sizes</p>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '4px' }}>
+                <div style={{ background: BG2, borderRadius: '12px', padding: '18px', border: `1px solid ${BS}` }}>
+                  <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '12px' }}>Selected product</p>
+                  <p style={{ ...body, fontWeight: 600, fontSize: '14px', color: TP, margin: '0 0 2px' }}>{PRODUCTS[selectedProduct].name}</p>
+                  <p style={{ ...mono, fontSize: '11px', color: TT, margin: '0 0 12px' }}>
+                    {selectedProduct} · {selectedColor.charAt(0).toUpperCase() + selectedColor.slice(1)}
+                  </p>
+                  <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 6px' }}>Sizes</p>
+                  <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                     {PRODUCTS[selectedProduct].sizes.map(s => (
-                      <span key={s} style={{ ...mono, fontSize: '11px', color: TS, background: BG3, border: `1px solid ${BS}`, borderRadius: '4px', padding: '3px 8px' }}>{s}</span>
+                      <span key={s} style={{ ...mono, fontSize: '10px', color: TS, background: BG3, border: `1px solid ${BS}`, borderRadius: '4px', padding: '2px 7px' }}>{s}</span>
                     ))}
                   </div>
                 </div>
 
-                <div style={{ background: 'rgba(200,255,0,0.04)', border: `1px solid rgba(200,255,0,0.15)`, borderRadius: '12px', padding: '16px 20px' }}>
-                  <p style={{ ...mono, fontSize: '10px', color: AS, letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 8px' }}>Print method</p>
-                  <p style={{ ...body, fontSize: '14px', color: TP, margin: 0 }}>DTF (Direct to Film) via Qikink — vibrant colours, works on all fabric types, no minimum order.</p>
+                <div style={{ background: 'rgba(200,255,0,0.04)', border: `1px solid rgba(200,255,0,0.15)`, borderRadius: '12px', padding: '14px 18px' }}>
+                  <p style={{ ...mono, fontSize: '10px', color: AS, letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 6px' }}>Print method</p>
+                  <p style={{ ...body, fontSize: '13px', color: TP, margin: 0, lineHeight: 1.5 }}>DTF (Direct to Film) via Qikink — vibrant colours, all fabric types, no minimums.</p>
                 </div>
 
-                <div style={{ background: BG2, borderRadius: '12px', padding: '20px', border: `1px solid ${BS}` }}>
-                  <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '12px' }}>Tips</p>
+                <div style={{ background: BG2, borderRadius: '12px', padding: '18px', border: `1px solid ${BS}` }}>
+                  <p style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '10px' }}>Tips</p>
                   {[
-                    'Stay within the dashed yellow-green boundary',
-                    'Use a PNG with transparent background for best results',
-                    'Rotate using the corner handle',
+                    'Keep design inside the dashed boundary',
+                    'PNG with transparent bg gives cleanest results',
+                    'Use corner handles to scale; top circle to rotate',
                   ].map((tip, i) => (
-                    <p key={i} style={{ ...body, fontSize: '13px', color: TS, margin: '0 0 8px', paddingLeft: '12px', borderLeft: `2px solid ${BS}` }}>{tip}</p>
+                    <p key={i} style={{ ...body, fontSize: '12px', color: TS, margin: '0 0 8px', paddingLeft: '10px', borderLeft: `2px solid ${BS}`, lineHeight: 1.5 }}>{tip}</p>
                   ))}
                 </div>
 
@@ -574,10 +636,14 @@ export default function SellYourArt() {
                 <button
                   onClick={handleExportAndProceed}
                   disabled={exporting}
-                  style={{ ...body, padding: '15px 40px', borderRadius: '999px', background: exporting ? BG3 : AS, border: 'none', color: exporting ? TS : BG, fontSize: '15px', fontWeight: 700, cursor: exporting ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}
+                  style={{ ...body, padding: '14px 36px', borderRadius: '999px', background: exporting ? BG3 : AS, border: 'none', color: exporting ? TS : BG, fontSize: '14px', fontWeight: 700, cursor: exporting ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}
                 >
                   {exporting ? 'Generating mockup…' : 'Looks Good — Add Details →'}
                 </button>
+
+                <p style={{ ...mono, fontSize: '9px', color: TT, margin: 0, lineHeight: 1.5 }}>
+                  Product previews are temporary placeholders (Printful). Official Qikink templates will replace these once available.
+                </p>
               </div>
             </div>
           </div>
