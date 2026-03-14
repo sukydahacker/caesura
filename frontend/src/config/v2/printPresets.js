@@ -27,7 +27,7 @@ export const PRINT_PRESETS = {
     basePrice: 799,
     availableColors: ['white', 'black', 'yellow', 'grey'],
     mockupImages: {
-      white: 'https://d91ztqmtx7u1k.cloudfront.net/ClientContent/Images/ExtraLarge/t-shirt-cotton-blank-t-shirt--20240515090954038.jpg',
+      white: '/mockups/tshirt-whitefront.jpg',
       black: '/mockups/tshirt-black.jpg',
       yellow: '/mockups/tshirt-yellow.jpg',
       grey: '/mockups/tshirt-grey.jpg',
