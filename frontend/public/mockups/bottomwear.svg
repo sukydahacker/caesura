@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <rect width="400" height="400" fill="#F5F0EB"/>
+  <g transform="translate(120, 60)">
+    <path d="M30 0 H130 L140 20 L135 280 L95 280 L85 140 L75 280 L25 280 L20 20 Z" fill="#E8E3DE" stroke="#C5C0BB" stroke-width="2"/>
+    <path d="M30 0 H130 L140 20 H20 Z" fill="#DDD8D3" stroke="#C5C0BB" stroke-width="2"/>
+    <line x1="80" y1="20" x2="80" y2="140" stroke="#C5C0BB" stroke-width="1.5" stroke-dasharray="4 4"/>
+  </g>
+</svg>

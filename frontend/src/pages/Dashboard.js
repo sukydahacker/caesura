@@ -301,7 +301,7 @@ export default function Dashboard() {
             )}
             <motion.button
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={() => setUploadDialogOpen(true)}
+              onClick={() => navigate('/sell')}
               disabled={user?.creator_status !== 'approved' && user?.role !== 'admin'}
               style={{ ...display, fontWeight: 700, fontSize: '13px', color: '#0A0A0B', background: AS, border: 'none', padding: '12px 24px', cursor: 'pointer', letterSpacing: '0.05em', textTransform: 'uppercase', opacity: (user?.creator_status !== 'approved' && user?.role !== 'admin') ? 0.4 : 1 }}
             >
@@ -375,7 +375,7 @@ export default function Dashboard() {
             <p style={{ ...body, fontSize: '15px', color: TS, marginBottom: '32px' }}>Upload your first design to get started.</p>
             <motion.button
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={() => setUploadDialogOpen(true)}
+              onClick={() => navigate('/sell')}
               style={{ ...display, fontWeight: 700, fontSize: '13px', color: '#0A0A0B', background: AS, border: 'none', padding: '14px 32px', cursor: 'pointer', letterSpacing: '0.05em', textTransform: 'uppercase' }}
             >
               + Upload Your First Design
