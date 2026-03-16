@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Trash2, Package, DollarSign, TrendingUp, AlertCircle,
-  CheckCircle, Clock, Eye, MoreHorizontal, ShoppingBag
+  CheckCircle, Clock, Eye, MoreHorizontal, ShoppingBag, LogOut
 } from 'lucide-react';
 import {
   uploadDesignImage, createDesign, getDesigns, deleteDesign,
-  getMyProducts, getCreatorEarnings, getMe
+  getMyProducts, getCreatorEarnings, getMe, logout
 } from '@/lib/api';
 import { toast } from 'sonner';
 import DesignUploadFlow from '@/components/DesignUploadFlow';
@@ -257,6 +257,10 @@ export default function Dashboard() {
     try { await deleteDesign(designId); toast.success('Deleted'); fetchDesigns(); } catch { toast.error('Failed'); }
   };
   const handleViewProducts = (design) => { setSelectedDesign(design); setProductsViewOpen(true); };
+  const handleLogout = async () => {
+    try { await logout(); toast.success('Logged out'); navigate('/'); }
+    catch { toast.error('Logout failed'); }
+  };
   const handleUploadComplete = async (designData) => {
     try {
       const uploadResponse = await uploadDesignImage(designData.file);
@@ -302,11 +306,18 @@ export default function Dashboard() {
             <motion.button
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               onClick={() => navigate('/sell')}
-              disabled={user?.creator_status !== 'approved' && user?.role !== 'admin'}
-              style={{ ...display, fontWeight: 700, fontSize: '13px', color: '#0A0A0B', background: AS, border: 'none', padding: '12px 24px', cursor: 'pointer', letterSpacing: '0.05em', textTransform: 'uppercase', opacity: (user?.creator_status !== 'approved' && user?.role !== 'admin') ? 0.4 : 1 }}
+              style={{ ...display, fontWeight: 700, fontSize: '13px', color: '#0A0A0B', background: AS, border: 'none', padding: '12px 24px', cursor: 'pointer', letterSpacing: '0.05em', textTransform: 'uppercase' }}
             >
               + Upload Design
             </motion.button>
+            <button
+              onClick={handleLogout}
+              style={{ ...body, fontSize: '12px', color: TS, background: 'none', border: `1px solid ${BS}`, padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.08em', textTransform: 'uppercase', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = AP; e.currentTarget.style.color = AP; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = BS; e.currentTarget.style.color = TS; }}
+            >
+              <LogOut size={14} /> Log Out
+            </button>
           </div>
         </div>
 

@@ -1302,6 +1302,11 @@ async def update_product_status(product_id: str, request: Request, session_token
         "new_status": new_status
     }
 
+@api_router.get("/catalog/products")
+async def get_product_catalog():
+    """Return the full Qikink product catalog (categories, colors, sizes, base prices)."""
+    return qikink_service.get_product_catalog()
+
 # Include router
 app.include_router(api_router)
 
@@ -1320,11 +1325,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-@api_router.get("/catalog/products")
-async def get_product_catalog():
-    """Return the full Qikink product catalog (categories, colors, sizes, base prices)."""
-    return qikink_service.get_product_catalog()
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
