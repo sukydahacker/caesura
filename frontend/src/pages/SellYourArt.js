@@ -20,6 +20,65 @@ const mono    = { fontFamily: '"JetBrains Mono", monospace' };
 const CANVAS_W = 420;
 const CANVAS_H = 600;
 
+// ── Qikink color hex map ─────────────────────────────────────────────────────
+// Every color name that appears in the catalog mapped to its exact hex.
+// White / off-white / light variants use the white template as-is (no tint).
+// Black / charcoal variants use the black template directly.
+// Grey variants use the grey template directly.
+// All other colors use the white template + multiply-blend tint at runtime.
+const COLOR_HEX = {
+  'white':                '#FFFFFF',
+  'off white':            '#F5F0EB',
+  'white black':          '#FFFFFF',
+  'white lavender':       '#F5F0FF',
+  'black':                '#1A1A1A',
+  'black melange':        '#252525',
+  'black charcoal melange':'#2D2D2D',
+  'black white':          '#1A1A1A',
+  'brown black':          '#2C1810',
+  'green black':          '#1B3020',
+  'charcoal melange':     '#4A4A4A',
+  'grey':                 '#9E9E9E',
+  'grey melange':         '#A8A8A8',
+  'steel grey':           '#71797E',
+  'silver':               '#C0C0C0',
+  'mushroom':             '#C0A898',
+  'navy blue':            '#1C2B4A',
+  'navy melange':         '#3A4B5E',
+  'royal blue':           '#2845B4',
+  'petrol blue':          '#005F73',
+  'orchid blue':          '#7B68EE',
+  'skyblue':              '#5BB8F5',
+  'baby blue':            '#B0D8F0',
+  'red':                  '#C0392B',
+  'brick red':            '#8B2500',
+  'maroon':               '#7B1818',
+  'orange':               '#F37021',
+  'coral':                '#FF6B5B',
+  'flamingo':             '#FC8EAC',
+  'pink':                 '#FF8FA3',
+  'baby pink':            '#F9C0CB',
+  'light baby pink':      '#FFCDD2',
+  'peach':                '#FFCBA4',
+  'purple':               '#6A1B9A',
+  'purple melange':       '#7E57C2',
+  'lavender':             '#B57EDC',
+  'bottle green':         '#1B4332',
+  'flag green':           '#138808',
+  'olive green':          '#708238',
+  'jade':                 '#00A36C',
+  'mint':                 '#98D8C8',
+  'yellow':               '#F9CB1B',
+  'new yellow':           '#F9CB1B',
+  'mustard yellow':       '#E6AC20',
+  'golden yellow':        '#FFC107',
+  'khaki':                '#C3B091',
+  'beige':                '#F5E6C8',
+  'coffee brown':         '#6F4E37',
+  'copper':               '#B87333',
+  'na':                   '#CCCCCC',
+};
+
 // ── Product collection groupings ────────────────────────────────────────────────
 const COLLECTIONS = [
   { name: 'T-Shirts', image: '/mockups/T-shirts.PNG.webp', description: 'Crew necks, oversized, acid wash & more', keywords: ['T-Shirt', 'Tee', 'Baby Tee'] },
@@ -33,7 +92,7 @@ const COLLECTIONS = [
   { name: 'Pet Products', image: '/mockups/Pet-Products.PNG-2.webp', description: 'Dog tees & pet tags', keywords: ['Dog', 'Pet'] },
 ];
 
-// Product images — exact 24 T-shirt products
+// Product images — specific product mockups (keyed by expanded category name)
 const PRODUCT_IMAGES = {
   'Male Classic Crew T-Shirt': '/mockups/1757067029Classiccrewtee1.webp',
   'Male Standard Crew T-Shirt | US21': '/mockups/1740544626roundnecktee.jpg',
@@ -51,7 +110,7 @@ const PRODUCT_IMAGES = {
   'Female Crop Tank | FC40': '/mockups/1740553628croptank.jpg',
   'Boy Classic Crew T-Shirt': '/mockups/1757131987boyroundneckjpg1.webp',
   'Female T-Shirt Dress | FC43': '/mockups/1740552527TshirtDress.jpg',
-  'Womens Tank Top | FT37': '/mockups/1740553193tanktop.jpg',
+  'Female Womens Tank Top | FT37': '/mockups/1740553193tanktop.jpg',
   'Male V Neck T-Shirt | UV34': '/mockups/1740550339Vneck.jpg',
   'Male Polo | MP25': '/mockups/1740545706Polo.jpg',
   'Male Sleeveless T-Shirt | MS36': '/mockups/1757131410Sleeveless1.webp',
@@ -60,6 +119,28 @@ const PRODUCT_IMAGES = {
   'Female Crop Top | FC39': '/mockups/1740553628croptank.jpg',
   'Girl Classic Crew T-Shirt': '/mockups/1757132060Girlsroundneck1.webp',
 };
+
+// Fallback images by keyword — covers all product types not in PRODUCT_IMAGES above
+function getProductImage(category) {
+  if (PRODUCT_IMAGES[category]) return PRODUCT_IMAGES[category];
+  const lower = category.toLowerCase();
+  if (/hoodie/.test(lower))                                                         return '/mockups/hoodie-white.jpg';
+  if (/sweatshirt|pullover/.test(lower))                                            return '/mockups/sweatshirt-white.jpg';
+  if (/varsity|bomber|jacket/.test(lower))                                          return '/mockups/wearable-art-model.jpg';
+  if (/jogger|sweatpant|short/.test(lower))                                         return '/mockups/joggers-model.jpg';
+  if (/cap|hat|snapback|trucker|bucket|balaclava/.test(lower))                      return '/mockups/cap-model.jpg';
+  if (/mug|tumbler|sipper|bottle|enamel/.test(lower))                               return '/mockups/mug-product.jpg';
+  if (/tote|bag|drawstring/.test(lower))                                            return '/mockups/tote-model.jpg';
+  if (/poster|canvas|tapestry|coaster|cushion|pillow|puzzle|mouse|placemat|tablerunner|acrylic|metal|ornament|magnet|apron|napkin|gaming/.test(lower)) return '/mockups/home-living-model.jpg';
+  if (/phone|mobile|case|grip/.test(lower))                                         return '/mockups/phone-case-model.jpg';
+  if (/notebook|planner|pen|bookmark|sticker|card|notepad|sketchbook|postcard|tattoo|badge|keychain|patch|luggage|tag/.test(lower)) return '/mockups/stationery-model.jpg';
+  if (/romper/.test(lower) || /^(kids|boy|girl)/.test(lower))                       return '/mockups/kids-model.jpg';
+  if (/dog|pet/.test(lower))                                                        return '/mockups/pet-wear-model.jpg';
+  if (/aop/.test(lower))                                                            return '/mockups/aop-model.jpg';
+  if (/kaftan|skirt|scrunch|bandana/.test(lower))                                   return '/mockups/womens-model.jpg';
+  if (/t-shirt|tee|tank|sleeve|polo|raglan|supima|shirt|dress/.test(lower))        return '/mockups/oversized-tee-white.jpg';
+  return null;
+}
 
 // Categories to exclude from T-Shirts (matched by substring but don't belong)
 const TSHIRT_EXCLUDES = ['steel water', 'dog t-shirt', 'aop', 'bike rider'];
@@ -76,15 +157,34 @@ function categorizeProduct(categoryName) {
   return null;
 }
 
-// Mockup templates for canvas editor
-const PRODUCT_TEMPLATES = {
-  'Terry Oversized Tee | UT27': { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } },
-  'Hoodie': { template: '/mockups/hoodie-white.jpg', printArea: { x: 100, y: 155, w: 220, h: 200 } },
-  'Oversized Classic T-Shirt | UC22': { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } },
-  'Classic Crew T-Shirt': { template: '/mockups/crew-tee-white.jpg', printArea: { x: 94, y: 128, w: 232, h: 238 } },
-  'Sweatshirt | UH26': { template: '/mockups/sweatshirt-white.jpg', printArea: { x: 97, y: 140, w: 226, h: 230 } },
-};
+// Canvas editor templates — keyed by keyword pattern, checked in order
+const KEYWORD_TEMPLATES = [
+  { test: /hoodie/,                  template: '/mockups/hoodie-white.jpg',      printArea: { x: 100, y: 155, w: 220, h: 200 } },
+  { test: /sweatshirt|pullover/,     template: '/mockups/sweatshirt-white.jpg',  printArea: { x: 97,  y: 140, w: 226, h: 230 } },
+  { test: /classic crew|standard crew|basic t-shirt|supima|cotton stretch|cotton stretch/, template: '/mockups/crew-tee-white.jpg', printArea: { x: 94, y: 128, w: 232, h: 238 } },
+];
 const DEFAULT_TEMPLATE = { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } };
+
+// Specific per-SKU overrides (still useful for calibrated print areas)
+const PRODUCT_TEMPLATES = {
+  'Unisex Terry Oversized Tee | UT27':          { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } },
+  'Unisex Oversized Classic T-Shirt | UC22':    { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } },
+  'Unisex Oversized Standard T-Shirt | US22':   { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } },
+  'Male Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
+  'Female Classic Crew T-Shirt':                { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
+  'Boy Classic Crew T-Shirt':                   { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
+  'Girl Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
+  'Male Standard Crew T-Shirt | US21':          { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
+  'Unisex Sweatshirt | UH26':                   { template: '/mockups/sweatshirt-white.jpg',    printArea: { x: 97, y: 140, w: 226, h: 230 } },
+  'Unisex Oversized Sweatshirt | UH35':         { template: '/mockups/sweatshirt-white.jpg',    printArea: { x: 97, y: 140, w: 226, h: 230 } },
+  'Unisex Hoodie':                              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
+  'Unisex Zip Hoodie | UH38':                   { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
+  'Unisex Oversized Hoodie | UH32':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
+  'Unisex Pullover Hoodie | UH83':              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
+  'Unisex Acid Wash Hoodie | UH62':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
+  'Female Cropped Hoodie | FC32':               { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
+  'Kids Hoodie':                                { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
+};
 
 const MAX_FILE_MB = 20;
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
@@ -190,8 +290,18 @@ export default function SellYourArt() {
   // Sort: Male/Unisex first, then Female/Womens, then Boy/Girl
   Object.values(catalogByCollection).forEach(arr => arr.sort((a, b) => getGenderOrder(a.category) - getGenderOrder(b.category)));
 
+  const normalizeSearch = (s) => s.toLowerCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
   const filteredCatalog = searchQuery.trim()
-    ? catalog.filter(c => c.category.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? (() => {
+        const q = normalizeSearch(searchQuery);
+        // Also try alternative forms: "t-shirt" ↔ "t shirt", strip SKU codes
+        const qHyphen = q.replace(/\s/g, '-');
+        return catalog.filter(c => {
+          const cat = normalizeSearch(c.category);
+          const catNoSku = normalizeSearch(c.category.split('|')[0]);
+          return cat.includes(q) || catNoSku.includes(q) || cat.includes(qHyphen);
+        });
+      })()
     : [];
 
   // ── File handling ────────────────────────────────────────────────────────────
@@ -221,9 +331,41 @@ export default function SellYourArt() {
 
   // ── Canvas init (runs when imagePreview changes in step 2) ──────────────────
 
+  // Map selected color → template color suffix (white/black/grey)
+  const getTemplateColorSuffix = () => {
+    const l = (selectedColor || '').toLowerCase();
+    if (l.includes('black') || l.includes('charcoal')) return 'black';
+    if (l.includes('grey') || l.includes('gray') || l.includes('melange')) return 'grey';
+    return 'white';
+  };
+
+  // Swap template file to the color variant if one exists on disk
+  const colorizeTemplate = (tmpl) => {
+    const colorSuffix = getTemplateColorSuffix();
+    if (colorSuffix === 'white') return tmpl;
+    // Replace "-white" with the color suffix, or append it
+    const colored = tmpl.template.replace(/-white\./, `-${colorSuffix}.`);
+    // Only use the colored version if it's a known available file
+    const available = [
+      '/mockups/hoodie-black.jpg', '/mockups/hoodie-grey.jpg',
+      '/mockups/sweatshirt-black.jpg', '/mockups/sweatshirt-grey.jpg',
+      '/mockups/crew-tee-black.jpg', '/mockups/crew-tee-grey.jpg',
+      '/mockups/oversized-tee-black.jpg',
+    ];
+    return { ...tmpl, template: available.includes(colored) ? colored : tmpl.template };
+  };
+
   const getProductTemplate = () => {
-    if (!selectedCategory) return DEFAULT_TEMPLATE;
-    return PRODUCT_TEMPLATES[selectedCategory.category] || DEFAULT_TEMPLATE;
+    if (!selectedCategory) return colorizeTemplate(DEFAULT_TEMPLATE);
+    const cat = selectedCategory.category;
+    // 1. Exact match
+    if (PRODUCT_TEMPLATES[cat]) return colorizeTemplate(PRODUCT_TEMPLATES[cat]);
+    // 2. Keyword match
+    const lower = cat.toLowerCase();
+    const kwMatch = KEYWORD_TEMPLATES.find(k => k.test.test(lower));
+    if (kwMatch) return colorizeTemplate({ template: kwMatch.template, printArea: kwMatch.printArea });
+    // 3. Fallback
+    return colorizeTemplate(DEFAULT_TEMPLATE);
   };
 
   useEffect(() => {
@@ -241,7 +383,7 @@ export default function SellYourArt() {
       const tmpl = getProductTemplate();
 
       const canvas = new fabric.Canvas(canvasElRef.current, {
-        width: CANVAS_W, height: CANVAS_H, backgroundColor: '#111113', selection: false,
+        width: CANVAS_W, height: CANVAS_H, backgroundColor: '#F8F8F6', selection: false,
       });
       if (cancelled) { canvas.dispose(); return; }
       fabricRef.current = canvas;
@@ -251,16 +393,33 @@ export default function SellYourArt() {
         if (cancelled) return;
         const bgImg = await fabric.FabricImage.fromURL(bgDataUrl);
         if (cancelled) return;
-        const scaleX = CANVAS_W / bgImg.width;
-        const scaleY = CANVAS_H / bgImg.height;
-        const bgScale = Math.min(scaleX, scaleY);
+        // Scale to fill the full canvas (cover, not contain)
+        const bgScale = Math.max(CANVAS_W / bgImg.width, CANVAS_H / bgImg.height);
         bgImg.set({
           originX: 'center', originY: 'center',
           left: CANVAS_W / 2, top: CANVAS_H / 2,
           scaleX: bgScale, scaleY: bgScale,
-          selectable: false, evented: false,
+          selectable: false, evented: false, name: 'garment',
         });
-        canvas.backgroundImage = bgImg;
+        // Add garment as a regular object (not backgroundImage) so multiply tinting works
+        canvas.add(bgImg);
+
+        // Color tinting: for colors without their own template file,
+        // overlay a multiply-blend rect on the white garment.
+        const colorKey = (selectedColor || '').toLowerCase().trim();
+        const colorSuffix = getTemplateColorSuffix();
+        const tintHex = COLOR_HEX[colorKey];
+        const isLightBase = colorSuffix === 'white'; // white template used as base
+        const needsTint = isLightBase && tintHex && colorKey !== 'white' && colorKey !== 'off white'
+          && colorKey !== 'white black' && colorKey !== 'white lavender' && colorKey !== '' && colorKey !== 'na';
+        if (needsTint) {
+          const tintRect = new fabric.Rect({
+            left: 0, top: 0, width: CANVAS_W, height: CANVAS_H,
+            fill: tintHex, globalCompositeOperation: 'multiply',
+            selectable: false, evented: false, name: 'tint',
+          });
+          canvas.add(tintRect);
+        }
         canvas.renderAll();
       } catch (_) {}
 
@@ -301,7 +460,7 @@ export default function SellYourArt() {
       cancelled = true;
       if (fabricRef.current) { fabricRef.current.dispose(); fabricRef.current = null; designObjRef.current = null; }
     };
-  }, [step, imagePreview, selectedCategory]);
+  }, [step, imagePreview, selectedCategory, selectedColor]);
 
   // ── Submit (upload image + export mockup + create design) ───────────────────
 
@@ -626,18 +785,30 @@ export default function SellYourArt() {
                     Colour — {selectedColor || 'select'}
                   </label>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {selectedCategory.colors.map(color => (
-                      <button key={color} onClick={() => setSelectedColor(color)} title={color}
-                        style={{
-                          padding: '5px 12px', borderRadius: '999px', fontSize: '11px', cursor: 'pointer',
-                          ...mono, textTransform: 'capitalize', transition: 'all 0.15s',
-                          background: selectedColor === color ? 'rgba(200,255,0,0.1)' : 'transparent',
-                          border: `1px solid ${selectedColor === color ? AS : BS}`,
-                          color: selectedColor === color ? AS : TS,
-                        }}>
-                        {color}
-                      </button>
-                    ))}
+                    {selectedCategory.colors.map(color => {
+                      const hex = COLOR_HEX[color.toLowerCase().trim()] || '#999';
+                      const isSelected = selectedColor === color;
+                      return (
+                        <button key={color} onClick={() => setSelectedColor(color)} title={color}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '6px',
+                            padding: '5px 12px', borderRadius: '999px', fontSize: '11px', cursor: 'pointer',
+                            ...mono, textTransform: 'capitalize', transition: 'all 0.15s',
+                            background: isSelected ? 'rgba(200,255,0,0.1)' : 'transparent',
+                            border: `1px solid ${isSelected ? AS : BS}`,
+                            color: isSelected ? AS : TS,
+                          }}>
+                          <span style={{
+                            width: '10px', height: '10px', borderRadius: '50%',
+                            background: hex,
+                            border: hex === '#FFFFFF' || hex === '#F5F0EB' || hex === '#F5F0FF' || hex === '#F5F4FF'
+                              ? '1px solid rgba(255,255,255,0.3)' : 'none',
+                            flexShrink: 0,
+                          }} />
+                          {color}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -757,8 +928,8 @@ function ProductCard({ item, selected, onSelect }) {
         border: selected ? `2px solid ${AS}` : `1px solid ${BS}`,
         position: 'relative',
       }}>
-        {PRODUCT_IMAGES[item.category] ? (
-          <img src={PRODUCT_IMAGES[item.category]} alt={item.category}
+        {getProductImage(item.category) ? (
+          <img src={getProductImage(item.category)} alt={item.category}
             style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center center' }} />
         ) : (
           <div style={{
@@ -774,14 +945,18 @@ function ProductCard({ item, selected, onSelect }) {
         {/* Color dots preview */}
         {(item.colors?.length || 0) > 0 && (
           <div style={{ position: 'absolute', bottom: '10px', left: '10px', display: 'flex', gap: '3px' }}>
-            {item.colors.slice(0, 5).map((c, i) => (
-              <div key={i} style={{
-                width: '12px', height: '12px', borderRadius: '50%',
-                background: c.toLowerCase() === 'white' ? '#fff' : c.toLowerCase() === 'black' ? '#222' : c.toLowerCase() === 'navy' ? '#1a237e' : c.toLowerCase() === 'red' ? '#d32f2f' : c.toLowerCase() === 'grey' || c.toLowerCase() === 'melange grey' ? '#9e9e9e' : c.toLowerCase() === 'maroon' ? '#7b1fa2' : c.toLowerCase().includes('blue') ? '#1976d2' : c.toLowerCase().includes('green') ? '#388e3c' : c.toLowerCase().includes('yellow') ? '#fbc02d' : c.toLowerCase().includes('pink') ? '#e91e63' : '#999',
-                border: '1.5px solid rgba(255,255,255,0.9)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-              }} />
-            ))}
+            {item.colors.slice(0, 5).map((c, i) => {
+                const hex = COLOR_HEX[c.toLowerCase().trim()] || '#999999';
+                const isLight = hex === '#FFFFFF' || hex === '#F5F0EB' || hex === '#F5F0FF' || hex === '#FFCDD2' || hex === '#F8F8F6';
+                return (
+                  <div key={i} title={c} style={{
+                    width: '12px', height: '12px', borderRadius: '50%',
+                    background: hex,
+                    border: isLight ? '1.5px solid rgba(0,0,0,0.2)' : '1.5px solid rgba(255,255,255,0.9)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  }} />
+                );
+              })}
             {item.colors.length > 5 && (
               <div style={{
                 width: '12px', height: '12px', borderRadius: '50%',
