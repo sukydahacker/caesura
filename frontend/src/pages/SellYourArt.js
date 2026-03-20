@@ -157,6 +157,75 @@ function categorizeProduct(categoryName) {
   return null;
 }
 
+// ── PSD mockup map: SKU → { colorKey: '/mockups/SKU/color.png' } ─────────────
+// Extracted from official Qikink PSD files. Each color variant is a real PNG.
+const PSD_MOCKUPS = {
+  'UT27': { base_white:'/mockups/UT27/base_white.png', jade:'/mockups/UT27/jade.png', flamingo:'/mockups/UT27/flamingo.png', baby_blue:'/mockups/UT27/baby_blue.png', lavender:'/mockups/UT27/lavender.png', maroon:'/mockups/UT27/maroon.png', navy_blue:'/mockups/UT27/navy_blue.png', black:'/mockups/UT27/black.png', white:'/mockups/UT27/white_full_turn_off_texture.png' },
+  'UH24': { base_white:'/mockups/UH24/base_white.png', grey:'/mockups/UH24/grey_full.png', baby_blue:'/mockups/UH24/baby_blue.png', mint:'/mockups/UH24/mint.png', coral:'/mockups/UH24/coral.png', lavender:'/mockups/UH24/lavender.png', light_baby_pink:'/mockups/UH24/light_baby_pink.png', mustard_yellow:'/mockups/UH24/mustard_yellow.png', olive_green:'/mockups/UH24/olive_green.png', maroon:'/mockups/UH24/maroon.png', red:'/mockups/UH24/red.png', royal_blue:'/mockups/UH24/royal_blue.png', bottle_green:'/mockups/UH24/bottle_green.png', navy_blue:'/mockups/UH24/navy_blue.png', black:'/mockups/UH24/black.png', white:'/mockups/UH24/white_fullturn_off_texture.png' },
+  'UH32': { navy:'/mockups/UH32/navy.png', navy_blue:'/mockups/UH32/navy.png', green:'/mockups/UH32/green.png', maroon:'/mockups/UH32/maroon.png', light_pink:'/mockups/UH32/light_pink.png', light_baby_pink:'/mockups/UH32/light_pink.png', lavender:'/mockups/UH32/lavender.png', black:'/mockups/UH32/black.png', white:'/mockups/UH32/white.png' },
+  'UH26': { light_baby_pink:'/mockups/UH26/light_baby_pink.png', navy_blue:'/mockups/UH26/navy_blue.png', black:'/mockups/UH26/black.png', olive_green:'/mockups/UH26/olive_green.png', lavender:'/mockups/UH26/lavender.png', coral:'/mockups/UH26/coral.png', white:'/mockups/UH26/white.png', maroon:'/mockups/UH26/maroon.png', baby_blue:'/mockups/UH26/baby_blue.png', mint:'/mockups/UH26/mint.png', mustard_yellow:'/mockups/UH26/mustard_yelllow.png', grey_melange:'/mockups/UH26/grey_melange.png', grey:'/mockups/UH26/grey_melange.png' },
+  'UH35': { navy:'/mockups/UH35/navy.png', navy_blue:'/mockups/UH35/navy.png', green:'/mockups/UH35/green.png', maroon:'/mockups/UH35/maroon.png', light_pink:'/mockups/UH35/light_pink.png', light_baby_pink:'/mockups/UH35/light_pink.png', lavender:'/mockups/UH35/lavender.png', black:'/mockups/UH35/black.png', white:'/mockups/UH35/white.png' },
+  'UC22': { base_white:'/mockups/UC22/base_white.png', white:'/mockups/UC22/white_full.png', grey:'/mockups/UC22/grey_full.png', off_white:'/mockups/UC22/offwhite_full.png', baby_blue:'/mockups/UC22/baby_blue.png', mint:'/mockups/UC22/mint.png', coral:'/mockups/UC22/coral.png', lavender:'/mockups/UC22/lavender.png', light_baby_pink:'/mockups/UC22/light_baby_pink.png', mustard_yellow:'/mockups/UC22/mustard_yellow_copy.png', olive_green:'/mockups/UC22/olive_green.png', petrol_blue:'/mockups/UC22/petrol_blue.png', golden_yellow:'/mockups/UC22/golden_yellow.png', purple:'/mockups/UC22/purple.png', maroon:'/mockups/UC22/maroon.png', red:'/mockups/UC22/red.png', royal_blue:'/mockups/UC22/royal_blue.png', bottle_green:'/mockups/UC22/bottle_green.png', navy_blue:'/mockups/UC22/navy_blue.png', black:'/mockups/UC22/black.png' },
+  'US22': { navy:'/mockups/US22/navy.png', navy_blue:'/mockups/US22/navy.png', grey_melange:'/mockups/US22/grey_melange.png', grey:'/mockups/US22/grey_melange.png', light_pink:'/mockups/US22/light_pink.png', light_baby_pink:'/mockups/US22/light_pink.png', lavender:'/mockups/US22/lavender.png', black:'/mockups/US22/black.png', white:'/mockups/US22/white.png', beige:'/mockups/US22/beige.png' },
+  'BC01': { base_white:'/mockups/BC01/base_white.png', mustard_yellow:'/mockups/BC01/mustard_yellow.png', olive_green:'/mockups/BC01/olive_green.png', grey:'/mockups/BC01/slteel_grey.png', brick_red:'/mockups/BC01/brick_red.png', petrol_blue:'/mockups/BC01/petrol_blue.png', coffee_brown:'/mockups/BC01/coffee_brown.png', golden_yellow:'/mockups/BC01/golden_yellow.png', orange:'/mockups/BC01/orange.png', yellow:'/mockups/BC01/new_yellow.png', flag_green:'/mockups/BC01/flag_green.png', purple:'/mockups/BC01/purple.png', maroon:'/mockups/BC01/maroon.png', red:'/mockups/BC01/red.png', royal_blue:'/mockups/BC01/royal_blue.png', bottle_green:'/mockups/BC01/bottle_green.png', sky_blue:'/mockups/BC01/sky_blue.png', navy_blue:'/mockups/BC01/navy_blue.png', black:'/mockups/BC01/black.png' },
+  'MP25': { grey_melange:'/mockups/MP25/grey_melange.png', grey:'/mockups/MP25/grey_melange.png', mustard_yellow:'/mockups/MP25/mustard_yellow.png', brick_red:'/mockups/MP25/brick_red.png', petrol_blue:'/mockups/MP25/petrol_blue.png', coffee_brown:'/mockups/MP25/coffee_brown.png', purple:'/mockups/MP25/purple.png', maroon:'/mockups/MP25/maroon.png', royal_blue:'/mockups/MP25/royal_blue.png', navy_blue:'/mockups/MP25/navy_blue.png', black:'/mockups/MP25/black.png', white:'/mockups/MP25/full_white_turn_off_texture.png' },
+  'MS36': { white:'/mockups/MS36/white.png', black:'/mockups/MS36/black.png', grey_melange:'/mockups/MS36/grey_melange.png', grey:'/mockups/MS36/grey_melange.png', charcoal_melange:'/mockups/MS36/charcoal_melange.png', maroon:'/mockups/MS36/maroon.png', olive_green:'/mockups/MS36/olive_green.png', lavender:'/mockups/MS36/lavender.png' },
+  'UC28': { black:'/mockups/UC28/black.png', lavender:'/mockups/UC28/lavender.png', maroon:'/mockups/UC28/maroon.png', pink:'/mockups/UC28/pink_turn_off_texture.png', baby_blue:'/mockups/UC28/baby_blue.png', navy:'/mockups/UC28/navy.png', navy_blue:'/mockups/UC28/navy.png', white:'/mockups/UC28/whiteturn_off_texture.png' },
+  'MT45': { lavender:'/mockups/MT45/lavender.png', black:'/mockups/MT45/black.png', white:'/mockups/MT45/white.png', flamingo:'/mockups/MT45/flamingo.png' },
+  'FT37': { base_white:'/mockups/FT37/base.png', white:'/mockups/FT37/white.png', navy:'/mockups/FT37/navy.png', navy_blue:'/mockups/FT37/navy.png', grey_melange:'/mockups/FT37/gray_melange.png', grey:'/mockups/FT37/gray_melange.png', black:'/mockups/FT37/black.png', pink:'/mockups/FT37/pink.png', charcoal_melange:'/mockups/FT37/charcoal_melange.png' },
+  'UJ31': { lavender:'/mockups/UJ31/lavender.png', red:'/mockups/UJ31/red.png', bottle_green:'/mockups/UJ31/bottle_green.png', maroon:'/mockups/UJ31/maroon.png', navy:'/mockups/UJ31/navy.png', navy_blue:'/mockups/UJ31/navy.png', black:'/mockups/UJ31/black.png' },
+  'FC32': { base_white:'/mockups/FC32/base.png', white:'/mockups/FC32/base.png', maroon:'/mockups/FC32/maroon.png', mustard_yellow:'/mockups/FC32/mustard_yellow.png', light_pink:'/mockups/FC32/light_pink.png', light_baby_pink:'/mockups/FC32/light_pink.png', black:'/mockups/FC32/black.png' },
+  'FC39': { white:'/mockups/FC39/white.png' },
+};
+
+// Print areas for PSD-backed products (pixel coords on 420×600 canvas)
+const PSD_PRINT_AREAS = {
+  'UT27': { x: 92, y: 185, w: 236, h: 215 },
+  'UH24': { x: 100, y: 195, w: 220, h: 195 },
+  'UH32': { x: 100, y: 195, w: 220, h: 195 },
+  'UH26': { x: 97,  y: 185, w: 226, h: 215 },
+  'UH35': { x: 97,  y: 185, w: 226, h: 215 },
+  'UC22': { x: 92,  y: 185, w: 236, h: 215 },
+  'US22': { x: 92,  y: 185, w: 236, h: 215 },
+  'BC01': { x: 94,  y: 175, w: 232, h: 225 },
+  'MP25': { x: 108, y: 178, w: 204, h: 195 },
+  'MS36': { x: 105, y: 165, w: 210, h: 220 },
+  'UC28': { x: 92,  y: 185, w: 236, h: 215 },
+  'MT45': { x: 95,  y: 240, w: 230, h: 195 },
+  'FT37': { x: 115, y: 165, w: 190, h: 230 },
+  'UJ31': { x: 100, y: 185, w: 220, h: 200 },
+  'FC32': { x: 100, y: 165, w: 220, h: 165 },
+  'FC39': { x: 105, y: 155, w: 210, h: 170 },
+};
+
+// Normalize a color name to a PSD map key
+function normColorKey(name) {
+  return (name || '').toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+}
+
+// Look up PSD mockup URL for a category string + color name.
+// Returns null if no PSD mockup available.
+function getPsdMockup(categoryStr, colorName) {
+  const skuMatch = categoryStr && categoryStr.match(/\|\s*([A-Z0-9]+)\s*$/);
+  if (!skuMatch) return null;
+  const sku = skuMatch[1];
+  const map = PSD_MOCKUPS[sku];
+  if (!map) return null;
+
+  const key = normColorKey(colorName);
+  if (map[key]) return { url: map[key], printArea: PSD_PRINT_AREAS[sku] };
+
+  // Try first word of color (e.g., "navy" matches "navy_blue")
+  const firstWord = key.split('_')[0];
+  const fuzzy = Object.keys(map).find(k => k === firstWord || k.startsWith(firstWord + '_') || k.endsWith('_' + firstWord));
+  if (fuzzy) return { url: map[fuzzy], printArea: PSD_PRINT_AREAS[sku] };
+
+  // Fallback: white/base variant
+  const fallbackKey = ['white', 'base_white', 'base'].find(k => map[k]);
+  const fallback = fallbackKey || Object.keys(map)[0];
+  return { url: map[fallback], printArea: PSD_PRINT_AREAS[sku] };
+}
+
 // Canvas editor templates — keyed by keyword pattern, checked in order
 const KEYWORD_TEMPLATES = [
   { test: /hoodie/,                  template: '/mockups/hoodie-white.jpg',      printArea: { x: 100, y: 155, w: 220, h: 200 } },
@@ -165,24 +234,17 @@ const KEYWORD_TEMPLATES = [
 ];
 const DEFAULT_TEMPLATE = { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } };
 
-// Specific per-SKU overrides (still useful for calibrated print areas)
+// Specific per-SKU overrides for products without PSD mockups
 const PRODUCT_TEMPLATES = {
-  'Unisex Terry Oversized Tee | UT27':          { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } },
-  'Unisex Oversized Classic T-Shirt | UC22':    { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } },
-  'Unisex Oversized Standard T-Shirt | US22':   { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } },
   'Male Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
   'Female Classic Crew T-Shirt':                { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
   'Boy Classic Crew T-Shirt':                   { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
   'Girl Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
   'Male Standard Crew T-Shirt | US21':          { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
-  'Unisex Sweatshirt | UH26':                   { template: '/mockups/sweatshirt-white.jpg',    printArea: { x: 97, y: 140, w: 226, h: 230 } },
-  'Unisex Oversized Sweatshirt | UH35':         { template: '/mockups/sweatshirt-white.jpg',    printArea: { x: 97, y: 140, w: 226, h: 230 } },
   'Unisex Hoodie':                              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
   'Unisex Zip Hoodie | UH38':                   { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
-  'Unisex Oversized Hoodie | UH32':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
   'Unisex Pullover Hoodie | UH83':              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
   'Unisex Acid Wash Hoodie | UH62':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
-  'Female Cropped Hoodie | FC32':               { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
   'Kids Hoodie':                                { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
 };
 
@@ -358,13 +420,16 @@ export default function SellYourArt() {
   const getProductTemplate = () => {
     if (!selectedCategory) return colorizeTemplate(DEFAULT_TEMPLATE);
     const cat = selectedCategory.category;
-    // 1. Exact match
+    // 1. PSD mockup (real extracted PNG per color)
+    const psd = getPsdMockup(cat, selectedColor);
+    if (psd) return { template: psd.url, printArea: psd.printArea || PSD_PRINT_AREAS['UT27'], isPsd: true };
+    // 2. Exact fallback template match
     if (PRODUCT_TEMPLATES[cat]) return colorizeTemplate(PRODUCT_TEMPLATES[cat]);
-    // 2. Keyword match
+    // 3. Keyword match
     const lower = cat.toLowerCase();
     const kwMatch = KEYWORD_TEMPLATES.find(k => k.test.test(lower));
     if (kwMatch) return colorizeTemplate({ template: kwMatch.template, printArea: kwMatch.printArea });
-    // 3. Fallback
+    // 4. Default
     return colorizeTemplate(DEFAULT_TEMPLATE);
   };
 
@@ -404,21 +469,23 @@ export default function SellYourArt() {
         // Add garment as a regular object (not backgroundImage) so multiply tinting works
         canvas.add(bgImg);
 
-        // Color tinting: for colors without their own template file,
-        // overlay a multiply-blend rect on the white garment.
-        const colorKey = (selectedColor || '').toLowerCase().trim();
-        const colorSuffix = getTemplateColorSuffix();
-        const tintHex = COLOR_HEX[colorKey];
-        const isLightBase = colorSuffix === 'white'; // white template used as base
-        const needsTint = isLightBase && tintHex && colorKey !== 'white' && colorKey !== 'off white'
-          && colorKey !== 'white black' && colorKey !== 'white lavender' && colorKey !== '' && colorKey !== 'na';
-        if (needsTint) {
-          const tintRect = new fabric.Rect({
-            left: 0, top: 0, width: CANVAS_W, height: CANVAS_H,
-            fill: tintHex, globalCompositeOperation: 'multiply',
-            selectable: false, evented: false, name: 'tint',
-          });
-          canvas.add(tintRect);
+        // Color tinting: only for non-PSD templates that use a white base image.
+        // PSD mockups already have the real garment color baked in.
+        if (!tmpl.isPsd) {
+          const colorKey = (selectedColor || '').toLowerCase().trim();
+          const colorSuffix = getTemplateColorSuffix();
+          const tintHex = COLOR_HEX[colorKey];
+          const isLightBase = colorSuffix === 'white';
+          const needsTint = isLightBase && tintHex && colorKey !== 'white' && colorKey !== 'off white'
+            && colorKey !== 'white black' && colorKey !== 'white lavender' && colorKey !== '' && colorKey !== 'na';
+          if (needsTint) {
+            const tintRect = new fabric.Rect({
+              left: 0, top: 0, width: CANVAS_W, height: CANVAS_H,
+              fill: tintHex, globalCompositeOperation: 'multiply',
+              selectable: false, evented: false, name: 'tint',
+            });
+            canvas.add(tintRect);
+          }
         }
         canvas.renderAll();
       } catch (_) {}
