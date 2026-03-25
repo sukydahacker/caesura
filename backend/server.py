@@ -274,12 +274,13 @@ async def create_session(request: Request, response: Response):
     )
 
     # Set httpOnly cookie
+    is_prod = os.environ.get("ENVIRONMENT", "development") == "production"
     response.set_cookie(
         key="session_token",
         value=session_token_val,
         httponly=True,
-        secure=True,
-        samesite="none",
+        secure=is_prod,
+        samesite="none" if is_prod else "lax",
         path="/",
         max_age=7*24*60*60
     )
@@ -1310,11 +1311,12 @@ async def get_product_catalog():
 # Include router
 app.include_router(api_router)
 
-# CORS
+# CORS — credentials require explicit origins (wildcard + credentials is rejected by browsers)
+_default_origins = "http://localhost:3000,http://127.0.0.1:3000"
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=os.environ.get('CORS_ORIGINS', _default_origins).split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -1341,7 +1343,14 @@ async def dev_login(request: Request, response: Response):
 
     user_doc = await fetch_one("SELECT * FROM users WHERE email = $1", email)
     if not user_doc:
-        raise HTTPException(status_code=404, detail="Not Found")
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        await execute(
+            """INSERT INTO users (user_id, email, name, picture, role, creator_status, created_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)""",
+            user_id, email, email.split("@")[0], None,
+            "admin", "approved", datetime.now(timezone.utc),
+        )
+        user_doc = await fetch_one("SELECT * FROM users WHERE user_id = $1", user_id)
 
     session_token_val = str(uuid.uuid4())
     await execute(

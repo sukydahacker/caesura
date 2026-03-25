@@ -160,10 +160,10 @@ function categorizeProduct(categoryName) {
 // ── PSD mockup map: SKU → { colorKey: '/mockups/SKU/color.png' } ─────────────
 // Extracted from official Qikink PSD files. Each color variant is a real PNG.
 const PSD_MOCKUPS = {
-  'UT27': { base_white:'/mockups/UT27/base_white.png', jade:'/mockups/UT27/jade.png', flamingo:'/mockups/UT27/flamingo.png', baby_blue:'/mockups/UT27/baby_blue.png', lavender:'/mockups/UT27/lavender.png', maroon:'/mockups/UT27/maroon.png', navy_blue:'/mockups/UT27/navy_blue.png', black:'/mockups/UT27/black.png', white:'/mockups/UT27/white_full_turn_off_texture.png' },
-  'UH24': { base_white:'/mockups/UH24/base_white.png', grey:'/mockups/UH24/grey_full.png', baby_blue:'/mockups/UH24/baby_blue.png', mint:'/mockups/UH24/mint.png', coral:'/mockups/UH24/coral.png', lavender:'/mockups/UH24/lavender.png', light_baby_pink:'/mockups/UH24/light_baby_pink.png', mustard_yellow:'/mockups/UH24/mustard_yellow.png', olive_green:'/mockups/UH24/olive_green.png', maroon:'/mockups/UH24/maroon.png', red:'/mockups/UH24/red.png', royal_blue:'/mockups/UH24/royal_blue.png', bottle_green:'/mockups/UH24/bottle_green.png', navy_blue:'/mockups/UH24/navy_blue.png', black:'/mockups/UH24/black.png', white:'/mockups/UH24/white_fullturn_off_texture.png' },
+  'UT27': { base_white:'/mockups/UT27/base_white.png', jade:'/mockups/UT27/jade.png', flamingo:'/mockups/UT27/flamingo.png', bottle_green:'/mockups/UT27/bottle_green.png', baby_blue:'/mockups/UT27/baby_blue.png', lavender:'/mockups/UT27/lavender.png', maroon:'/mockups/UT27/maroon.png', navy_blue:'/mockups/UT27/navy_blue.png', black:'/mockups/UT27/black.png', white:'/mockups/UT27/white_full_turn_off_texture.png' },
+  'UH24': { base_white:'/mockups/UH24/base_white.png', grey:'/mockups/UH24/grey_full.png', grey_melange:'/mockups/UH24/grey_full.png', baby_blue:'/mockups/UH24/baby_blue.png', mint:'/mockups/UH24/mint.png', coral:'/mockups/UH24/coral.png', lavender:'/mockups/UH24/lavender.png', light_baby_pink:'/mockups/UH24/light_baby_pink.png', mustard_yellow:'/mockups/UH24/mustard_yellow.png', olive_green:'/mockups/UH24/olive_green.png', maroon:'/mockups/UH24/maroon.png', red:'/mockups/UH24/red.png', royal_blue:'/mockups/UH24/royal_blue.png', bottle_green:'/mockups/UH24/bottle_green.png', navy_blue:'/mockups/UH24/navy_blue.png', black:'/mockups/UH24/black.png', white:'/mockups/UH24/white_fullturn_off_texture.png' },
   'UH32': { navy:'/mockups/UH32/navy.png', navy_blue:'/mockups/UH32/navy.png', green:'/mockups/UH32/green.png', maroon:'/mockups/UH32/maroon.png', light_pink:'/mockups/UH32/light_pink.png', light_baby_pink:'/mockups/UH32/light_pink.png', lavender:'/mockups/UH32/lavender.png', black:'/mockups/UH32/black.png', white:'/mockups/UH32/white.png' },
-  'UH26': { light_baby_pink:'/mockups/UH26/light_baby_pink.png', navy_blue:'/mockups/UH26/navy_blue.png', black:'/mockups/UH26/black.png', olive_green:'/mockups/UH26/olive_green.png', lavender:'/mockups/UH26/lavender.png', coral:'/mockups/UH26/coral.png', white:'/mockups/UH26/white.png', maroon:'/mockups/UH26/maroon.png', baby_blue:'/mockups/UH26/baby_blue.png', mint:'/mockups/UH26/mint.png', mustard_yellow:'/mockups/UH26/mustard_yelllow.png', grey_melange:'/mockups/UH26/grey_melange.png', grey:'/mockups/UH26/grey_melange.png' },
+  'UH26': { light_baby_pink:'/mockups/UH26/light_baby_pink.png', navy_blue:'/mockups/UH26/navy_blue.png', black:'/mockups/UH26/black.png', olive_green:'/mockups/UH26/olive_green.png', lavender:'/mockups/UH26/lavender.png', coral:'/mockups/UH26/coral.png', white:'/mockups/UH26/white.png', maroon:'/mockups/UH26/maroon.png', mint:'/mockups/UH26/mint.png', grey_melange:'/mockups/UH26/grey_melange.png', grey:'/mockups/UH26/grey_melange.png' },
   'UH35': { navy:'/mockups/UH35/navy.png', navy_blue:'/mockups/UH35/navy.png', green:'/mockups/UH35/green.png', maroon:'/mockups/UH35/maroon.png', light_pink:'/mockups/UH35/light_pink.png', light_baby_pink:'/mockups/UH35/light_pink.png', lavender:'/mockups/UH35/lavender.png', black:'/mockups/UH35/black.png', white:'/mockups/UH35/white.png' },
   'UC22': { base_white:'/mockups/UC22/base_white.png', white:'/mockups/UC22/white_full.png', grey:'/mockups/UC22/grey_full.png', off_white:'/mockups/UC22/offwhite_full.png', baby_blue:'/mockups/UC22/baby_blue.png', mint:'/mockups/UC22/mint.png', coral:'/mockups/UC22/coral.png', lavender:'/mockups/UC22/lavender.png', light_baby_pink:'/mockups/UC22/light_baby_pink.png', mustard_yellow:'/mockups/UC22/mustard_yellow_copy.png', olive_green:'/mockups/UC22/olive_green.png', petrol_blue:'/mockups/UC22/petrol_blue.png', golden_yellow:'/mockups/UC22/golden_yellow.png', purple:'/mockups/UC22/purple.png', maroon:'/mockups/UC22/maroon.png', red:'/mockups/UC22/red.png', royal_blue:'/mockups/UC22/royal_blue.png', bottle_green:'/mockups/UC22/bottle_green.png', navy_blue:'/mockups/UC22/navy_blue.png', black:'/mockups/UC22/black.png' },
   'US22': { navy:'/mockups/US22/navy.png', navy_blue:'/mockups/US22/navy.png', grey_melange:'/mockups/US22/grey_melange.png', grey:'/mockups/US22/grey_melange.png', light_pink:'/mockups/US22/light_pink.png', light_baby_pink:'/mockups/US22/light_pink.png', lavender:'/mockups/US22/lavender.png', black:'/mockups/US22/black.png', white:'/mockups/US22/white.png', beige:'/mockups/US22/beige.png' },
@@ -178,24 +178,17 @@ const PSD_MOCKUPS = {
   'FC39': { white:'/mockups/FC39/white.png' },
 };
 
-// Print areas for PSD-backed products (pixel coords on 420×600 canvas)
+// Print areas for PSD-backed products (pixel coords on 420×600 Fabric canvas)
+// Spec: 12"×14" print area, centered horizontally on each garment.
+// Derived from PSD garment bounds (canvas_x = png_x*0.75 - 90, canvas_y = png_y*0.75)
+// and physical garment widths for px-per-inch calibration.
+//   UT27 Terry Oversized Tee  → 26" wide, ppi≈20  (PSD 1500×1500, garment x100-1400 y73-1427)
+//   UH24 Unisex Hoodie        → 24" wide, ppi≈16  (PSD 1000×1000, garment x178-822 y92-924)
+//   UH26 Unisex Sweatshirt    → 24" wide, ppi≈22  (PSD 1500×1500, garment x78-1387 y153-1334)
 const PSD_PRINT_AREAS = {
-  'UT27': { x: 92, y: 185, w: 236, h: 215 },
-  'UH24': { x: 100, y: 195, w: 220, h: 195 },
-  'UH32': { x: 100, y: 195, w: 220, h: 195 },
-  'UH26': { x: 97,  y: 185, w: 226, h: 215 },
-  'UH35': { x: 97,  y: 185, w: 226, h: 215 },
-  'UC22': { x: 92,  y: 185, w: 236, h: 215 },
-  'US22': { x: 92,  y: 185, w: 236, h: 215 },
-  'BC01': { x: 94,  y: 175, w: 232, h: 225 },
-  'MP25': { x: 108, y: 178, w: 204, h: 195 },
-  'MS36': { x: 105, y: 165, w: 210, h: 220 },
-  'UC28': { x: 92,  y: 185, w: 236, h: 215 },
-  'MT45': { x: 95,  y: 240, w: 230, h: 195 },
-  'FT37': { x: 115, y: 165, w: 190, h: 230 },
-  'UJ31': { x: 100, y: 185, w: 220, h: 200 },
-  'FC32': { x: 100, y: 165, w: 220, h: 165 },
-  'FC39': { x: 105, y: 155, w: 210, h: 170 },
+  'UT27': { x: 92,  y: 144, w: 235, h: 276 },  // 12"×14" @ 0.22/0.24/0.56/0.46 fractions of 420×600
+  'UH24': { x: 118, y: 228, w: 185, h: 228 },  // 11"×13" hood ends ~38% from top (0.28/0.38/0.44/0.38)
+  'UH26': { x: 109, y: 156, w: 202, h: 264 },  // 12"×14" sweatshirt collar ~26% (0.26/0.26/0.48/0.44)
 };
 
 // Normalize a color name to a PSD map key
@@ -227,25 +220,27 @@ function getPsdMockup(categoryStr, colorName) {
 }
 
 // Canvas editor templates — keyed by keyword pattern, checked in order
+// All print areas 12"×14" (w:h = 1:1.167). JPG templates are 700×1000 at scale 0.6.
 const KEYWORD_TEMPLATES = [
-  { test: /hoodie/,                  template: '/mockups/hoodie-white.jpg',      printArea: { x: 100, y: 155, w: 220, h: 200 } },
-  { test: /sweatshirt|pullover/,     template: '/mockups/sweatshirt-white.jpg',  printArea: { x: 97,  y: 140, w: 226, h: 230 } },
-  { test: /classic crew|standard crew|basic t-shirt|supima|cotton stretch|cotton stretch/, template: '/mockups/crew-tee-white.jpg', printArea: { x: 94, y: 128, w: 232, h: 238 } },
+  { test: /hoodie/,                  template: '/mockups/hoodie-white.jpg',      printArea: { x: 118, y: 228, w: 185, h: 228 } },
+  { test: /sweatshirt|pullover/,     template: '/mockups/sweatshirt-white.jpg',  printArea: { x: 109, y: 156, w: 202, h: 264 } },
+  { test: /classic crew|standard crew|basic t-shirt|supima|cotton stretch/, template: '/mockups/crew-tee-white.jpg', printArea: { x: 109, y: 156, w: 202, h: 264 } },
 ];
-const DEFAULT_TEMPLATE = { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 138, w: 236, h: 222 } };
+const DEFAULT_TEMPLATE = { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 144, w: 235, h: 276 } };
 
 // Specific per-SKU overrides for products without PSD mockups
+// US21: 700×1000 JPG at scale 0.6 → 420×600 canvas. Garment 22" wide (ppi≈12.3). 12"×14" print.
 const PRODUCT_TEMPLATES = {
-  'Male Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
-  'Female Classic Crew T-Shirt':                { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
-  'Boy Classic Crew T-Shirt':                   { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
-  'Girl Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
-  'Male Standard Crew T-Shirt | US21':          { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 94, y: 128, w: 232, h: 238 } },
-  'Unisex Hoodie':                              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
-  'Unisex Zip Hoodie | UH38':                   { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
-  'Unisex Pullover Hoodie | UH83':              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
-  'Unisex Acid Wash Hoodie | UH62':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
-  'Kids Hoodie':                                { template: '/mockups/hoodie-white.jpg',        printArea: { x: 100, y: 155, w: 220, h: 200 } },
+  'Male Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
+  'Female Classic Crew T-Shirt':                { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
+  'Boy Classic Crew T-Shirt':                   { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
+  'Girl Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
+  'Male Standard Crew T-Shirt | US21':          { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
+  'Unisex Hoodie | UH24':                       { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
+  'Unisex Zip Hoodie | UH38':                   { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
+  'Unisex Pullover Hoodie | UH83':              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
+  'Unisex Acid Wash Hoodie | UH62':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
+  'Kids Hoodie':                                { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
 };
 
 const MAX_FILE_MB = 20;
@@ -491,10 +486,12 @@ export default function SellYourArt() {
       } catch (_) {}
 
       const pa = tmpl.printArea;
+
+      // Print area boundary
       canvas.add(new fabric.Rect({
         left: pa.x, top: pa.y, width: pa.w, height: pa.h,
         fill: 'transparent', stroke: '#C8FF00', strokeWidth: 1.5,
-        strokeDashArray: [8, 4], selectable: false, evented: false,
+        strokeDashArray: [8, 4], selectable: false, evented: false, name: 'printArea',
       }));
       canvas.add(new fabric.IText('PRINT AREA', {
         left: pa.x + 6, top: pa.y + 4, fontSize: 9,
@@ -502,12 +499,47 @@ export default function SellYourArt() {
         selectable: false, evented: false, editable: false,
       }));
 
+      // Vertical center guide line
+      canvas.add(new fabric.Line(
+        [CANVAS_W / 2, pa.y, CANVAS_W / 2, pa.y + pa.h],
+        {
+          stroke: 'rgba(200,255,0,0.25)', strokeWidth: 1,
+          strokeDashArray: [4, 4], selectable: false, evented: false, name: 'centerLine',
+        }
+      ));
+
+      // Constraint helpers — keep design inside print area
+      const clampToArea = (obj) => {
+        const b = obj.getBoundingRect();
+        let { left, top } = obj;
+        if (b.left < pa.x)                        left += pa.x - b.left;
+        if (b.top  < pa.y)                        top  += pa.y - b.top;
+        if (b.left + b.width  > pa.x + pa.w)      left -= (b.left + b.width)  - (pa.x + pa.w);
+        if (b.top  + b.height > pa.y + pa.h)      top  -= (b.top  + b.height) - (pa.y + pa.h);
+        obj.set({ left, top });
+        obj.setCoords();
+      };
+
+      canvas.on('object:moving', (e) => {
+        if (e.target && e.target.name === 'design') clampToArea(e.target);
+      });
+
+      canvas.on('object:scaling', (e) => {
+        const obj = e.target;
+        if (!obj || obj.name !== 'design') return;
+        // Prevent scaling beyond print area dimensions (uniform scale — use min of both axes)
+        const maxScale = Math.min(pa.w / obj.width, pa.h / obj.height);
+        if (obj.scaleX > maxScale) { obj.scaleX = maxScale; obj.scaleY = maxScale; }
+        if (obj.scaleY > maxScale) { obj.scaleX = maxScale; obj.scaleY = maxScale; }
+        obj.setCoords();
+        clampToArea(obj);
+      });
+
       if (imagePreview) {
         const designImg = await fabric.FabricImage.fromURL(imagePreview);
         if (cancelled) return;
-        const maxW = pa.w * 0.72;
-        const maxH = pa.h * 0.72;
-        const scale = Math.min(maxW / designImg.width, maxH / designImg.height);
+        // Fit design inside print area (max 90% of each dimension), centered
+        const scale = Math.min((pa.w * 0.9) / designImg.width, (pa.h * 0.9) / designImg.height);
         designImg.set({
           left: pa.x + pa.w / 2, top: pa.y + pa.h / 2,
           originX: 'center', originY: 'center',
@@ -832,7 +864,7 @@ export default function SellYourArt() {
               {/* Product header */}
               <div style={{ marginBottom: '28px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <h2 style={{ ...display, fontSize: '28px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>
+                  <h2 style={{ ...display, fontSize: '28px', fontWeight: 700, margin: 0, textTransform: 'uppercase', color: '#FFFFFF' }}>
                     {selectedCategory.category}
                   </h2>
                 </div>

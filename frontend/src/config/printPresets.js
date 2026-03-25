@@ -12,14 +12,14 @@ export const PRINT_PRESETS = {
     printMethod: 'dtf',
     placements: {
       front: {
-        maxWidth: 38, // cm
-        maxHeight: 48, // cm
-        scaleRatio: 0.85, // Scale design to 85% of max width
+        maxWidth: 30, // cm — Qikink US21 Standard Crew max DTF
+        maxHeight: 40, // cm
+        scaleRatio: 0.85,
         position: 'center'
       },
       back: {
-        maxWidth: 38,
-        maxHeight: 48,
+        maxWidth: 30,
+        maxHeight: 40,
         scaleRatio: 0.85,
         position: 'center'
       }
@@ -39,14 +39,14 @@ export const PRINT_PRESETS = {
     printMethod: 'dtf',
     placements: {
       front: {
-        maxWidth: 38,
-        maxHeight: 48,
+        maxWidth: 30, // cm — Qikink UH24 Unisex Hoodie max DTF
+        maxHeight: 38, // cm
         scaleRatio: 0.85,
         position: 'center'
       },
       back: {
-        maxWidth: 38,
-        maxHeight: 48,
+        maxWidth: 30,
+        maxHeight: 38,
         scaleRatio: 0.85,
         position: 'center'
       }
@@ -66,14 +66,14 @@ export const PRINT_PRESETS = {
     printMethod: 'dtf',
     placements: {
       front: {
-        maxWidth: 40,
-        maxHeight: 52,
+        maxWidth: 35, // cm — Qikink UT27 Terry Oversized Tee max DTF
+        maxHeight: 45, // cm
         scaleRatio: 0.82,
         position: 'center'
       },
       back: {
-        maxWidth: 40,
-        maxHeight: 52,
+        maxWidth: 35,
+        maxHeight: 45,
         scaleRatio: 0.82,
         position: 'center'
       }
@@ -118,14 +118,14 @@ export const PRINT_PRESETS = {
     printMethod: 'dtf',
     placements: {
       front: {
-        maxWidth: 36,
-        maxHeight: 44,
+        maxWidth: 30, // cm — Qikink UH26 Unisex Sweatshirt max DTF
+        maxHeight: 40, // cm
         scaleRatio: 0.85,
         position: 'center'
       },
       back: {
-        maxWidth: 36,
-        maxHeight: 44,
+        maxWidth: 30,
+        maxHeight: 40,
         scaleRatio: 0.85,
         position: 'center'
       }

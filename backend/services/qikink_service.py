@@ -55,9 +55,9 @@ class QikinkService:
     _ALIASES: Dict[str, str] = {
         "tshirt": "Terry Oversized Tee | UT27",
         "oversized_tshirt": "Terry Oversized Tee | UT27",
-        "hoodie": "Hoodie",
+        "hoodie": "Hoodie | UH24",
         "UT27": "Terry Oversized Tee | UT27",
-        "UH24": "Hoodie",
+        "UH24": "Hoodie | UH24",
         "UH83": "Pullover Hoodie | UH83",
     }
 

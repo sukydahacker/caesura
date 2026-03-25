@@ -19,19 +19,11 @@ export default function DevLogin() {
         { withCredentials: true }
       );
       const user = res.data.user;
-      const dest = '/dashboard';
-      navigate(dest, { replace: true, state: { user } });
+      localStorage.setItem('caesura_user', JSON.stringify(user));
+      navigate('/dashboard', { replace: true, state: { user } });
     } catch (e) {
-      // Offline fallback — skip backend, use mock user
-      const mockUser = {
-        user_id: 'user_dev_local',
-        email,
-        name: email.split('@')[0],
-        role: 'admin',
-        creator_status: 'approved',
-        picture: '',
-      };
-      navigate('/dashboard', { replace: true, state: { user: mockUser } });
+      setError('Login failed — check backend is running');
+      return;
     } finally {
       setLoading(false);
     }

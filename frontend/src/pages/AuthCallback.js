@@ -28,6 +28,7 @@ export default function AuthCallback() {
         const response = await createSession(sessionId);
         const user = response.data;
 
+        localStorage.setItem('caesura_user', JSON.stringify(user));
         toast.success(`Welcome, ${user.name}!`);
         navigate('/dashboard', { replace: true, state: { user } });
       } catch (error) {

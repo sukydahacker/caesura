@@ -5,28 +5,25 @@ import { getMe } from '@/lib/api';
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(location.state?.user ? true : null);
-  const [user, setUser] = useState(location.state?.user || null);
+  const cached = (() => { try { return JSON.parse(localStorage.getItem('caesura_user')) || null; } catch { return null; } })();
+  const [isAuthenticated, setIsAuthenticated] = useState(location.state?.user || cached ? true : null);
+  const [user, setUser] = useState(location.state?.user || cached);
 
   useEffect(() => {
-    // If user data passed from AuthCallback, skip auth check
-    if (location.state?.user) {
-      return;
-    }
-
     const checkAuth = async () => {
       try {
         const response = await getMe();
         setIsAuthenticated(true);
         setUser(response.data);
+        localStorage.setItem('caesura_user', JSON.stringify(response.data));
       } catch (error) {
+        localStorage.removeItem('caesura_user');
         setIsAuthenticated(false);
         navigate('/', { replace: true });
       }
     };
-
     checkAuth();
-  }, [navigate, location.state]);
+  }, [navigate]);
 
   if (isAuthenticated === null) {
     return (

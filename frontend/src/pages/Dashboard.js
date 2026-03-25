@@ -225,7 +225,9 @@ export default function Dashboard() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [productsViewOpen, setProductsViewOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('caesura_user')) || null; } catch { return null; }
+  });
   const [earnings, setEarnings] = useState(null);
   const [myProducts, setMyProducts] = useState([]);
 
@@ -237,8 +239,12 @@ export default function Dashboard() {
   }, []);
 
   const fetchUserData = async () => {
-    try { const r = await getMe(); setUser(r.data); } catch {
-      setUser({ name: 'Dev', email: 'projectmark121224@gmail.com', role: 'admin', creator_status: 'approved' });
+    try {
+      const r = await getMe();
+      setUser(r.data);
+      localStorage.setItem('caesura_user', JSON.stringify(r.data));
+    } catch {
+      // keep whatever is in localStorage; don't replace with a hardcoded mock
     }
   };
   const fetchEarnings = async () => {
@@ -258,8 +264,10 @@ export default function Dashboard() {
   };
   const handleViewProducts = (design) => { setSelectedDesign(design); setProductsViewOpen(true); };
   const handleLogout = async () => {
-    try { await logout(); toast.success('Logged out'); navigate('/'); }
-    catch { toast.error('Logout failed'); }
+    try { await logout(); } catch {}
+    localStorage.removeItem('caesura_user');
+    toast.success('Logged out');
+    navigate('/');
   };
   const handleUploadComplete = async (designData) => {
     try {

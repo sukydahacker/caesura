@@ -750,20 +750,26 @@ function SiteFooter() {
 export default function Landing() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading]   = useState(true);
-  const [user, setUser]         = useState(null);
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('caesura_user')) || null; } catch { return null; }
+  });
 
   useEffect(() => {
-    // Load products from backend
     getProducts()
       .then(res => setProducts(res.data || []))
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
 
-    // Check if user is logged in
     import('@/lib/api').then(({ getMe }) => {
       getMe()
-        .then(res => setUser(res.data))
-        .catch(() => setUser(null));
+        .then(res => {
+          setUser(res.data);
+          localStorage.setItem('caesura_user', JSON.stringify(res.data));
+        })
+        .catch(() => {
+          setUser(null);
+          localStorage.removeItem('caesura_user');
+        });
     });
   }, []);
 
