@@ -46,7 +46,7 @@ export default function ProductDetail() {
       if (error.response?.status === 401) {
         toast.error('Please sign in to add items to cart');
         const redirectUrl = window.location.origin + '/dashboard';
-        window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+        window.location.href = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/auth/google`;
       } else {
         toast.error('Failed to add to cart');
       }

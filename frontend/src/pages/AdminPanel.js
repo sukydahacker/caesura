@@ -9,7 +9,7 @@ import {
 import {
   getPendingCreators, approveCreator, suspendCreator, rejectCreator,
   getPendingDesigns, approveDesign, rejectDesign,
-  getAdminAnalytics, getMe, getAdminOrders,
+  getAdminAnalytics, getMe, getAdminOrders, getAdminUsers,
   getLiveProducts, updateProductStatus
 } from '@/lib/api';
 import { toast } from 'sonner';
@@ -93,7 +93,7 @@ export default function AdminPanel() {
   const loadAnalytics = async () => { setLoadingAnalytics(true); try { const r = await getAdminAnalytics(); setAnalytics(r.data); } catch {} finally { setLoadingAnalytics(false); } };
   const loadOrders = async () => { setLoadingOrders(true); try { const r = await getAdminOrders(); setOrders(r.data); } catch {} finally { setLoadingOrders(false); } };
   const loadLiveProducts = async () => { setLoadingLiveProducts(true); try { const r = await getLiveProducts(); setLiveProducts(r.data); } catch {} finally { setLoadingLiveProducts(false); } };
-  const loadUsers = async () => { setLoadingUsers(true); try { const r = await fetch('/api/admin/users', { credentials: 'include' }); setUsers(await r.json()); } catch {} finally { setLoadingUsers(false); } };
+  const loadUsers = async () => { setLoadingUsers(true); try { const r = await getAdminUsers(); setUsers(r.data); } catch {} finally { setLoadingUsers(false); } };
 
   const handleProductStatusChange = async (productId, newStatus) => {
     try { await updateProductStatus(productId, newStatus); toast.success('Status updated'); loadLiveProducts(); } catch (e) { toast.error(`Failed: ${e.message}`); }
@@ -471,7 +471,7 @@ export default function AdminPanel() {
                       <tr key={u.user_id} style={{ borderBottom: `1px solid ${BS}`, background: i % 2 === 0 ? BG : BG2 }}>
                         <td style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                           {u.picture && <img src={u.picture} alt={u.name} style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />}
-                          <span style={{ ...display, fontSize: '14px', color: TP, fontWeight: 600 }}>{u.name || '—'}</span>
+                          <span style={{ ...display, fontSize: '14px', color: TP, fontWeight: 600 }}>{u.name || u.email}</span>
                         </td>
                         <td style={{ ...body, fontSize: '13px', color: TS, padding: '12px 20px' }}>{u.email}</td>
                         <td style={{ padding: '12px 20px' }}>
@@ -489,7 +489,7 @@ export default function AdminPanel() {
                           ) : <span style={{ ...body, color: TT, fontSize: '13px' }}>—</span>}
                         </td>
                         <td style={{ ...body, fontSize: '12px', color: TT, padding: '12px 20px' }}>
-                          {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
+                          {u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                         </td>
                       </tr>
                     ))}

@@ -12,6 +12,7 @@ const TS   = 'rgba(250,250,249,0.55)';
 const TT   = 'rgba(250,250,249,0.25)';
 const BS   = 'rgba(250,250,249,0.08)';
 const AS   = '#C8FF00';
+const AW   = '#FF9500';
 const ERR  = '#FF3D00';
 const body    = { fontFamily: '"DM Sans", system-ui, sans-serif' };
 const display = { fontFamily: '"Clash Display", "Bebas Neue", sans-serif' };
@@ -569,6 +570,8 @@ export default function SellYourArt() {
     if (!imageFile) { setError('Please upload a design image.'); return; }
     if (!title.trim()) { setError('Please enter a title.'); return; }
     if (!price || isNaN(Number(price)) || Number(price) <= 0) { setError('Please enter a valid price.'); return; }
+    const isUT27 = (selectedCategory?.category || '').includes('UT27');
+    if (isUT27 && Number(price) > 999) { setError('Maximum price for this product is ₹999'); return; }
     if (selectedSizes.length === 0) { setError('Please select at least one size.'); return; }
 
     setSubmitting(true);
@@ -966,17 +969,70 @@ export default function SellYourArt() {
 
               {/* Price */}
               <div style={{ marginBottom: '24px' }}>
-                <label style={{ ...body, fontSize: '12px', fontWeight: 600, color: TS, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Retail Price (₹) *</label>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ ...body, position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: TS, fontSize: '15px', pointerEvents: 'none' }}>₹</span>
-                  <input type="number" value={price} onChange={(e) => setPrice(e.target.value)}
-                    onFocus={() => setFocused('price')} onBlur={() => setFocused(null)}
-                    placeholder="999" min="1" step="1"
-                    style={{ ...inputStyle(focused === 'price'), paddingLeft: '32px' }} />
-                </div>
-                <p style={{ ...mono, fontSize: '10px', color: TT, margin: '4px 0 0' }}>
-                  {price && Number(price) > 0 ? `You earn ₹${Math.round(Number(price) * 0.8)} per sale (80%)` : 'You keep 80% of every sale'}
-                </p>
+                {/* Base price info */}
+                {selectedCategory?.base_prices?.length > 0 && (() => {
+                  const basePrice = Math.min(...selectedCategory.base_prices);
+                  const isUT27 = (selectedCategory.category || '').includes('UT27');
+                  const maxPrice = isUT27 ? 999 : null;
+                  const priceNum = Number(price);
+                  const overCap = maxPrice && priceNum > maxPrice;
+                  return (
+                    <>
+                      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: '10px', padding: '14px 18px', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ ...body, fontSize: '14px', fontWeight: 700, color: TP }}>Base price: ₹{basePrice}</span>
+                          <span style={{ ...mono, fontSize: '10px', color: AS, letterSpacing: '0.08em' }}>You keep 80%</span>
+                        </div>
+                        <p style={{ ...body, fontSize: '12px', color: TT, margin: '4px 0 0' }}>
+                          Qikink production cost — your profit is retail price minus base price × 80%.
+                        </p>
+                        {maxPrice && (
+                          <p style={{ ...mono, fontSize: '10px', color: AW, margin: '6px 0 0', letterSpacing: '0.05em' }}>
+                            Max retail price for this product: ₹{maxPrice}
+                          </p>
+                        )}
+                      </div>
+
+                      <label style={{ ...body, fontSize: '12px', fontWeight: 600, color: TS, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Retail Price (₹) *</label>
+                      <div style={{ position: 'relative' }}>
+                        <span style={{ ...body, position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: TS, fontSize: '15px', pointerEvents: 'none' }}>₹</span>
+                        <input type="number" value={price}
+                          onChange={(e) => {
+                            let val = e.target.value;
+                            if (maxPrice && Number(val) > maxPrice) val = String(maxPrice);
+                            setPrice(val);
+                          }}
+                          onFocus={() => setFocused('price')} onBlur={() => setFocused(null)}
+                          placeholder={maxPrice ? String(maxPrice) : '999'} min="1" step="1"
+                          style={{ ...inputStyle(focused === 'price'), paddingLeft: '32px', borderColor: overCap ? ERR : undefined }} />
+                      </div>
+                      {overCap && (
+                        <p style={{ ...body, fontSize: '12px', color: ERR, margin: '6px 0 0', fontWeight: 600 }}>
+                          Maximum price for this product is ₹{maxPrice}
+                        </p>
+                      )}
+                      <p style={{ ...mono, fontSize: '10px', color: TT, margin: '4px 0 0' }}>
+                        {price && Number(price) > 0 ? `You earn ₹${Math.round(Number(price) * 0.8)} per sale (80%)` : 'You keep 80% of every sale'}
+                      </p>
+                    </>
+                  );
+                })()}
+                {/* Fallback if no base_prices available */}
+                {(!selectedCategory?.base_prices?.length) && (
+                  <>
+                    <label style={{ ...body, fontSize: '12px', fontWeight: 600, color: TS, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Retail Price (₹) *</label>
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ ...body, position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: TS, fontSize: '15px', pointerEvents: 'none' }}>₹</span>
+                      <input type="number" value={price} onChange={(e) => setPrice(e.target.value)}
+                        onFocus={() => setFocused('price')} onBlur={() => setFocused(null)}
+                        placeholder="999" min="1" step="1"
+                        style={{ ...inputStyle(focused === 'price'), paddingLeft: '32px' }} />
+                    </div>
+                    <p style={{ ...mono, fontSize: '10px', color: TT, margin: '4px 0 0' }}>
+                      {price && Number(price) > 0 ? `You earn ₹${Math.round(Number(price) * 0.8)} per sale (80%)` : 'You keep 80% of every sale'}
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Print method info */}
@@ -991,13 +1047,21 @@ export default function SellYourArt() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <button onClick={handleSubmit} disabled={submitting}
-                  style={{ ...body, padding: '15px 40px', borderRadius: '999px', background: submitting ? BG3 : AS, border: 'none', color: submitting ? TS : BG, fontSize: '15px', fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
-                  {submitting ? 'Submitting…' : 'Submit for Review'}
-                </button>
-                <p style={{ ...mono, fontSize: '10px', color: TT }}>Reviewed within 24h</p>
-              </div>
+              {(() => {
+                const isUT27 = (selectedCategory?.category || '').includes('UT27');
+                const maxPrice = isUT27 ? 999 : null;
+                const priceBlocked = maxPrice && Number(price) > maxPrice;
+                const submitDisabled = submitting || priceBlocked;
+                return (
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <button onClick={handleSubmit} disabled={submitDisabled}
+                      style={{ ...body, padding: '15px 40px', borderRadius: '999px', background: submitDisabled ? BG3 : AS, border: 'none', color: submitDisabled ? TS : BG, fontSize: '15px', fontWeight: 700, cursor: submitDisabled ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
+                      {submitting ? 'Submitting…' : 'Submit for Review'}
+                    </button>
+                    <p style={{ ...mono, fontSize: '10px', color: TT }}>Reviewed within 24h</p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

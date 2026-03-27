@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Cookie, Response, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from urllib.parse import urlencode
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -26,11 +27,16 @@ load_dotenv(ROOT_DIR / '.env')
 from services.printify_service import printify_service
 from services.revenue_service import revenue_service
 from services.qikink_service import qikink_service
+from services.email_service import send_order_confirmation, send_design_approved, send_design_rejected
 
 # Import async PostgreSQL helpers
 from db import fetch_one, fetch_all, fetch_val, execute, get_pool, close_pool, to_jsonb
 
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL    = os.environ.get("BACKEND_URL",    "http://localhost:8000")
+FRONTEND_URL   = os.environ.get("FRONTEND_URL",   "http://localhost:3000")
+GOOGLE_CLIENT_ID     = os.environ.get("GOOGLE_CLIENT_ID",     "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI  = f"{BACKEND_URL}/api/auth/google/callback"
 
 # Media directory — stores uploaded design images and serves them as static files
 MEDIA_DIR = ROOT_DIR / "media" / "designs"
@@ -218,53 +224,73 @@ async def require_admin(request: Request, session_token: Optional[str] = Cookie(
     return user
 
 # Auth Routes
-@api_router.post("/auth/session")
-async def create_session(request: Request, response: Response):
-    body = await request.json()
-    session_id = body.get("session_id")
-    is_creator = body.get("is_creator", False)
 
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id required")
+@api_router.get("/auth/google")
+async def auth_google():
+    """Redirect user to Google OAuth consent screen."""
+    params = {
+        "client_id":     GOOGLE_CLIENT_ID,
+        "redirect_uri":  GOOGLE_REDIRECT_URI,
+        "response_type": "code",
+        "scope":         "openid email profile",
+        "access_type":   "offline",
+    }
+    return RedirectResponse("https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params))
 
-    # Call Emergent Auth API
-    async with httpx.AsyncClient() as http_client:
-        auth_response = await http_client.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-            headers={"X-Session-ID": session_id}
+
+@api_router.get("/auth/google/callback")
+async def auth_google_callback(code: str):
+    """Handle Google OAuth callback: exchange code → get user info → create session → redirect to frontend."""
+    async with httpx.AsyncClient() as client:
+        # Exchange auth code for access token
+        token_resp = await client.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "code":          code,
+                "client_id":     GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "redirect_uri":  GOOGLE_REDIRECT_URI,
+                "grant_type":    "authorization_code",
+            },
         )
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise HTTPException(status_code=400, detail="Failed to obtain access token from Google")
 
-        if auth_response.status_code != 200:
-            raise HTTPException(status_code=400, detail="Invalid session_id")
+        # Get user profile from Google
+        userinfo_resp = await client.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        userinfo = userinfo_resp.json()
 
-        auth_data = auth_response.json()
+    email   = userinfo.get("email")
+    name    = userinfo.get("name") or (email.split("@")[0] if email else "User")
+    picture = userinfo.get("picture")
 
-    # Check if user exists
-    user_doc = await fetch_one("SELECT * FROM users WHERE email = $1", auth_data["email"])
+    if not email:
+        raise HTTPException(status_code=400, detail="No email returned from Google")
 
+    # Find or create user
+    user_doc = await fetch_one("SELECT * FROM users WHERE email = $1", email)
     if user_doc:
         user_id = user_doc["user_id"]
-        # Update user data
         await execute(
-            "UPDATE users SET name = $1, picture = $2, updated_at = $3 WHERE user_id = $4",
-            auth_data["name"], auth_data.get("picture"),
-            datetime.now(timezone.utc), user_id,
+            "UPDATE users SET name = $1, picture = $2 WHERE user_id = $3",
+            name, picture, user_id,
         )
     else:
-        # Create new user
         user_id = f"user_{uuid.uuid4().hex[:12]}"
-        role = "creator" if is_creator else "buyer"
-        creator_status = "pending" if is_creator else None
-
         await execute(
             """INSERT INTO users (user_id, email, name, picture, role, creator_status, created_at)
                VALUES ($1, $2, $3, $4, $5, $6, $7)""",
-            user_id, auth_data["email"], auth_data["name"], auth_data.get("picture"),
-            role, creator_status, datetime.now(timezone.utc),
+            user_id, email, name, picture,
+            "creator", "pending", datetime.now(timezone.utc),
         )
 
-    # Create session
-    session_token_val = auth_data["session_token"]
+    # Create session (7-day expiry)
+    session_token_val = str(uuid.uuid4())
     await execute(
         """INSERT INTO user_sessions (user_id, session_token, expires_at, created_at)
            VALUES ($1, $2, $3, $4)""",
@@ -273,21 +299,18 @@ async def create_session(request: Request, response: Response):
         datetime.now(timezone.utc),
     )
 
-    # Set httpOnly cookie
-    is_prod = os.environ.get("ENVIRONMENT", "development") == "production"
-    response.set_cookie(
+    # Set cookie and redirect to frontend dashboard
+    redirect = RedirectResponse(url=f"{FRONTEND_URL}/dashboard")
+    redirect.set_cookie(
         key="session_token",
         value=session_token_val,
-        httponly=True,
-        secure=is_prod,
-        samesite="none" if is_prod else "lax",
+        httponly=False,
+        samesite="lax",
+        secure=False,
         path="/",
-        max_age=7*24*60*60
+        max_age=7 * 24 * 60 * 60,
     )
-
-    # Get user data
-    user = await fetch_one("SELECT * FROM users WHERE user_id = $1", user_id)
-    return User(**user)
+    return redirect
 
 @api_router.get("/auth/me")
 async def get_me(request: Request, session_token: Optional[str] = Cookie(None)):
@@ -703,9 +726,9 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
         # Revenue split
         split_data = revenue_service.calculate_split(
             retail_price=item["price"],
-            base_cost=float(product.get("base_cost", 500)),
-            creator_commission_rate=float(product.get("creator_commission_rate", 0.8)),
-            platform_commission_rate=float(product.get("platform_commission_rate", 0.2)),
+            base_cost=float(product.get("base_cost") or 500),
+            creator_commission_rate=float(product.get("creator_commission_rate") or 0.8),
+            platform_commission_rate=float(product.get("platform_commission_rate") or 0.2),
         )
         creator_earnings  = split_data["creator_amount"] * item["quantity"]
         platform_earnings = split_data["platform_amount"] * item["quantity"]
@@ -757,6 +780,19 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
     await execute("DELETE FROM cart_items WHERE user_id = $1", user.user_id)
 
     logger.info(f"Order created: order_id={order_id}, total_amount={body['total_amount']}, status={order_doc['status']}")
+
+    # Send order confirmation email (fire-and-forget)
+    addr = body.get("shipping_address", {})
+    buyer_email = addr.get("email") or user.email
+    if buyer_email:
+        await send_order_confirmation(
+            buyer_email=buyer_email,
+            buyer_name=addr.get("name") or user.name,
+            order_id=order_id,
+            items=body.get("items", []),
+            total_amount=body["total_amount"],
+            shipping_address=addr,
+        )
 
     return Order(**order_doc)
 
@@ -1056,6 +1092,17 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
 
     logger.info(f"Design {design_id} approved → product {product_id} (apparel={apparel_type}, price=₹{price}) by admin {admin_user.user_id}")
 
+    # Notify creator
+    creator = await fetch_one("SELECT email, name FROM users WHERE user_id = $1", design["user_id"])
+    if creator:
+        await send_design_approved(
+            creator_email=creator["email"],
+            creator_name=creator["name"],
+            design_title=design["title"],
+            product_id=product_id,
+            frontend_url=FRONTEND_URL,
+        )
+
     return {
         "message":    "Design approved and product created",
         "design_id":  design_id,
@@ -1079,6 +1126,19 @@ async def reject_design_admin(design_id: str, request: Request, session_token: O
         raise HTTPException(status_code=404, detail="Design not found")
 
     logger.info(f"Design {design_id} rejected by admin {admin_user.user_id}")
+
+    # Notify creator
+    design = await fetch_one("SELECT title, user_id FROM designs WHERE design_id = $1", design_id)
+    if design:
+        creator = await fetch_one("SELECT email, name FROM users WHERE user_id = $1", design["user_id"])
+        if creator:
+            await send_design_rejected(
+                creator_email=creator["email"],
+                creator_name=creator["name"],
+                design_title=design["title"],
+                reason=reason,
+                frontend_url=FRONTEND_URL,
+            )
 
     return {"message": "Design rejected", "design_id": design_id}
 

@@ -24,7 +24,7 @@ const serif   = { fontFamily: '"Bodoni Moda", serif' };
 const body    = { fontFamily: '"Cabinet Grotesk", sans-serif' };
 const script  = { fontFamily: '"Caveat", cursive' };
 
-const AUTH_URL = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(window.location.origin + '/dashboard')}`;
+const AUTH_URL = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/auth/google`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const easeOut = [0.22, 1, 0.36, 1];
