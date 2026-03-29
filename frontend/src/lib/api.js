@@ -24,6 +24,7 @@ export const uploadDesignImage = (file) => {
   });
 };
 export const createDesign = (data) => api.post('/designs', data);
+export const getDesignLibrary = () => api.get('/designs/library');
 export const getDesigns = () => api.get('/designs');
 export const getDesign = (id) => api.get(`/designs/${id}`);
 export const deleteDesign = (id) => api.delete(`/designs/${id}`);

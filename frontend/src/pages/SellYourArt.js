@@ -1,7 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as fabric from 'fabric';
-import { uploadDesignImage, createDesign, getProductCatalog } from '@/lib/api';
+import { uploadDesignImage, createDesign, getProductCatalog, getDesignLibrary } from '@/lib/api';
+import { QK, UV34_CONFIG, PRINTING_OPTIONS, VINYL_SUB_OPTIONS } from '@/config/qikinkTheme';
+import PrintingOptions from '@/components/qikink/PrintingOptions';
+import DesignUploadModal from '@/components/qikink/DesignUploadModal';
+import ImageDimensionsPanel from '@/components/qikink/ImageDimensionsPanel';
+import SizeSelector from '@/components/qikink/SizeSelector';
+import ColorSelector from '@/components/qikink/ColorSelector';
+import ProductDetailsTab from '@/components/qikink/ProductDetailsTab';
+import BackgroundColorPicker from '@/components/qikink/BackgroundColorPicker';
+import QikinkRightPane from '@/components/qikink/QikinkRightPane';
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const BG   = '#0A0A0B';
@@ -18,8 +27,8 @@ const body    = { fontFamily: '"DM Sans", system-ui, sans-serif' };
 const display = { fontFamily: '"Clash Display", "Bebas Neue", sans-serif' };
 const mono    = { fontFamily: '"JetBrains Mono", monospace' };
 
-const CANVAS_W = 420;
-const CANVAS_H = 600;
+const CANVAS_W = 620;
+const CANVAS_H = 796;
 
 // ── Qikink color hex map ─────────────────────────────────────────────────────
 // Every color name that appears in the catalog mapped to its exact hex.
@@ -85,12 +94,9 @@ const COLLECTIONS = [
   { name: 'T-Shirts', image: '/mockups/T-shirts.PNG.webp', description: 'Crew necks, oversized, acid wash & more', keywords: ['T-Shirt', 'Tee', 'Baby Tee'] },
   { name: 'Hoodies & Jackets', image: '/mockups/Hoodies.PNG.webp', description: 'Hoodies, sweatshirts, bombers & varsity', keywords: ['Hoodie', 'Sweatshirt', 'Bomber', 'Varsity', 'Zip Hoodie'] },
   { name: 'Bottomwear', image: '/mockups/Bottomwear.PNG.webp', description: 'Joggers, shorts & sweatpants', keywords: ['Jogger', 'Short', 'Sweatpants', 'Legging'] },
-  { name: 'Kids Clothing', image: '/mockups/KidsClothing.PNG.webp', description: 'Rompers, kids tees & outerwear', keywords: ['Kids', 'Romper'] },
   { name: 'Headwear', image: '/mockups/Headwear.PNG.webp', description: 'Caps, bucket hats, snapbacks & balaclava', keywords: ['Cap', 'Hat', 'Snapback', 'Trucker', 'Balaclava', 'Bucket'] },
   { name: 'Drinkware', image: '/mockups/Drink-ware.PNG.webp', description: 'Mugs, sippers, tumblers & bottles', keywords: ['Mug', 'Sipper', 'Tumbler', 'Bottle', 'Enamel'] },
   { name: 'Bags & Accessories', image: '/mockups/Bags.PNG.webp', description: 'Tote bags, drawstring bags, keychains & more', keywords: ['Tote', 'Bag', 'Keychain', 'Badge', 'Luggage', 'Fridge Magnet', 'Dog Tag', 'Phone', 'Grip', 'Pen', 'Bookmark', 'Arm Sleeves'] },
-  { name: 'Home & Living', image: '/mockups/Home-and-livng.PNG.webp', description: 'Posters, cushions, coasters, puzzles & more', keywords: ['Poster', 'Canvas', 'Cushion', 'Pillow', 'Coaster', 'Mouse Pad', 'Puzzle', 'Tapestry', 'Tablerunner', 'Placemat', 'Napkin', 'Ornament', 'Acrylic', 'Gaming Pad'] },
-  { name: 'Pet Products', image: '/mockups/Pet-Products.PNG-2.webp', description: 'Dog tees & pet tags', keywords: ['Dog', 'Pet'] },
 ];
 
 // Product images — specific product mockups (keyed by expanded category name)
@@ -187,9 +193,9 @@ const PSD_MOCKUPS = {
 //   UH24 Unisex Hoodie        → 24" wide, ppi≈16  (PSD 1000×1000, garment x178-822 y92-924)
 //   UH26 Unisex Sweatshirt    → 24" wide, ppi≈22  (PSD 1500×1500, garment x78-1387 y153-1334)
 const PSD_PRINT_AREAS = {
-  'UT27': { x: 92,  y: 144, w: 235, h: 276 },  // 12"×14" @ 0.22/0.24/0.56/0.46 fractions of 420×600
-  'UH24': { x: 118, y: 228, w: 185, h: 228 },  // 11"×13" hood ends ~38% from top (0.28/0.38/0.44/0.38)
-  'UH26': { x: 109, y: 156, w: 202, h: 264 },  // 12"×14" sweatshirt collar ~26% (0.26/0.26/0.48/0.44)
+  'UT27': { x: 136, y: 191, w: 347, h: 366 },  // 12"×14" scaled from 420×600 → 620×796
+  'UH24': { x: 174, y: 303, w: 273, h: 303 },  // 11"×13" scaled
+  'UH26': { x: 161, y: 207, w: 298, h: 350 },  // 12"×14" scaled
 };
 
 // Normalize a color name to a PSD map key
@@ -223,25 +229,36 @@ function getPsdMockup(categoryStr, colorName) {
 // Canvas editor templates — keyed by keyword pattern, checked in order
 // All print areas 12"×14" (w:h = 1:1.167). JPG templates are 700×1000 at scale 0.6.
 const KEYWORD_TEMPLATES = [
-  { test: /hoodie/,                  template: '/mockups/hoodie-white.jpg',      printArea: { x: 118, y: 228, w: 185, h: 228 } },
-  { test: /sweatshirt|pullover/,     template: '/mockups/sweatshirt-white.jpg',  printArea: { x: 109, y: 156, w: 202, h: 264 } },
-  { test: /classic crew|standard crew|basic t-shirt|supima|cotton stretch/, template: '/mockups/crew-tee-white.jpg', printArea: { x: 109, y: 156, w: 202, h: 264 } },
+  { test: /hoodie/,                  template: '/mockups/hoodie-white.jpg',      printArea: { x: 174, y: 303, w: 273, h: 303 } },
+  { test: /sweatshirt|pullover/,     template: '/mockups/sweatshirt-white.jpg',  printArea: { x: 161, y: 207, w: 298, h: 350 } },
+  { test: /classic crew|standard crew|basic t-shirt|supima|cotton stretch/, template: '/mockups/crew-tee-white.jpg', printArea: { x: 161, y: 207, w: 298, h: 350 } },
 ];
-const DEFAULT_TEMPLATE = { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 92, y: 144, w: 235, h: 276 } };
+const DEFAULT_TEMPLATE = { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 136, y: 191, w: 347, h: 366 } };
 
 // Specific per-SKU overrides for products without PSD mockups
 // US21: 700×1000 JPG at scale 0.6 → 420×600 canvas. Garment 22" wide (ppi≈12.3). 12"×14" print.
 const PRODUCT_TEMPLATES = {
-  'Male Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
-  'Female Classic Crew T-Shirt':                { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
-  'Boy Classic Crew T-Shirt':                   { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
-  'Girl Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
-  'Male Standard Crew T-Shirt | US21':          { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 109, y: 156, w: 202, h: 264 } },
-  'Unisex Hoodie | UH24':                       { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
-  'Unisex Zip Hoodie | UH38':                   { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
-  'Unisex Pullover Hoodie | UH83':              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
-  'Unisex Acid Wash Hoodie | UH62':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
-  'Kids Hoodie':                                { template: '/mockups/hoodie-white.jpg',        printArea: { x: 118, y: 228, w: 185, h: 228 } },
+  'Male Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
+  'Female Classic Crew T-Shirt':                { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
+  'Boy Classic Crew T-Shirt':                   { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
+  'Girl Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
+  'Male Standard Crew T-Shirt | US21':          { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
+  'Unisex Hoodie | UH24':                       { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
+  'Unisex Zip Hoodie | UH38':                   { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
+  'Unisex Pullover Hoodie | UH83':              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
+  'Unisex Acid Wash Hoodie | UH62':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
+  'Kids Hoodie':                                { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
+};
+
+// ── UV34 view configs (template + print area per view on 620×796 canvas) ─────
+// Print areas derived from PSD layer bounds (1000×1000 PSD → 620×796 canvas)
+const UV34_VIEWS = {
+  front:        { template: '/mockups/UV34/front_base.png',         printArea: { x: 161, y: 206, w: 297, h: 350 }, tintable: true },
+  back:         { template: '/mockups/UV34/back_base.png',          printArea: { x: 161, y: 143, w: 297, h: 398 }, tintable: true },
+  left_pocket:  { template: '/mockups/UV34/left_pocket_base.png',   printArea: { x: 341, y: 278, w: 111, h: 111 }, tintable: true },
+  right_pocket: { template: '/mockups/UV34/right_pocket_base.png',  printArea: { x: 167, y: 278, w: 111, h: 111 }, tintable: true },
+  left_sleeve:  { template: '/mockups/UV34/left_sleeve_base.png',   printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
+  right_sleeve: { template: '/mockups/UV34/right_sleeve_base.png',  printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
 };
 
 const MAX_FILE_MB = 20;
@@ -283,7 +300,7 @@ export default function SellYourArt() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Step 2 — editor (upload + canvas + colors + sizes + details all-in-one)
+  // Step 2 — editor
   const [dragOver, setDragOver] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -305,6 +322,37 @@ export default function SellYourArt() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Qikink-style Step 2 state
+  const [activeTab, setActiveTab] = useState('design');
+  const [printType, setPrintType] = useState(1);
+  const [vinylSubOption, setVinylSubOption] = useState('');
+  const [plainProduct, setPlainProduct] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showSizeChart, setShowSizeChart] = useState(false);
+  const [activeView, setActiveView] = useState('front');
+  const [designAngle, setDesignAngle] = useState(0);
+  const [designDimensions, setDesignDimensions] = useState({ width: 0, height: 0, dpi: 0 });
+  const [sizePrices, setSizePrices] = useState({});
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [bgColor, setBgColor] = useState('#FAF7F3');
+  const [productName, setProductName] = useState('');
+  const [descriptionHtml, setDescriptionHtml] = useState('');
+  const [productTags, setProductTags] = useState([]);
+  const [designLibrary, setDesignLibrary] = useState([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [viewDesigns, setViewDesigns] = useState({}); // { front: { dataUrl, left, top, scaleX, scaleY, angle }, ... }
+
+  // Load design library when upload modal opens
+  useEffect(() => {
+    if (showUploadModal && designLibrary.length === 0) {
+      setLibraryLoading(true);
+      getDesignLibrary()
+        .then(res => setDesignLibrary(res.data || []))
+        .catch(() => setDesignLibrary([]))
+        .finally(() => setLibraryLoading(false));
+    }
+  }, [showUploadModal, designLibrary.length]);
 
   // ── Load catalog on mount ────────────────────────────────────────────────────
 
@@ -429,19 +477,56 @@ export default function SellYourArt() {
     return colorizeTemplate(DEFAULT_TEMPLATE);
   };
 
+  // Save current view's design placement before switching
+  const saveCurrentViewDesign = useCallback(() => {
+    const d = designObjRef.current;
+    if (!d || !imagePreview) return;
+    setViewDesigns(prev => ({
+      ...prev,
+      [activeView]: { dataUrl: imagePreview, left: d.left, top: d.top, scaleX: d.scaleX, scaleY: d.scaleY, angle: d.angle || 0 },
+    }));
+  }, [activeView, imagePreview]);
+
+  // Update live dimensions from canvas design object
+  const updateDimensionsFromCanvas = useCallback((obj) => {
+    if (!obj) return;
+    const viewConfig = UV34_VIEWS[activeView] || UV34_VIEWS.front;
+    const pa = viewConfig.printArea;
+    // Approximate: print area width in inches (front = 12"), px per inch
+    const printWidthInches = activeView.includes('pocket') ? 5 : activeView.includes('sleeve') ? 6 : 12;
+    const pxPerInch = pa.w / printWidthInches;
+    const widthInches = (obj.width * obj.scaleX) / pxPerInch;
+    const heightInches = (obj.height * obj.scaleY) / pxPerInch;
+    const dpi = Math.round(obj.width / widthInches);
+    setDesignDimensions({ width: parseFloat(widthInches.toFixed(2)), height: parseFloat(heightInches.toFixed(2)), dpi });
+    setDesignAngle(Math.round(obj.angle || 0));
+  }, [activeView]);
+
+  // UV34 color lookup helper
+  const UV34_COLOR_MAP = {
+    'black': '#151515', 'navy blue': '#000b17', 'bottle green': '#073717',
+    'royal blue': '#131b4f', 'red': '#8f0001', 'maroon': '#290005',
+    'purple': '#270f33', 'golden yellow': '#ffa100', 'petrol blue': '#092b2f',
+    'olive green': '#252509', 'mustard yellow': '#b5830d', 'light baby pink': '#ffd3e9',
+    'lavender': '#dfd1fb', 'coral': '#b34945', 'mint': '#adffef',
+    'baby blue': '#adffef', 'grey': '#b3b5b9', 'white': '#f5f7f9',
+  };
+
+  // ── Canvas init ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (step !== 2 || !canvasElRef.current || !imagePreview) return;
+    if (step !== 2 || !canvasElRef.current) return;
 
     let cancelled = false;
+    let keyHandler = null;
 
     const init = async () => {
-      if (fabricRef.current) {
-        fabricRef.current.dispose();
-        fabricRef.current = null;
-        designObjRef.current = null;
-      }
+      // Save previous view design
+      if (fabricRef.current && designObjRef.current) saveCurrentViewDesign();
+      if (fabricRef.current) { fabricRef.current.dispose(); fabricRef.current = null; designObjRef.current = null; }
 
-      const tmpl = getProductTemplate();
+      const viewConfig = UV34_VIEWS[activeView] || UV34_VIEWS.front;
+      const tmpl = { template: viewConfig.template, printArea: viewConfig.printArea };
+      const pa = tmpl.printArea;
 
       const canvas = new fabric.Canvas(canvasElRef.current, {
         width: CANVAS_W, height: CANVAS_H, backgroundColor: '#F8F8F6', selection: false,
@@ -449,12 +534,12 @@ export default function SellYourArt() {
       if (cancelled) { canvas.dispose(); return; }
       fabricRef.current = canvas;
 
+      // ── 1. Load garment template + apply color tint ──
       try {
         const bgDataUrl = await toDataURL(tmpl.template);
         if (cancelled) return;
         const bgImg = await fabric.FabricImage.fromURL(bgDataUrl);
         if (cancelled) return;
-        // Scale to fill the full canvas (cover, not contain)
         const bgScale = Math.max(CANVAS_W / bgImg.width, CANVAS_H / bgImg.height);
         bgImg.set({
           originX: 'center', originY: 'center',
@@ -462,105 +547,203 @@ export default function SellYourArt() {
           scaleX: bgScale, scaleY: bgScale,
           selectable: false, evented: false, name: 'garment',
         });
-        // Add garment as a regular object (not backgroundImage) so multiply tinting works
-        canvas.add(bgImg);
 
-        // Color tinting: only for non-PSD templates that use a white base image.
-        // PSD mockups already have the real garment color baked in.
-        if (!tmpl.isPsd) {
-          const colorKey = (selectedColor || '').toLowerCase().trim();
-          const colorSuffix = getTemplateColorSuffix();
-          const tintHex = COLOR_HEX[colorKey];
-          const isLightBase = colorSuffix === 'white';
-          const needsTint = isLightBase && tintHex && colorKey !== 'white' && colorKey !== 'off white'
-            && colorKey !== 'white black' && colorKey !== 'white lavender' && colorKey !== '' && colorKey !== 'na';
-          if (needsTint) {
-            const tintRect = new fabric.Rect({
-              left: 0, top: 0, width: CANVAS_W, height: CANVAS_H,
-              fill: tintHex, globalCompositeOperation: 'multiply',
-              selectable: false, evented: false, name: 'tint',
-            });
-            canvas.add(tintRect);
-          }
+        // Color tinting — only on tintable views (front/back), skip sleeve/pocket
+        const colorKey = (selectedColor || '').toLowerCase().trim();
+        const tintHex = UV34_COLOR_MAP[colorKey] || COLOR_HEX[colorKey];
+        const skipTint = !tintHex || colorKey === 'white' || colorKey === '' || tintHex === '#f5f7f9' || !viewConfig.tintable;
+
+        if (!skipTint) {
+          const isLightColor = ['#ffd3e9','#dfd1fb','#adffef','#b3b5b9','#ffa100','#b5830d'].includes(tintHex);
+          bgImg.filters = [new fabric.filters.BlendColor({
+            color: tintHex,
+            mode: isLightColor ? 'tint' : 'multiply',
+            alpha: isLightColor ? 0.6 : 0.8,
+          })];
+          bgImg.applyFilters();
         }
+
+        canvas.add(bgImg);
         canvas.renderAll();
       } catch (_) {}
 
-      const pa = tmpl.printArea;
-
-      // Print area boundary
-      canvas.add(new fabric.Rect({
-        left: pa.x, top: pa.y, width: pa.w, height: pa.h,
-        fill: 'transparent', stroke: '#C8FF00', strokeWidth: 1.5,
-        strokeDashArray: [8, 4], selectable: false, evented: false, name: 'printArea',
-      }));
-      canvas.add(new fabric.IText('PRINT AREA', {
-        left: pa.x + 6, top: pa.y + 4, fontSize: 9,
-        fill: 'rgba(200,255,0,0.45)', fontFamily: 'monospace',
-        selectable: false, evented: false, editable: false,
-      }));
-
-      // Vertical center guide line
-      canvas.add(new fabric.Line(
-        [CANVAS_W / 2, pa.y, CANVAS_W / 2, pa.y + pa.h],
-        {
-          stroke: 'rgba(200,255,0,0.25)', strokeWidth: 1,
-          strokeDashArray: [4, 4], selectable: false, evented: false, name: 'centerLine',
-        }
-      ));
-
-      // Constraint helpers — keep design inside print area
-      const clampToArea = (obj) => {
-        const b = obj.getBoundingRect();
-        let { left, top } = obj;
-        if (b.left < pa.x)                        left += pa.x - b.left;
-        if (b.top  < pa.y)                        top  += pa.y - b.top;
-        if (b.left + b.width  > pa.x + pa.w)      left -= (b.left + b.width)  - (pa.x + pa.w);
-        if (b.top  + b.height > pa.y + pa.h)      top  -= (b.top  + b.height) - (pa.y + pa.h);
-        obj.set({ left, top });
+      // ── 2. Clamping: keep design fully inside print area ──
+      const clampDesign = (obj) => {
+        // Use simple center+half-size math (works without rotation)
+        const w = obj.width * obj.scaleX;
+        const h = obj.height * obj.scaleY;
+        let l = obj.left, t = obj.top;
+        if (l - w / 2 < pa.x)          l = pa.x + w / 2;
+        if (t - h / 2 < pa.y)          t = pa.y + h / 2;
+        if (l + w / 2 > pa.x + pa.w)   l = pa.x + pa.w - w / 2;
+        if (t + h / 2 > pa.y + pa.h)   t = pa.y + pa.h - h / 2;
+        obj.set({ left: l, top: t });
         obj.setCoords();
       };
 
+      // ── 3. Canvas event handlers ──
       canvas.on('object:moving', (e) => {
-        if (e.target && e.target.name === 'design') clampToArea(e.target);
+        if (e.target?.name === 'design') { clampDesign(e.target); updateDimensionsFromCanvas(e.target); }
       });
-
       canvas.on('object:scaling', (e) => {
         const obj = e.target;
         if (!obj || obj.name !== 'design') return;
-        // Prevent scaling beyond print area dimensions (uniform scale — use min of both axes)
-        const maxScale = Math.min(pa.w / obj.width, pa.h / obj.height);
-        if (obj.scaleX > maxScale) { obj.scaleX = maxScale; obj.scaleY = maxScale; }
-        if (obj.scaleY > maxScale) { obj.scaleX = maxScale; obj.scaleY = maxScale; }
+        // Cap scale so design can't exceed print area
+        const maxScaleX = pa.w / obj.width;
+        const maxScaleY = pa.h / obj.height;
+        const maxScale = Math.min(maxScaleX, maxScaleY);
+        if (obj.scaleX > maxScale) obj.scaleX = maxScale;
+        if (obj.scaleY > maxScale) obj.scaleY = maxScale;
         obj.setCoords();
-        clampToArea(obj);
+        clampDesign(obj);
+        updateDimensionsFromCanvas(obj);
+      });
+      canvas.on('object:rotating', (e) => {
+        if (e.target?.name === 'design') updateDimensionsFromCanvas(e.target);
+      });
+      canvas.on('object:modified', (e) => {
+        if (e.target?.name === 'design') { clampDesign(e.target); updateDimensionsFromCanvas(e.target); }
       });
 
-      if (imagePreview) {
-        const designImg = await fabric.FabricImage.fromURL(imagePreview);
-        if (cancelled) return;
-        // Fit design inside print area (max 90% of each dimension), centered
-        const scale = Math.min((pa.w * 0.9) / designImg.width, (pa.h * 0.9) / designImg.height);
-        designImg.set({
-          left: pa.x + pa.w / 2, top: pa.y + pa.h / 2,
+      // ── 4. Delete key handler ──
+      keyHandler = (e) => {
+        if ((e.key === 'Delete' || e.key === 'Backspace') && designObjRef.current && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+          canvas.remove(designObjRef.current);
+          canvas.getObjects().filter(o => o.name === 'printArea').forEach(o => canvas.remove(o));
+          designObjRef.current = null;
+          setDesignDimensions({ width: 0, height: 0, dpi: 0 });
+          setDesignAngle(0);
+          setImageFile(null); setImagePreview(null);
+          canvas.renderAll();
+        }
+      };
+      document.addEventListener('keydown', keyHandler);
+
+      // ── 5. Place design + print area boundary (only if design uploaded) ──
+      const savedDesign = viewDesigns[activeView];
+      const designDataUrl = savedDesign?.dataUrl || imagePreview;
+
+      if (designDataUrl) {
+        // Red dashed print area boundary
+        const printAreaRect = new fabric.Rect({
+          left: pa.x + pa.w / 2,
+          top: pa.y + pa.h / 2,
+          width: pa.w,
+          height: pa.h,
           originX: 'center', originY: 'center',
-          scaleX: scale, scaleY: scale, name: 'design',
-          cornerSize: 9, cornerColor: '#C8FF00', cornerStrokeColor: '#0A0A0B',
-          borderColor: '#C8FF00', transparentCorners: false, padding: 4,
+          fill: 'transparent',
+          stroke: '#FF0000',
+          strokeWidth: 2,
+          strokeDashArray: [10, 5],
+          strokeUniform: true,
+          selectable: false,
+          evented: false,
+          name: 'printArea',
+          objectCaching: false,
         });
-        canvas.add(designImg);
-        canvas.setActiveObject(designImg);
-        designObjRef.current = designImg;
+        canvas.add(printAreaRect);
+
+        // Load and place design
+        try {
+          const designImg = await fabric.FabricImage.fromURL(designDataUrl);
+          if (cancelled) return;
+
+          if (savedDesign) {
+            designImg.set({
+              left: savedDesign.left, top: savedDesign.top,
+              originX: 'center', originY: 'center',
+              scaleX: savedDesign.scaleX, scaleY: savedDesign.scaleY,
+              angle: savedDesign.angle || 0,
+            });
+          } else {
+            const scale = Math.min((pa.w * 0.8) / designImg.width, (pa.h * 0.8) / designImg.height);
+            designImg.set({
+              left: pa.x + pa.w / 2, top: pa.y + pa.h / 2,
+              originX: 'center', originY: 'center',
+              scaleX: scale, scaleY: scale,
+            });
+          }
+
+          // Common design object settings
+          designImg.set({
+            name: 'design',
+            cornerSize: 10,
+            cornerColor: '#FF0000',
+            cornerStrokeColor: '#ffffff',
+            borderColor: '#FF0000',
+            transparentCorners: false,
+            padding: 5,
+            borderScaleFactor: 1.5,
+            lockRotation: false,
+          });
+
+          // Add delete control (red × circle) at top-right corner
+          designImg.controls.deleteControl = new fabric.Control({
+            x: 0.5, y: -0.5,
+            offsetX: 14, offsetY: -14,
+            cursorStyle: 'pointer',
+            mouseUpHandler: () => {
+              canvas.remove(designImg);
+              canvas.getObjects().filter(o => o.name === 'printArea').forEach(o => canvas.remove(o));
+              designObjRef.current = null;
+              setDesignDimensions({ width: 0, height: 0, dpi: 0 });
+              setDesignAngle(0);
+              setImageFile(null); setImagePreview(null);
+              canvas.renderAll();
+              return true;
+            },
+            render: (ctx, left, top) => {
+              const size = 22;
+              ctx.save();
+              ctx.translate(left, top);
+              // Red circle
+              ctx.beginPath();
+              ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+              ctx.fillStyle = '#FF0000';
+              ctx.fill();
+              ctx.strokeStyle = '#fff';
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+              // White × icon
+              ctx.fillStyle = '#fff';
+              ctx.font = 'bold 14px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('×', 0, 1);
+              ctx.restore();
+            },
+          });
+
+          canvas.add(designImg);
+          canvas.setActiveObject(designImg);
+          designObjRef.current = designImg;
+          updateDimensionsFromCanvas(designImg);
+        } catch (_) {}
       }
+
       canvas.renderAll();
     };
 
     init();
     return () => {
       cancelled = true;
+      if (keyHandler) document.removeEventListener('keydown', keyHandler);
       if (fabricRef.current) { fabricRef.current.dispose(); fabricRef.current = null; designObjRef.current = null; }
     };
-  }, [step, imagePreview, selectedCategory, selectedColor]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, imagePreview, selectedCategory, selectedColor, activeView]);
+
+  // ── Sync angle input → canvas ──
+  useEffect(() => {
+    const d = designObjRef.current;
+    const c = fabricRef.current;
+    if (!d || !c) return;
+    if (Math.round(d.angle || 0) !== designAngle) {
+      d.set({ angle: designAngle });
+      d.setCoords();
+      c.renderAll();
+    }
+  }, [designAngle]);
 
   // ── Submit (upload image + export mockup + create design) ───────────────────
 
@@ -568,10 +751,11 @@ export default function SellYourArt() {
     e.preventDefault();
     setError('');
     if (!imageFile) { setError('Please upload a design image.'); return; }
-    if (!title.trim()) { setError('Please enter a title.'); return; }
-    if (!price || isNaN(Number(price)) || Number(price) <= 0) { setError('Please enter a valid price.'); return; }
-    const isUT27 = (selectedCategory?.category || '').includes('UT27');
-    if (isUT27 && Number(price) > 999) { setError('Maximum price for this product is ₹999'); return; }
+    const effectiveTitle = (productName || title).trim();
+    if (!effectiveTitle) { setError('Please enter a product name.'); return; }
+    // Validate pricing: either per-size prices or single price
+    const hasSizePrices = Object.keys(sizePrices).length > 0 && Object.values(sizePrices).some(v => v > 0);
+    if (!hasSizePrices && (!price || isNaN(Number(price)) || Number(price) <= 0)) { setError('Please set pricing for at least one size.'); return; }
     if (selectedSizes.length === 0) { setError('Please select at least one size.'); return; }
 
     setSubmitting(true);
@@ -611,17 +795,26 @@ export default function SellYourArt() {
         mockupUrl = mockupUploadRes.data.url || mockupUploadRes.data.image_url;
       }
 
-      // 3. Create design
+      // Determine effective print type label
+      const printTypeLabel = printType === 'vinyl' ? `vinyl_${vinylSubOption}` : PRINTING_OPTIONS.find(o => o.value === printType)?.label || 'dtf';
+
+      // 3. Create design with Qikink-style fields
       await createDesign({
-        title: title.trim(),
+        title: (productName || title).trim(),
         description: description.trim(),
-        price: Number(price),
+        description_html: descriptionHtml,
+        price: Object.keys(sizePrices).length > 0 ? Math.min(...Object.values(sizePrices).filter(v => v > 0)) : (Number(price) || 0),
+        size_prices: Object.keys(sizePrices).length > 0 ? sizePrices : undefined,
         image_url: hostedImageUrl,
         mockup_image_url: mockupUrl,
-        product_type: selectedCategory?.category || 'Terry Oversized Tee | UT27',
+        product_type: selectedCategory?.category || 'V Neck T-Shirt | UV34',
         placement_coordinates: placementCoords,
+        placement_view: activeView,
         selected_sizes: selectedSizes,
-        selected_color: selectedColor,
+        selected_color: selectedColors[0] || selectedColor,
+        selected_colors: [selectedColor],
+        print_type: printTypeLabel,
+        tags: productTags,
       });
       setSuccess(true);
     } catch (e) {
@@ -801,269 +994,179 @@ export default function SellYourArt() {
         </div>
       )}
 
-      {/* ── STEP 2: Product Editor (all-in-one) ── */}
+      {/* ── STEP 2: Product Editor (exact Qikink replica) ── */}
       {step === 2 && selectedCategory && (
-        <div style={{ display: 'flex', height: 'calc(100vh - 57px)', overflow: 'hidden' }}>
+        <div style={{ background: '#FAF7F3', minHeight: '100vh', color: '#292929', fontFamily: '"DM Sans", "amazon ember display rg", sans-serif' }}>
 
-          {/* Left: Canvas area */}
-          <div style={{ flex: '0 0 480px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', borderRight: `1px solid ${BS}`, background: BG2 }}>
-            {imagePreview ? (
-              <>
-                <div style={{ border: `1px solid ${BS}`, borderRadius: '12px', overflow: 'hidden', display: 'inline-block', lineHeight: 0, background: '#fff' }}>
-                  <canvas ref={canvasElRef} />
-                </div>
-                <p style={{ ...mono, fontSize: '10px', color: TT, marginTop: '8px', textAlign: 'center' }}>
-                  Drag · Scale (corners) · Rotate (top handle)
-                </p>
-              </>
-            ) : (
-              /* Upload zone when no image yet */
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={handleDrop}
-                style={{
-                  width: '100%', maxWidth: '420px', aspectRatio: '7/10',
-                  border: `2px dashed ${dragOver ? AS : BS}`, borderRadius: '16px',
-                  background: dragOver ? 'rgba(200,255,0,0.04)' : BG3,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                }}
-              >
-                <div style={{ textAlign: 'center', padding: '40px 24px' }}>
-                  <div style={{ fontSize: '40px', marginBottom: '16px', opacity: 0.3 }}>⬆</div>
-                  <p style={{ ...body, fontSize: '16px', color: TS, margin: '0 0 8px', fontWeight: 600 }}>
-                    Drop your design here
-                  </p>
-                  <p style={{ ...body, fontSize: '14px', color: TS, margin: '0 0 4px' }}>
-                    or <span style={{ color: AS, cursor: 'pointer' }}>browse files</span>
-                  </p>
-                  <p style={{ ...mono, fontSize: '11px', color: TT, margin: '12px 0 0' }}>PNG · JPG · WEBP · max 20 MB</p>
-                </div>
-              </div>
-            )}
+          {/* Hidden file input */}
+          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp" style={{ display: 'none' }}
+            onChange={(e) => handleFile(e.target.files[0])} />
 
-            <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp" style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
-
-            {fileError && (
-              <div style={{ padding: '10px 16px', borderRadius: '8px', background: 'rgba(255,61,0,0.08)', border: `1px solid rgba(255,61,0,0.2)`, marginTop: '12px', maxWidth: '420px' }}>
-                <p style={{ ...body, fontSize: '13px', color: ERR, margin: 0 }}>{fileError}</p>
-              </div>
-            )}
-
-            {imagePreview && (
-              <button onClick={() => fileInputRef.current?.click()}
-                style={{ ...body, marginTop: '12px', padding: '8px 20px', borderRadius: '999px', background: BG3, border: `1px solid ${BS}`, color: TS, fontSize: '12px', cursor: 'pointer' }}>
-                Change image
-              </button>
-            )}
-          </div>
-
-          {/* Right: Controls panel */}
-          <div style={{ flex: 1, overflow: 'auto', padding: '28px 32px 80px' }}>
-            <div style={{ maxWidth: '520px' }}>
-
-              {/* Product header */}
-              <div style={{ marginBottom: '28px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <h2 style={{ ...display, fontSize: '28px', fontWeight: 700, margin: 0, textTransform: 'uppercase', color: '#FFFFFF' }}>
-                    {selectedCategory.category}
-                  </h2>
-                </div>
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                  {selectedCategory.genders?.length > 0 && (
-                    <span style={{ ...mono, fontSize: '10px', color: TT }}>{selectedCategory.genders.join(' / ')}</span>
-                  )}
-                  <span style={{ ...mono, fontSize: '10px', color: TT }}>Base ₹{Math.min(...(selectedCategory.base_prices || [0]))}</span>
-                  <span style={{ ...mono, fontSize: '10px', color: TT }}>GST {selectedCategory.tax_rate || 5}%</span>
-                </div>
-              </div>
-
-              {/* Colors */}
-              {selectedCategory.colors?.length > 0 && (
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.15em', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
-                    Colour — {selectedColor || 'select'}
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {selectedCategory.colors.map(color => {
-                      const hex = COLOR_HEX[color.toLowerCase().trim()] || '#999';
-                      const isSelected = selectedColor === color;
-                      return (
-                        <button key={color} onClick={() => setSelectedColor(color)} title={color}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            padding: '5px 12px', borderRadius: '999px', fontSize: '11px', cursor: 'pointer',
-                            ...mono, textTransform: 'capitalize', transition: 'all 0.15s',
-                            background: isSelected ? 'rgba(200,255,0,0.1)' : 'transparent',
-                            border: `1px solid ${isSelected ? AS : BS}`,
-                            color: isSelected ? AS : TS,
-                          }}>
-                          <span style={{
-                            width: '10px', height: '10px', borderRadius: '50%',
-                            background: hex,
-                            border: hex === '#FFFFFF' || hex === '#F5F0EB' || hex === '#F5F0FF' || hex === '#F5F4FF'
-                              ? '1px solid rgba(255,255,255,0.3)' : 'none',
-                            flexShrink: 0,
-                          }} />
-                          {color}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Sizes */}
-              {selectedCategory.sizes?.length > 0 && (
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ ...mono, fontSize: '10px', color: TT, letterSpacing: '0.15em', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
-                    Sizes — select which sizes to offer
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {selectedCategory.sizes.map(size => {
-                      const isSelected = selectedSizes.includes(size);
-                      return (
-                        <button key={size} onClick={() => toggleSize(size)}
-                          style={{
-                            width: '44px', height: '36px', borderRadius: '6px', fontSize: '12px',
-                            ...mono, cursor: 'pointer', transition: 'all 0.15s',
-                            background: isSelected ? 'rgba(200,255,0,0.12)' : BG3,
-                            border: `1px solid ${isSelected ? AS : BS}`,
-                            color: isSelected ? AS : TS,
-                            fontWeight: isSelected ? 700 : 400,
-                          }}>
-                          {size}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <button onClick={() => setSelectedSizes([...selectedCategory.sizes])}
-                    style={{ ...mono, fontSize: '10px', color: AS, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0 0', textDecoration: 'underline' }}>
-                    Select all
-                  </button>
-                </div>
-              )}
-
-              <div style={{ height: '1px', background: BS, margin: '8px 0 24px' }} />
-
-              {/* Title */}
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ ...body, fontSize: '12px', fontWeight: 600, color: TS, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Title *</label>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
-                  onFocus={() => setFocused('title')} onBlur={() => setFocused(null)}
-                  placeholder="e.g. Tokyo Nights Drop" maxLength={80} style={inputStyle(focused === 'title')} />
-                <p style={{ ...mono, fontSize: '10px', color: TT, margin: '4px 0 0', textAlign: 'right' }}>{title.length}/80</p>
-              </div>
-
-              {/* Description */}
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ ...body, fontSize: '12px', fontWeight: 600, color: TS, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Description</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-                  onFocus={() => setFocused('desc')} onBlur={() => setFocused(null)}
-                  placeholder="Tell buyers about your design..." maxLength={500} rows={3}
-                  style={{ ...inputStyle(focused === 'desc'), resize: 'vertical' }} />
-                <p style={{ ...mono, fontSize: '10px', color: TT, margin: '4px 0 0', textAlign: 'right' }}>{description.length}/500</p>
-              </div>
-
-              {/* Price */}
-              <div style={{ marginBottom: '24px' }}>
-                {/* Base price info */}
-                {selectedCategory?.base_prices?.length > 0 && (() => {
-                  const basePrice = Math.min(...selectedCategory.base_prices);
-                  const isUT27 = (selectedCategory.category || '').includes('UT27');
-                  const maxPrice = isUT27 ? 999 : null;
-                  const priceNum = Number(price);
-                  const overCap = maxPrice && priceNum > maxPrice;
-                  return (
-                    <>
-                      <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: '10px', padding: '14px 18px', marginBottom: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ ...body, fontSize: '14px', fontWeight: 700, color: TP }}>Base price: ₹{basePrice}</span>
-                          <span style={{ ...mono, fontSize: '10px', color: AS, letterSpacing: '0.08em' }}>You keep 80%</span>
-                        </div>
-                        <p style={{ ...body, fontSize: '12px', color: TT, margin: '4px 0 0' }}>
-                          Qikink production cost — your profit is retail price minus base price × 80%.
-                        </p>
-                        {maxPrice && (
-                          <p style={{ ...mono, fontSize: '10px', color: AW, margin: '6px 0 0', letterSpacing: '0.05em' }}>
-                            Max retail price for this product: ₹{maxPrice}
-                          </p>
-                        )}
-                      </div>
-
-                      <label style={{ ...body, fontSize: '12px', fontWeight: 600, color: TS, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Retail Price (₹) *</label>
-                      <div style={{ position: 'relative' }}>
-                        <span style={{ ...body, position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: TS, fontSize: '15px', pointerEvents: 'none' }}>₹</span>
-                        <input type="number" value={price}
-                          onChange={(e) => {
-                            let val = e.target.value;
-                            if (maxPrice && Number(val) > maxPrice) val = String(maxPrice);
-                            setPrice(val);
-                          }}
-                          onFocus={() => setFocused('price')} onBlur={() => setFocused(null)}
-                          placeholder={maxPrice ? String(maxPrice) : '999'} min="1" step="1"
-                          style={{ ...inputStyle(focused === 'price'), paddingLeft: '32px', borderColor: overCap ? ERR : undefined }} />
-                      </div>
-                      {overCap && (
-                        <p style={{ ...body, fontSize: '12px', color: ERR, margin: '6px 0 0', fontWeight: 600 }}>
-                          Maximum price for this product is ₹{maxPrice}
-                        </p>
-                      )}
-                      <p style={{ ...mono, fontSize: '10px', color: TT, margin: '4px 0 0' }}>
-                        {price && Number(price) > 0 ? `You earn ₹${Math.round(Number(price) * 0.8)} per sale (80%)` : 'You keep 80% of every sale'}
-                      </p>
-                    </>
-                  );
-                })()}
-                {/* Fallback if no base_prices available */}
-                {(!selectedCategory?.base_prices?.length) && (
-                  <>
-                    <label style={{ ...body, fontSize: '12px', fontWeight: 600, color: TS, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Retail Price (₹) *</label>
-                    <div style={{ position: 'relative' }}>
-                      <span style={{ ...body, position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: TS, fontSize: '15px', pointerEvents: 'none' }}>₹</span>
-                      <input type="number" value={price} onChange={(e) => setPrice(e.target.value)}
-                        onFocus={() => setFocused('price')} onBlur={() => setFocused(null)}
-                        placeholder="999" min="1" step="1"
-                        style={{ ...inputStyle(focused === 'price'), paddingLeft: '32px' }} />
-                    </div>
-                    <p style={{ ...mono, fontSize: '10px', color: TT, margin: '4px 0 0' }}>
-                      {price && Number(price) > 0 ? `You earn ₹${Math.round(Number(price) * 0.8)} per sale (80%)` : 'You keep 80% of every sale'}
-                    </p>
-                  </>
-                )}
-              </div>
-
-              {/* Print method info */}
-              <div style={{ background: 'rgba(200,255,0,0.04)', border: `1px solid rgba(200,255,0,0.15)`, borderRadius: '10px', padding: '14px 18px', marginBottom: '24px' }}>
-                <p style={{ ...mono, fontSize: '10px', color: AS, letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 6px' }}>Print method</p>
-                <p style={{ ...body, fontSize: '13px', color: TP, margin: 0, lineHeight: 1.5 }}>DTF (Direct to Film) via Qikink — vibrant colours, all fabric types, no minimums.</p>
-              </div>
-
-              {error && (
-                <div style={{ padding: '12px 16px', borderRadius: '8px', background: 'rgba(255,61,0,0.08)', border: `1px solid rgba(255,61,0,0.2)`, marginBottom: '16px' }}>
-                  <p style={{ ...body, fontSize: '14px', color: ERR, margin: 0 }}>{error}</p>
-                </div>
-              )}
-
-              {(() => {
-                const isUT27 = (selectedCategory?.category || '').includes('UT27');
-                const maxPrice = isUT27 ? 999 : null;
-                const priceBlocked = maxPrice && Number(price) > maxPrice;
-                const submitDisabled = submitting || priceBlocked;
+          {/* ═══ TOP NAV BAR (Back + 3 steps + Save Product) ═══ */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', background: '#fff', borderBottom: '1px solid #DDDCDC' }}>
+            <button onClick={() => setStep(1)} style={{ background: '#FF6700', color: '#fff', border: 'none', borderRadius: '4px', padding: '6px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>← Back</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+              {['Choose Collections', 'Select Products', 'Create Product'].map((label, i) => {
+                const isActive = i === 2;
                 return (
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <button onClick={handleSubmit} disabled={submitDisabled}
-                      style={{ ...body, padding: '15px 40px', borderRadius: '999px', background: submitDisabled ? BG3 : AS, border: 'none', color: submitDisabled ? TS : BG, fontSize: '15px', fontWeight: 700, cursor: submitDisabled ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
-                      {submitting ? 'Submitting…' : 'Submit for Review'}
-                    </button>
-                    <p style={{ ...mono, fontSize: '10px', color: TT }}>Reviewed within 24h</p>
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: isActive ? '#FF6700' : (i < 2 ? '#FF6700' : '#ccc'), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>
+                      {i < 2 ? '✓' : i + 1}
+                    </div>
+                    <span style={{ fontSize: '13px', color: isActive ? '#FF6700' : '#777877', fontWeight: isActive ? 600 : 400 }}>{label}</span>
                   </div>
                 );
-              })()}
+              })}
+            </div>
+            <button onClick={handleSubmit} disabled={submitting}
+              style={{ background: '#FF6700', color: '#fff', border: 'none', borderRadius: '4px', padding: '8px 20px', fontSize: '14px', fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1, fontFamily: 'inherit' }}>
+              {submitting ? 'Saving...' : 'Save Product'}
+            </button>
+          </div>
+
+          {/* ═══ MAIN CONTENT: Left (canvas) | Right (controls) ═══ */}
+          <div style={{ display: 'flex', minHeight: 'calc(100vh - 50px)' }}>
+
+            {/* ═══ LEFT HALF: View thumbs + Canvas ═══ */}
+            <div style={{ flex: '0 0 50%', padding: '16px 20px', background: '#FAF7F3' }}>
+
+              {/* Product name */}
+              <p style={{ fontSize: '16px', fontWeight: 600, color: '#292929', margin: '0 0 12px', fontFamily: 'inherit' }}>
+                {selectedCategory.category}
+              </p>
+
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+              {/* View Thumbnails (vertical strip) */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginRight: '12px', paddingTop: '12px' }}>
+                <button style={{ background: 'none', border: 'none', color: '#777877', cursor: 'pointer', fontSize: '14px', padding: '4px' }}>▲</button>
+
+                {[
+                  { label: 'Front', key: 'front', img: '/mockups/UV34/front_base.png' },
+                  { label: 'Back', key: 'back', img: '/mockups/UV34/back_base.png' },
+                  { label: 'Left Pocket', key: 'left_pocket', img: '/mockups/UV34/left_pocket_base.png' },
+                  { label: 'Right Pocket', key: 'right_pocket', img: '/mockups/UV34/right_pocket_base.png' },
+                  { label: 'Left Sleeve', key: 'left_sleeve', img: '/mockups/UV34/left_sleeve_base.png' },
+                  { label: 'Right Sleeve', key: 'right_sleeve', img: '/mockups/UV34/right_sleeve_base.png' },
+                ].map((view) => {
+                  const isViewActive = activeView === view.key;
+                  return (
+                    <div key={view.key} onClick={() => { saveCurrentViewDesign(); setActiveView(view.key); }}
+                      style={{ cursor: 'pointer', textAlign: 'center', marginBottom: '6px' }}>
+                      <div style={{
+                        width: '81px', height: '81px', overflow: 'hidden',
+                        border: isViewActive ? '2px solid #FF6700' : '1px solid #DDDCDC',
+                        background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <img src={view.img} alt={view.label}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      </div>
+                      <span style={{ fontSize: '10px', color: isViewActive ? '#FF6700' : '#777877', display: 'block', marginTop: '2px' }}>{view.label}</span>
+                    </div>
+                  );
+                })}
+
+                <button style={{ background: 'none', border: 'none', color: '#777877', cursor: 'pointer', fontSize: '14px', padding: '4px' }}>▼</button>
+              </div>
+
+              {/* Canvas */}
+              <div style={{ position: 'relative' }}>
+                <div style={{ border: '1px solid #DDDCDC', overflow: 'hidden', display: 'inline-block', lineHeight: 0 }}>
+                  <canvas ref={canvasElRef} />
+                </div>
+
+                {/* Alignment floating pill below canvas */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '10px 24px', borderRadius: '30px', boxShadow: '2px 2px 10px rgba(0,0,0,0.15)', background: '#fff', width: 'fit-content', margin: '16px auto 0' }}>
+                  {[
+                    { label: 'Center Vertically', icon: '⇕', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ left: pa.x + pa.w / 2 }); d.setCoords(); c.renderAll(); }},
+                    { label: 'Center Horizontally', icon: '⇔', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ top: pa.y + pa.h / 2 }); d.setCoords(); c.renderAll(); }},
+                    { label: 'Flip Horizontal', icon: '⇄', action: () => { const d = designObjRef.current; if (!d) return; d.set({ flipX: !d.flipX }); fabricRef.current?.renderAll(); }},
+                    { label: 'Flip Vertical', icon: '⇅', action: () => { const d = designObjRef.current; if (!d) return; d.set({ flipY: !d.flipY }); fabricRef.current?.renderAll(); }},
+                    { label: 'Center Both', icon: '⊕', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ left: pa.x + pa.w / 2, top: pa.y + pa.h / 2 }); d.setCoords(); c.renderAll(); }},
+                    { label: 'Undo', icon: '↺', action: () => { fabricRef.current?.undo?.(); }},
+                  ].map((btn) => (
+                    <button key={btn.label} onClick={btn.action} title={btn.label}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FF6700', fontSize: '22px', padding: '2px 4px', lineHeight: 1 }}>
+                      {btn.icon}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              </div>
+            </div>
+
+            {/* ═══ RIGHT HALF: QikinkRightPane ═══ */}
+            <div style={{ flex: '0 0 50%', borderLeft: '1px solid #DDDCDC', background: '#fff', overflow: 'auto', maxHeight: 'calc(100vh - 50px)' }}>
+              <QikinkRightPane
+                productName={selectedCategory.category}
+                selectedColor={selectedColor}
+                onColorChange={setSelectedColor}
+                basePrice={140}
+                taxRate={5}
+                selectedSizes={selectedSizes}
+                onToggleSize={toggleSize}
+                sizePrices={sizePrices}
+                onSizePriceChange={(size, p) => setSizePrices(prev => ({ ...prev, [size]: p }))}
+                selectedColors={[selectedColor]}
+                imagePreview={imagePreview}
+                onAddDesign={() => fileInputRef.current?.click()}
+                onDeleteDesign={() => {
+                  // Clear all design state — useEffect will re-render canvas clean
+                  setImageFile(null); setImagePreview(null); setImageUrl('');
+                  setDesignDimensions({ width: 0, height: 0, dpi: 0 }); setDesignAngle(0);
+                  setViewDesigns({});
+                }}
+                designDimensions={designDimensions}
+                designAngle={designAngle}
+                onAngleChange={setDesignAngle}
+                onWidthChange={(v) => setDesignDimensions(d => ({ ...d, width: v }))}
+                onHeightChange={(v) => setDesignDimensions(d => ({ ...d, height: v }))}
+                printType={printType}
+                onPrintTypeChange={setPrintType}
+                vinylSubOption={vinylSubOption}
+                onVinylSubChange={setVinylSubOption}
+                plainProduct={plainProduct}
+                onPlainProductChange={setPlainProduct}
+                onShowSizeChart={() => setShowSizeChart(true)}
+                bgColor={bgColor}
+                onBgColorChange={setBgColor}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                productTitle={productName}
+                onProductTitleChange={setProductName}
+                descriptionHtml={descriptionHtml}
+                onDescriptionChange={setDescriptionHtml}
+                tags={productTags}
+                onTagsChange={setProductTags}
+                onSave={handleSubmit}
+                onDownloadMockups={() => {
+                  if (!fabricRef.current) return;
+                  fabricRef.current.discardActiveObject(); fabricRef.current.renderAll();
+                  const link = document.createElement('a'); link.download = 'mockup.png';
+                  link.href = fabricRef.current.toDataURL({ format: 'png', multiplier: 2 }); link.click();
+                }}
+                submitting={submitting}
+              />
             </div>
           </div>
+
+          {/* ═══ Modals ═══ */}
+          {showSizeChart && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSizeChart(false)}>
+              <div style={{ background: '#fff', borderRadius: '8px', padding: '24px', maxWidth: '600px', maxHeight: '80vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#292929' }}>Size Chart</h3>
+                  <button onClick={() => setShowSizeChart(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#777877' }}>×</button>
+                </div>
+                <img src="/mockups/sizechart-uv34.webp" alt="Size Chart" style={{ width: '100%', borderRadius: '4px' }} />
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', padding: '12px 24px', borderRadius: '8px', background: '#FFF3E0', border: '1px solid #FFB74D', zIndex: 1000 }}>
+              <p style={{ fontSize: '14px', color: '#E65100', margin: 0 }}>{error}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

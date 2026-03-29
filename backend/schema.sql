@@ -52,6 +52,10 @@ CREATE TABLE IF NOT EXISTS designs (
     product_configs      JSONB DEFAULT '[]',
     design_analysis      JSONB,
     print_metadata       JSONB,
+    size_prices           JSONB,
+    selected_colors       TEXT[] DEFAULT '{}',
+    print_type            TEXT DEFAULT 'dtf',
+    description_html      TEXT,
     created_at           TIMESTAMPTZ DEFAULT now(),
     updated_at           TIMESTAMPTZ DEFAULT now()
 );

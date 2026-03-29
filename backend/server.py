@@ -385,20 +385,29 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
     now = datetime.now(timezone.utc)
     tags = body.get("tags", [])
 
+    # New Qikink-style fields
+    size_prices = body.get("size_prices")          # JSONB: {"S": 599, "M": 599, ...}
+    selected_colors = body.get("selected_colors", [])  # TEXT[]
+    print_type = body.get("print_type", "dtf")     # TEXT
+    description_html = body.get("description_html") # TEXT (rich HTML)
+
     await execute(
         """INSERT INTO designs
                (design_id, user_id, title, description, image_url, mockup_image_url,
                 product_type, placement_coordinates, price, tags, approval_status,
                 featured, product_configs, design_analysis, print_metadata,
+                size_prices, selected_colors, print_type, description_html,
                 created_at, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)""",
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)""",
         design_id, user.user_id, body["title"], body.get("description"),
         body["image_url"], body.get("mockup_image_url"),
         body.get("product_type", "UT27"),
         to_jsonb(body.get("placement_coordinates")),
         body.get("price"), tags, initial_status,
         False, to_jsonb(product_configs), to_jsonb(design_analysis),
-        to_jsonb(print_metadata), now, now,
+        to_jsonb(print_metadata),
+        to_jsonb(size_prices), selected_colors, print_type, description_html,
+        now, now,
     )
 
     design_doc = {
@@ -462,6 +471,19 @@ def calculate_print_size(product_type: str, analysis: dict) -> dict:
         "width_cm": round(final_w, 2),
         "height_cm": round(final_h, 2)
     }
+
+@api_router.get("/designs/library")
+async def get_design_library(request: Request, session_token: Optional[str] = Cookie(None)):
+    """Return current user's uploaded design images for the design library panel."""
+    user = await get_current_user(request, session_token)
+    rows = await fetch_all(
+        """SELECT DISTINCT ON (image_url) image_url, title, created_at
+           FROM designs WHERE user_id = $1 AND image_url IS NOT NULL
+           ORDER BY image_url, created_at DESC""",
+        user.user_id,
+    )
+    return [{"image_url": r["image_url"], "title": r["title"], "created_at": r["created_at"]} for r in rows]
+
 
 @api_router.get("/designs", response_model=List[Design])
 async def get_designs(request: Request, session_token: Optional[str] = Cookie(None)):

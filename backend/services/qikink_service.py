@@ -56,9 +56,21 @@ class QikinkService:
         "tshirt": "Terry Oversized Tee | UT27",
         "oversized_tshirt": "Terry Oversized Tee | UT27",
         "hoodie": "Hoodie | UH24",
+        "vneck": "V Neck T-Shirt | UV34",
         "UT27": "Terry Oversized Tee | UT27",
         "UH24": "Hoodie | UH24",
         "UH83": "Pullover Hoodie | UH83",
+        "UV34": "V Neck T-Shirt | UV34",
+    }
+
+    # Qikink placement SKU codes per view
+    PLACEMENT_CODES: Dict[str, str] = {
+        "front": "fr",
+        "back": "bk",
+        "left_pocket": "lp",
+        "right_pocket": "rp",
+        "left_sleeve": "ls",
+        "right_sleeve": "rs",
     }
 
     # print_type_id 17 = DTF — prints on all fabric types, best default for POD
@@ -217,20 +229,42 @@ class QikinkService:
                 product.get("apparel_type", "tshirt"), color, size
             )
 
+            # Build designs array — one entry per placement (front, back, sleeve, etc.)
+            placements = item.get("placements") or [{"view": "front"}]
+            designs_list = []
+            for pl in placements:
+                view_key = pl.get("view", "front")
+                placement_sku = self.PLACEMENT_CODES.get(view_key, "fr")
+                pl_print_size = pl.get("print_size", print_size)
+                pl_width_in = round(pl_print_size.get("width_cm", print_size["width_cm"]) / 2.54, 2)
+                pl_height_in = round(pl_print_size.get("height_cm", print_size["height_cm"]) / 2.54, 2)
+                designs_list.append({
+                    "design_code":   design_code,
+                    "width_inches":  str(pl_width_in),
+                    "height_inches": str(pl_height_in),
+                    "placement_sku": placement_sku,
+                    "design_link":   pl.get("design_link", image_url),
+                    "mockup_link":   pl.get("mockup_link", image_url),
+                })
+
+            # Fallback: if no placements provided, use single front placement
+            if not designs_list:
+                designs_list = [{
+                    "design_code":   design_code,
+                    "width_inches":  str(width_in),
+                    "height_inches": str(height_in),
+                    "placement_sku": "fr",
+                    "design_link":   image_url,
+                    "mockup_link":   image_url,
+                }]
+
             line_items.append({
                 "search_from_my_products": 0,
                 "quantity": str(item["quantity"]),
                 "print_type_id": self.DEFAULT_PRINT_TYPE,
                 "price": str(item["price"]),
                 "sku": sku,
-                "designs": [{
-                    "design_code":   design_code,
-                    "width_inches":  str(width_in),
-                    "height_inches": str(height_in),
-                    "placement_sku": "fr",        # front placement
-                    "design_link":   image_url,
-                    "mockup_link":   image_url,
-                }],
+                "designs": designs_list,
             })
 
         addr       = shipping_address

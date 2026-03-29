@@ -58,5 +58,17 @@
       240.0
     ],
     "tax_rate": 5
+  },
+  "V Neck T-Shirt | UV34": {
+    "genders": [
+      "Male"
+    ],
+    "base_prices": [
+      140.0
+    ],
+    "weights": [
+      200.0
+    ],
+    "tax_rate": 5
   }
 }

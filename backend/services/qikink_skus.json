@@ -353,5 +353,133 @@
       "XL": "MStRnHs-Bk-XL",
       "XXL": "MStRnHs-Bk-XXL"
     }
+  },
+  "V Neck T-Shirt | UV34": {
+    "White": {
+      "S": "MVnHs-Wh-S",
+      "L": "MVnHs-Wh-L",
+      "XL": "MVnHs-Wh-XL",
+      "XXL": "MVnHs-Wh-XXL",
+      "3XL": "MVnHs-Wh-3XL"
+    },
+    "Black": {
+      "S": "MVnHs-Bk-S",
+      "L": "MVnHs-Bk-L",
+      "XL": "MVnHs-Bk-XL",
+      "XXL": "MVnHs-Bk-XXL",
+      "3XL": "MVnHs-Bk-3XL"
+    },
+    "Navy Blue": {
+      "S": "MVnHs-Nb-S",
+      "L": "MVnHs-Nb-L",
+      "XL": "MVnHs-Nb-XL",
+      "XXL": "MVnHs-Nb-XXL",
+      "3XL": "MVnHs-Nb-3XL"
+    },
+    "Bottle Green": {
+      "S": "MVnHs-Gn-S",
+      "L": "MVnHs-Gn-L",
+      "XL": "MVnHs-Gn-XL",
+      "XXL": "MVnHs-Gn-XXL",
+      "3XL": "MVnHs-Gn-3XL"
+    },
+    "Royal Blue": {
+      "S": "MVnHs-Rb-S",
+      "L": "MVnHs-Rb-L",
+      "XL": "MVnHs-Rb-XL",
+      "XXL": "MVnHs-Rb-XXL",
+      "3XL": "MVnHs-Rb-3XL"
+    },
+    "Red": {
+      "S": "MVnHs-Rd-S",
+      "L": "MVnHs-Rd-L",
+      "XL": "MVnHs-Rd-XL",
+      "XXL": "MVnHs-Rd-XXL",
+      "3XL": "MVnHs-Rd-3XL"
+    },
+    "Maroon": {
+      "S": "MVnHs-Mn-S",
+      "L": "MVnHs-Mn-L",
+      "XL": "MVnHs-Mn-XL",
+      "XXL": "MVnHs-Mn-XXL",
+      "3XL": "MVnHs-Mn-3XL"
+    },
+    "Purple": {
+      "S": "MVnHs-Pp-S",
+      "L": "MVnHs-Pp-L",
+      "XL": "MVnHs-Pp-XL",
+      "XXL": "MVnHs-Pp-XXL",
+      "3XL": "MVnHs-Pp-3XL"
+    },
+    "Golden Yellow": {
+      "S": "MVnHs-Gy-S",
+      "L": "MVnHs-Gy-L",
+      "XL": "MVnHs-Gy-XL",
+      "XXL": "MVnHs-Gy-XXL",
+      "3XL": "MVnHs-Gy-3XL"
+    },
+    "Petrol Blue": {
+      "S": "MVnHs-Pb-S",
+      "L": "MVnHs-Pb-L",
+      "XL": "MVnHs-Pb-XL",
+      "XXL": "MVnHs-Pb-XXL",
+      "3XL": "MVnHs-Pb-3XL"
+    },
+    "Olive Green": {
+      "S": "MVnHs-Og-S",
+      "L": "MVnHs-Og-L",
+      "XL": "MVnHs-Og-XL",
+      "XXL": "MVnHs-Og-XXL",
+      "3XL": "MVnHs-Og-3XL"
+    },
+    "Mustard Yellow": {
+      "S": "MVnHs-My-S",
+      "L": "MVnHs-My-L",
+      "XL": "MVnHs-My-XL",
+      "XXL": "MVnHs-My-XXL",
+      "3XL": "MVnHs-My-3XL"
+    },
+    "Light Baby Pink": {
+      "S": "MVnHs-Pk-S",
+      "L": "MVnHs-Pk-L",
+      "XL": "MVnHs-Pk-XL",
+      "XXL": "MVnHs-Pk-XXL",
+      "3XL": "MVnHs-Pk-3XL"
+    },
+    "Lavender": {
+      "S": "MVnHs-Lv-S",
+      "L": "MVnHs-Lv-L",
+      "XL": "MVnHs-Lv-XL",
+      "XXL": "MVnHs-Lv-XXL",
+      "3XL": "MVnHs-Lv-3XL"
+    },
+    "Coral": {
+      "S": "MVnHs-Cr-S",
+      "L": "MVnHs-Cr-L",
+      "XL": "MVnHs-Cr-XL",
+      "XXL": "MVnHs-Cr-XXL",
+      "3XL": "MVnHs-Cr-3XL"
+    },
+    "Mint": {
+      "S": "MVnHs-Mt-S",
+      "L": "MVnHs-Mt-L",
+      "XL": "MVnHs-Mt-XL",
+      "XXL": "MVnHs-Mt-XXL",
+      "3XL": "MVnHs-Mt-3XL"
+    },
+    "Baby Blue": {
+      "S": "MVnHs-Bb-S",
+      "L": "MVnHs-Bb-L",
+      "XL": "MVnHs-Bb-XL",
+      "XXL": "MVnHs-Bb-XXL",
+      "3XL": "MVnHs-Bb-3XL"
+    },
+    "Grey": {
+      "S": "MVnHs-Gr-S",
+      "L": "MVnHs-Gr-L",
+      "XL": "MVnHs-Gr-XL",
+      "XXL": "MVnHs-Gr-XXL",
+      "3XL": "MVnHs-Gr-3XL"
+    }
   }
 }
