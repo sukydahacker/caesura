@@ -155,16 +155,30 @@ class QikinkService:
         return sku or f"UNKNOWN-{apparel_type}-{color}-{size}"
 
     def get_product_catalog(self) -> List[Dict[str, Any]]:
-        """Return the full product catalog with metadata for the frontend."""
+        """Return the trimmed product catalog with metadata for the frontend.
+
+        Only the three supported tee categories are exposed, and
+        "Classic Crew T-Shirt" is forced to Male-only.
+        """
+        allowed = {
+            "Classic Crew T-Shirt",
+            "V Neck T-Shirt | UV34",
+            "Oversized Standard T-Shirt | US22",
+        }
         catalog = []
         for category, meta in self.PRODUCT_META.items():
+            if category not in allowed:
+                continue
             colors = list(self.SKU_MAP.get(category, {}).keys())
             sizes = set()
             for color_sizes in self.SKU_MAP.get(category, {}).values():
                 sizes.update(color_sizes.keys())
+            genders = meta.get("genders", [])
+            if category == "Classic Crew T-Shirt":
+                genders = ["Male"]
             catalog.append({
                 "category": category,
-                "genders": meta.get("genders", []),
+                "genders": genders,
                 "colors": colors,
                 "sizes": sorted(sizes),
                 "base_prices": meta.get("base_prices", []),
