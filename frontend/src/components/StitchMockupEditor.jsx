@@ -303,12 +303,19 @@ export default function StitchMockupEditor({
 
         {/* Main Canvas Area */}
         <main className="flex-1 bg-[#f7f3f2] relative flex items-center justify-center overflow-auto p-8 z-0">
-          {/* Mockup Container */}
-          <div className="relative w-full max-w-[582px] aspect-[291/373.6] bg-[#ffffff] shadow-[0_10px_40px_rgba(0,0,0,0.05)] flex items-center justify-center overflow-hidden group cursor-crosshair">
-            {canvasSlot != null ? (
-              canvasSlot
-            ) : (
-              <>
+          {canvasSlot != null ? (
+            /* Live Fabric canvas — render at natural size, centered, framed.
+               The dashed print area is drawn inside the canvas (aligned to bounds);
+               only the floating label is overlaid here. */
+            <div className="relative inline-block bg-[#ffffff] shadow-[0_10px_40px_rgba(0,0,0,0.05)]">
+              {canvasSlot}
+              <div className="absolute top-4 right-4 bg-white border border-black px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-black shadow-[0_2px_10px_rgba(0,0,0,0.1)] z-20 pointer-events-none">
+                PRINT AREA
+              </div>
+            </div>
+          ) : (
+            /* Mockup Container (static placeholder when no canvas) */
+            <div className="relative w-full max-w-[582px] aspect-[291/373.6] bg-[#ffffff] shadow-[0_10px_40px_rgba(0,0,0,0.05)] flex items-center justify-center overflow-hidden group cursor-crosshair">
                 {/* T-Shirt image base (static placeholder until canvas wiring) */}
                 <div
                   className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
@@ -340,9 +347,8 @@ export default function StitchMockupEditor({
                 <div className="absolute top-4 right-4 bg-white border border-black px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-black shadow-[0_2px_10px_rgba(0,0,0,0.1)] z-20">
                   PRINT AREA · 14&quot; x 17&quot;
                 </div>
-              </>
-            )}
-          </div>
+            </div>
+          )}
         </main>
       </div>
 

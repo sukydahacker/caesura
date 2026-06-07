@@ -624,26 +624,27 @@ export default function SellYourArt() {
       const savedDesign = viewDesigns[activeView];
       const designDataUrl = savedDesign?.dataUrl || imagePreview;
 
-      if (designDataUrl) {
-        // Red dashed print area boundary
-        const printAreaRect = new fabric.Rect({
-          left: pa.x + pa.w / 2,
-          top: pa.y + pa.h / 2,
-          width: pa.w,
-          height: pa.h,
-          originX: 'center', originY: 'center',
-          fill: 'transparent',
-          stroke: '#FF0000',
-          strokeWidth: 2,
-          strokeDashArray: [10, 5],
-          strokeUniform: true,
-          selectable: false,
-          evented: false,
-          name: 'printArea',
-          objectCaching: false,
-        });
-        canvas.add(printAreaRect);
+      // Always-on print-area boundary (Stitch blue dashed) — visible before upload too
+      const printAreaRect = new fabric.Rect({
+        left: pa.x + pa.w / 2,
+        top: pa.y + pa.h / 2,
+        width: pa.w,
+        height: pa.h,
+        originX: 'center', originY: 'center',
+        fill: 'transparent',
+        stroke: '#0047FF',
+        strokeWidth: 1.5,
+        strokeDashArray: [8, 5],
+        strokeUniform: true,
+        selectable: false,
+        evented: false,
+        name: 'printArea',
+        objectCaching: false,
+      });
+      canvas.add(printAreaRect);
+      canvas.renderAll();
 
+      if (designDataUrl) {
         // Load and place design
         try {
           const designImg = await fabric.FabricImage.fromURL(designDataUrl);
