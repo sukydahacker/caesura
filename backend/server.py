@@ -24,7 +24,6 @@ sys.path.insert(0, str(ROOT_DIR))
 load_dotenv(ROOT_DIR / '.env')
 
 # Import services
-from services.printify_service import printify_service
 from services.revenue_service import revenue_service
 from services.qikink_service import qikink_service
 from services.email_service import send_order_confirmation, send_design_approved, send_design_rejected
@@ -1163,13 +1162,6 @@ async def reject_design_admin(design_id: str, request: Request, session_token: O
             )
 
     return {"message": "Design rejected", "design_id": design_id}
-
-@api_router.get("/admin/printify/blueprints")
-async def get_printify_blueprints(request: Request, session_token: Optional[str] = Cookie(None)):
-    await require_admin(request, session_token)
-
-    blueprints = await printify_service.get_blueprints()
-    return {"blueprints": blueprints, "mock_mode": printify_service.mock_mode}
 
 @api_router.get("/admin/analytics")
 async def get_admin_analytics(request: Request, session_token: Optional[str] = Cookie(None)):

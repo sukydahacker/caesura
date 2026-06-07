@@ -62,8 +62,7 @@ export const getPendingDesigns = () => api.get('/admin/designs/pending');
 export const approveDesign = (designId, apparelType, featured) => api.post(`/admin/designs/${designId}/approve`, { apparel_type: apparelType, featured });
 export const rejectDesign = (designId, reason) => api.post(`/admin/designs/${designId}/reject`, { reason });
 
-// Enhanced Admin - Printify & Analytics
-export const getPrintifyBlueprints = () => api.get('/admin/printify/blueprints');
+// Enhanced Admin - Analytics
 export const getAdminAnalytics = () => api.get('/admin/analytics');
 export const getAdminOrders = () => api.get('/admin/orders');
 export const getAdminUsers = () => api.get('/admin/users');
