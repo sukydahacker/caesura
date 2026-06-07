@@ -10,7 +10,8 @@ import SizeSelector from '@/components/qikink/SizeSelector';
 import ColorSelector from '@/components/qikink/ColorSelector';
 import ProductDetailsTab from '@/components/qikink/ProductDetailsTab';
 import BackgroundColorPicker from '@/components/qikink/BackgroundColorPicker';
-import QikinkRightPane from '@/components/qikink/QikinkRightPane';
+import StitchMockupEditor from '@/components/StitchMockupEditor';
+import { COLOR_HEX } from '@/constants/colors';
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const BG   = '#0A0A0B';
@@ -29,65 +30,6 @@ const mono    = { fontFamily: '"JetBrains Mono", monospace' };
 
 const CANVAS_W = 620;
 const CANVAS_H = 796;
-
-// ── Qikink color hex map ─────────────────────────────────────────────────────
-// Every color name that appears in the catalog mapped to its exact hex.
-// White / off-white / light variants use the white template as-is (no tint).
-// Black / charcoal variants use the black template directly.
-// Grey variants use the grey template directly.
-// All other colors use the white template + multiply-blend tint at runtime.
-const COLOR_HEX = {
-  'white':                '#FFFFFF',
-  'off white':            '#F5F0EB',
-  'white black':          '#FFFFFF',
-  'white lavender':       '#F5F0FF',
-  'black':                '#1A1A1A',
-  'black melange':        '#252525',
-  'black charcoal melange':'#2D2D2D',
-  'black white':          '#1A1A1A',
-  'brown black':          '#2C1810',
-  'green black':          '#1B3020',
-  'charcoal melange':     '#4A4A4A',
-  'grey':                 '#9E9E9E',
-  'grey melange':         '#A8A8A8',
-  'steel grey':           '#71797E',
-  'silver':               '#C0C0C0',
-  'mushroom':             '#C0A898',
-  'navy blue':            '#1C2B4A',
-  'navy melange':         '#3A4B5E',
-  'royal blue':           '#2845B4',
-  'petrol blue':          '#005F73',
-  'orchid blue':          '#7B68EE',
-  'skyblue':              '#5BB8F5',
-  'baby blue':            '#B0D8F0',
-  'red':                  '#C0392B',
-  'brick red':            '#8B2500',
-  'maroon':               '#7B1818',
-  'orange':               '#F37021',
-  'coral':                '#FF6B5B',
-  'flamingo':             '#FC8EAC',
-  'pink':                 '#FF8FA3',
-  'baby pink':            '#F9C0CB',
-  'light baby pink':      '#FFCDD2',
-  'peach':                '#FFCBA4',
-  'purple':               '#6A1B9A',
-  'purple melange':       '#7E57C2',
-  'lavender':             '#B57EDC',
-  'bottle green':         '#1B4332',
-  'flag green':           '#138808',
-  'olive green':          '#708238',
-  'jade':                 '#00A36C',
-  'mint':                 '#98D8C8',
-  'yellow':               '#F9CB1B',
-  'new yellow':           '#F9CB1B',
-  'mustard yellow':       '#E6AC20',
-  'golden yellow':        '#FFC107',
-  'khaki':                '#C3B091',
-  'beige':                '#F5E6C8',
-  'coffee brown':         '#6F4E37',
-  'copper':               '#B87333',
-  'na':                   '#CCCCCC',
-};
 
 // ── Product collection groupings ────────────────────────────────────────────────
 const COLLECTIONS = [
@@ -523,17 +465,19 @@ export default function SellYourArt() {
   // Update live dimensions from canvas design object
   const updateDimensionsFromCanvas = useCallback((obj) => {
     if (!obj) return;
-    const viewConfig = UV34_VIEWS[activeView] || UV34_VIEWS.front;
+    const cfg = PRODUCT_VIEWS[viewsKeyFor(selectedCategory?.category)] || PRODUCT_VIEWS.UV34;
+    const viewConfig = cfg[activeView] || cfg.front;
+    if (!viewConfig) return;
     const pa = viewConfig.printArea;
-    // Approximate: print area width in inches (front = 12"), px per inch
-    const printWidthInches = activeView.includes('pocket') ? 5 : activeView.includes('sleeve') ? 6 : 12;
+    // Approximate: print area width in inches (front/back = 12", sleeves = 6"), px per inch
+    const printWidthInches = activeView === 'sleeves' ? 6 : 12;
     const pxPerInch = pa.w / printWidthInches;
     const widthInches = (obj.width * obj.scaleX) / pxPerInch;
     const heightInches = (obj.height * obj.scaleY) / pxPerInch;
     const dpi = Math.round(obj.width / widthInches);
     setDesignDimensions({ width: parseFloat(widthInches.toFixed(2)), height: parseFloat(heightInches.toFixed(2)), dpi });
     setDesignAngle(Math.round(obj.angle || 0));
-  }, [activeView]);
+  }, [activeView, selectedCategory]);
 
   // UV34 color lookup helper
   const UV34_COLOR_MAP = {
@@ -557,9 +501,9 @@ export default function SellYourArt() {
       if (fabricRef.current && designObjRef.current) saveCurrentViewDesign();
       if (fabricRef.current) { fabricRef.current.dispose(); fabricRef.current = null; designObjRef.current = null; }
 
-      const viewConfig = UV34_VIEWS[activeView] || UV34_VIEWS.front;
-      const tmpl = { template: viewConfig.template, printArea: viewConfig.printArea };
-      const pa = tmpl.printArea;
+      // Resolve per-product view config (front / back / sleeves).
+      const cfg = PRODUCT_VIEWS[viewsKeyFor(selectedCategory?.category)] || PRODUCT_VIEWS.UV34;
+      const viewConfig = cfg[activeView] || cfg.front;
 
       const canvas = new fabric.Canvas(canvasElRef.current, {
         width: CANVAS_W, height: CANVAS_H, backgroundColor: '#F8F8F6', selection: false,
@@ -567,9 +511,32 @@ export default function SellYourArt() {
       if (cancelled) { canvas.dispose(); return; }
       fabricRef.current = canvas;
 
+      // No mockup asset for this view (e.g. US22/Classic Crew back & sleeves):
+      // render the bare background and skip garment + design. The editor pill
+      // for such views is disabled, so this is a safety net.
+      if (!viewConfig) {
+        canvas.renderAll();
+        return;
+      }
+
+      // Garment image resolution:
+      // - Front view: prefer getProductTemplate() when it resolves a real
+      //   per-color PSD mockup (UC22, UH24, US22, …); otherwise fall back to
+      //   the per-product view template so UV34 front stays identical to today
+      //   (UV34 has no PSD entry and would otherwise hit DEFAULT_TEMPLATE).
+      // - Back / sleeves: use the per-product view template directly.
+      let garmentTemplate = viewConfig.template;
+      let usingPsd = false;
+      if (activeView === 'front') {
+        const productTmpl = getProductTemplate();
+        if (productTmpl?.isPsd) { garmentTemplate = productTmpl.template; usingPsd = true; }
+      }
+      // Print-area geometry + tint gate always come from the per-product view.
+      const pa = viewConfig.printArea;
+
       // ── 1. Load garment template + apply color tint ──
       try {
-        const bgDataUrl = await toDataURL(tmpl.template);
+        const bgDataUrl = await toDataURL(garmentTemplate);
         if (cancelled) return;
         const bgImg = await fabric.FabricImage.fromURL(bgDataUrl);
         if (cancelled) return;
@@ -581,10 +548,11 @@ export default function SellYourArt() {
           selectable: false, evented: false, name: 'garment',
         });
 
-        // Color tinting — only on tintable views (front/back), skip sleeve/pocket
+        // Color tinting — only on tintable views (front/back), skip sleeves.
+        // PSD mockups already bake in the garment colour, so never tint those.
         const colorKey = (selectedColor || '').toLowerCase().trim();
         const tintHex = UV34_COLOR_MAP[colorKey] || COLOR_HEX[colorKey];
-        const skipTint = !tintHex || colorKey === 'white' || colorKey === '' || tintHex === '#f5f7f9' || !viewConfig.tintable;
+        const skipTint = usingPsd || !tintHex || colorKey === 'white' || colorKey === '' || tintHex === '#f5f7f9' || !viewConfig.tintable;
 
         if (!skipTint) {
           const isLightColor = ['#ffd3e9','#dfd1fb','#adffef','#b3b5b9','#ffa100','#b5830d'].includes(tintHex);
@@ -962,7 +930,7 @@ export default function SellYourArt() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                 {filteredCatalog.map(item => (
                   <ProductCard key={item.category} item={item} selected={selectedCategory?.category === item.category}
-                    onSelect={() => { setSelectedCategory(item); setSearchQuery(''); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setStep(2); }} />
+                    onSelect={() => { setSelectedCategory(item); setSearchQuery(''); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setActiveView('front'); setStep(2); }} />
                 ))}
               </div>
             </div>
@@ -979,7 +947,7 @@ export default function SellYourArt() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                 {(catalogByCollection[selectedCollection] || []).map(item => (
                   <ProductCard key={item.category} item={item} selected={selectedCategory?.category === item.category}
-                    onSelect={() => { setSelectedCategory(item); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setStep(2); }} />
+                    onSelect={() => { setSelectedCategory(item); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setActiveView('front'); setStep(2); }} />
                 ))}
               </div>
             </div>
@@ -1027,181 +995,44 @@ export default function SellYourArt() {
         </div>
       )}
 
-      {/* ── STEP 2: Product Editor (exact Qikink replica) ── */}
-      {step === 2 && selectedCategory && (
-        <div style={{ background: '#FAF7F3', minHeight: '100vh', color: '#292929', fontFamily: '"DM Sans", "amazon ember display rg", sans-serif' }}>
+      {/* ── STEP 2: Stitch Mockup Editor ── */}
+      {step === 2 && selectedCategory && (() => {
+        const cfg = PRODUCT_VIEWS[viewsKeyFor(selectedCategory.category)] || PRODUCT_VIEWS.UV34;
+        return (
+          <>
+            {/* Hidden file input (kept mounted — drives canvas upload) */}
+            <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp" style={{ display: 'none' }}
+              onChange={(e) => handleFile(e.target.files[0])} />
 
-          {/* Hidden file input */}
-          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp" style={{ display: 'none' }}
-            onChange={(e) => handleFile(e.target.files[0])} />
+            <StitchMockupEditor
+              product={selectedCategory}
+              selectedColor={selectedColor}
+              onColorChange={setSelectedColor}
+              activeView={activeView}
+              onViewChange={(v) => { saveCurrentViewDesign(); setActiveView(v); }}
+              availableViews={{ front: !!cfg.front, back: !!cfg.back, sleeves: !!cfg.sleeves }}
+              canvasSlot={<canvas ref={canvasElRef} />}
+              onUploadClick={() => fileInputRef.current?.click()}
+              onReset={() => {
+                setImageFile(null); setImagePreview(null); setImageUrl('');
+                setDesignDimensions({ width: 0, height: 0, dpi: 0 }); setDesignAngle(0);
+                setViewDesigns({});
+              }}
+              onToggleGuide={() => {}}
+              designStats={{ x: 0, y: 0, scalePct: 100, printSafe: true }}
+              onBack={() => setStep(1)}
+              onPublish={() => {}}
+              submitting={submitting}
+            />
 
-          {/* ═══ TOP NAV BAR (Back + 3 steps + Save Product) ═══ */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', background: '#fff', borderBottom: '1px solid #DDDCDC' }}>
-            <button onClick={() => setStep(1)} style={{ background: '#FF6700', color: '#fff', border: 'none', borderRadius: '4px', padding: '6px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>← Back</button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-              {['Choose Collections', 'Select Products', 'Create Product'].map((label, i) => {
-                const isActive = i === 2;
-                return (
-                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: isActive ? '#FF6700' : (i < 2 ? '#FF6700' : '#ccc'), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>
-                      {i < 2 ? '✓' : i + 1}
-                    </div>
-                    <span style={{ fontSize: '13px', color: isActive ? '#FF6700' : '#777877', fontWeight: isActive ? 600 : 400 }}>{label}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <button onClick={handleSubmit} disabled={submitting}
-              style={{ background: '#FF6700', color: '#fff', border: 'none', borderRadius: '4px', padding: '8px 20px', fontSize: '14px', fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1, fontFamily: 'inherit' }}>
-              {submitting ? 'Saving...' : 'Save Product'}
-            </button>
-          </div>
-
-          {/* ═══ MAIN CONTENT: Left (canvas) | Right (controls) ═══ */}
-          <div style={{ display: 'flex', minHeight: 'calc(100vh - 50px)' }}>
-
-            {/* ═══ LEFT HALF: View thumbs + Canvas ═══ */}
-            <div style={{ flex: '0 0 50%', padding: '16px 20px', background: '#FAF7F3' }}>
-
-              {/* Product name */}
-              <p style={{ fontSize: '16px', fontWeight: 600, color: '#292929', margin: '0 0 12px', fontFamily: 'inherit' }}>
-                {selectedCategory.category}
-              </p>
-
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-              {/* View Thumbnails (vertical strip) */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginRight: '12px', paddingTop: '12px' }}>
-                <button style={{ background: 'none', border: 'none', color: '#777877', cursor: 'pointer', fontSize: '14px', padding: '4px' }}>▲</button>
-
-                {[
-                  { label: 'Front', key: 'front', img: '/mockups/UV34/front_base.png' },
-                  { label: 'Back', key: 'back', img: '/mockups/UV34/back_base.png' },
-                  { label: 'Left Pocket', key: 'left_pocket', img: '/mockups/UV34/left_pocket_base.png' },
-                  { label: 'Right Pocket', key: 'right_pocket', img: '/mockups/UV34/right_pocket_base.png' },
-                  { label: 'Left Sleeve', key: 'left_sleeve', img: '/mockups/UV34/left_sleeve_base.png' },
-                  { label: 'Right Sleeve', key: 'right_sleeve', img: '/mockups/UV34/right_sleeve_base.png' },
-                ].map((view) => {
-                  const isViewActive = activeView === view.key;
-                  return (
-                    <div key={view.key} onClick={() => { saveCurrentViewDesign(); setActiveView(view.key); }}
-                      style={{ cursor: 'pointer', textAlign: 'center', marginBottom: '6px' }}>
-                      <div style={{
-                        width: '81px', height: '81px', overflow: 'hidden',
-                        border: isViewActive ? '2px solid #FF6700' : '1px solid #DDDCDC',
-                        background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <img src={view.img} alt={view.label}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                      </div>
-                      <span style={{ fontSize: '10px', color: isViewActive ? '#FF6700' : '#777877', display: 'block', marginTop: '2px' }}>{view.label}</span>
-                    </div>
-                  );
-                })}
-
-                <button style={{ background: 'none', border: 'none', color: '#777877', cursor: 'pointer', fontSize: '14px', padding: '4px' }}>▼</button>
+            {error && (
+              <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', padding: '12px 24px', borderRadius: '8px', background: '#FFF3E0', border: '1px solid #FFB74D', zIndex: 1000 }}>
+                <p style={{ fontSize: '14px', color: '#E65100', margin: 0 }}>{error}</p>
               </div>
-
-              {/* Canvas */}
-              <div style={{ position: 'relative' }}>
-                <div style={{ border: '1px solid #DDDCDC', overflow: 'hidden', display: 'inline-block', lineHeight: 0 }}>
-                  <canvas ref={canvasElRef} />
-                </div>
-
-                {/* Alignment floating pill below canvas */}
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '10px 24px', borderRadius: '30px', boxShadow: '2px 2px 10px rgba(0,0,0,0.15)', background: '#fff', width: 'fit-content', margin: '16px auto 0' }}>
-                  {[
-                    { label: 'Center Vertically', icon: '⇕', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ left: pa.x + pa.w / 2 }); d.setCoords(); c.renderAll(); }},
-                    { label: 'Center Horizontally', icon: '⇔', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ top: pa.y + pa.h / 2 }); d.setCoords(); c.renderAll(); }},
-                    { label: 'Flip Horizontal', icon: '⇄', action: () => { const d = designObjRef.current; if (!d) return; d.set({ flipX: !d.flipX }); fabricRef.current?.renderAll(); }},
-                    { label: 'Flip Vertical', icon: '⇅', action: () => { const d = designObjRef.current; if (!d) return; d.set({ flipY: !d.flipY }); fabricRef.current?.renderAll(); }},
-                    { label: 'Center Both', icon: '⊕', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ left: pa.x + pa.w / 2, top: pa.y + pa.h / 2 }); d.setCoords(); c.renderAll(); }},
-                    { label: 'Undo', icon: '↺', action: () => { fabricRef.current?.undo?.(); }},
-                  ].map((btn) => (
-                    <button key={btn.label} onClick={btn.action} title={btn.label}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FF6700', fontSize: '22px', padding: '2px 4px', lineHeight: 1 }}>
-                      {btn.icon}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              </div>
-            </div>
-
-            {/* ═══ RIGHT HALF: QikinkRightPane ═══ */}
-            <div style={{ flex: '0 0 50%', borderLeft: '1px solid #DDDCDC', background: '#fff', overflow: 'auto', maxHeight: 'calc(100vh - 50px)' }}>
-              <QikinkRightPane
-                productName={selectedCategory.category}
-                selectedColor={selectedColor}
-                onColorChange={setSelectedColor}
-                basePrice={140}
-                taxRate={5}
-                selectedSizes={selectedSizes}
-                onToggleSize={toggleSize}
-                sizePrices={sizePrices}
-                onSizePriceChange={(size, p) => setSizePrices(prev => ({ ...prev, [size]: p }))}
-                selectedColors={[selectedColor]}
-                imagePreview={imagePreview}
-                onAddDesign={() => fileInputRef.current?.click()}
-                onDeleteDesign={() => {
-                  // Clear all design state — useEffect will re-render canvas clean
-                  setImageFile(null); setImagePreview(null); setImageUrl('');
-                  setDesignDimensions({ width: 0, height: 0, dpi: 0 }); setDesignAngle(0);
-                  setViewDesigns({});
-                }}
-                designDimensions={designDimensions}
-                designAngle={designAngle}
-                onAngleChange={setDesignAngle}
-                onWidthChange={(v) => setDesignDimensions(d => ({ ...d, width: v }))}
-                onHeightChange={(v) => setDesignDimensions(d => ({ ...d, height: v }))}
-                printType={printType}
-                onPrintTypeChange={setPrintType}
-                vinylSubOption={vinylSubOption}
-                onVinylSubChange={setVinylSubOption}
-                plainProduct={plainProduct}
-                onPlainProductChange={setPlainProduct}
-                onShowSizeChart={() => setShowSizeChart(true)}
-                bgColor={bgColor}
-                onBgColorChange={setBgColor}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                productTitle={productName}
-                onProductTitleChange={setProductName}
-                descriptionHtml={descriptionHtml}
-                onDescriptionChange={setDescriptionHtml}
-                tags={productTags}
-                onTagsChange={setProductTags}
-                onSave={handleSubmit}
-                onDownloadMockups={() => {
-                  if (!fabricRef.current) return;
-                  fabricRef.current.discardActiveObject(); fabricRef.current.renderAll();
-                  const link = document.createElement('a'); link.download = 'mockup.png';
-                  link.href = fabricRef.current.toDataURL({ format: 'png', multiplier: 2 }); link.click();
-                }}
-                submitting={submitting}
-              />
-            </div>
-          </div>
-
-          {/* ═══ Modals ═══ */}
-          {showSizeChart && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSizeChart(false)}>
-              <div style={{ background: '#fff', borderRadius: '8px', padding: '24px', maxWidth: '600px', maxHeight: '80vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#292929' }}>Size Chart</h3>
-                  <button onClick={() => setShowSizeChart(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#777877' }}>×</button>
-                </div>
-                <img src="/mockups/sizechart-uv34.webp" alt="Size Chart" style={{ width: '100%', borderRadius: '4px' }} />
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', padding: '12px 24px', borderRadius: '8px', background: '#FFF3E0', border: '1px solid #FFB74D', zIndex: 1000 }}>
-              <p style={{ fontSize: '14px', color: '#E65100', margin: 0 }}>{error}</p>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }

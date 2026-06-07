@@ -1,4 +1,5 @@
 import React from "react";
+import { COLOR_HEX } from "@/constants/colors";
 
 /**
  * StitchMockupEditor
@@ -7,7 +8,7 @@ import React from "react";
  * (.tmp/stitch/mockup-editor.html). This component is presentational only:
  * it renders the editor chrome and wires the cheap, obvious interactivity
  * (active states + passed-in callbacks). Canvas/Fabric, real uploads, colour
- * tinting and publish/save logic are wired in LATER tasks.
+ * tinting and publish/save logic are wired in by SellYourArt.js.
  *
  * Styling note: the Stitch design relies on a custom Tailwind theme
  * (accent-blue, surface-container-*, border-light, on-surface, ...). To match
@@ -15,31 +16,9 @@ import React from "react";
  * as arbitrary-value classes with the literal hex from the Stitch config.
  * Standard zinc / black-alpha classes are kept verbatim.
  *
- * TODO(shared-colors): SellYourArt.js has a private `COLOR_HEX` map. It is not
- * exported, so a minimal copy lives here. When wiring later, lift COLOR_HEX
- * into a shared module (e.g. src/constants/colors.js) and import it in both.
+ * Colours come from the shared `@/constants/colors` map (single source of
+ * truth shared with SellYourArt.js).
  */
-
-// Minimal local hex lookup — mirrors the lowercase-key approach in SellYourArt.js.
-const COLOR_HEX = {
-  white: "#FFFFFF",
-  "off white": "#F5F0EB",
-  black: "#1A1A1A",
-  "black melange": "#252525",
-  navy: "#0E1723",
-  "navy blue": "#1C2B4A",
-  "bottle green": "#1B4332",
-  "forest": "#1F3D2B",
-  mustard: "#B6840D",
-  "mustard yellow": "#E6AC20",
-  charcoal: "#2B2B2B",
-  stone: "#A8A29E",
-  cream: "#F5F1E8",
-  burgundy: "#5C0E16",
-  maroon: "#7B1818",
-  grey: "#9E9E9E",
-  red: "#C0392B",
-};
 
 // Standalone-preview fallback (only used when `product` is null), matching the
 // Stitch HTML's exact colour list.
