@@ -123,6 +123,7 @@ export default function StitchMockupEditor({
           <button
             type="button"
             onClick={onBack}
+            aria-label="Back"
             className="hover:opacity-80 transition-opacity duration-300 flex items-center justify-center"
           >
             <span className="material-symbols-outlined text-zinc-50 text-xl">
@@ -138,7 +139,7 @@ export default function StitchMockupEditor({
         {/* Center Pills */}
         <nav className="flex items-center space-x-2">
           {VIEW_PILLS.map(({ id, label }) => {
-            const isActive = activeView === id;
+            const isActive = (activeView || "").toLowerCase() === id;
             const disabled = views[id] === false;
             if (disabled) {
               return (
@@ -174,6 +175,7 @@ export default function StitchMockupEditor({
         <div className="flex items-center space-x-6">
           <button
             type="button"
+            aria-label="Lock design"
             className="hover:opacity-80 transition-opacity duration-300 flex items-center justify-center"
           >
             <span className="material-symbols-outlined text-zinc-50 text-xl">
