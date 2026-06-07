@@ -93,6 +93,10 @@ const COLOR_HEX = {
 const COLLECTIONS = [
   { name: 'T-Shirts', image: '/mockups/T-shirts.PNG.webp', description: 'Crew necks, oversized, acid wash & more', keywords: ['T-Shirt', 'Tee', 'Baby Tee'] },
   { name: 'Hoodies & Jackets', image: '/mockups/Hoodies.PNG.webp', description: 'Hoodies, sweatshirts, bombers & varsity', keywords: ['Hoodie', 'Sweatshirt', 'Bomber', 'Varsity', 'Zip Hoodie'] },
+  { name: 'Polos', image: '/mockups/1740545706Polo.jpg', description: 'Classic collared polo tees', keywords: ['Polo'] },
+  { name: 'Crop Tops', image: '/mockups/1740553628croptank.jpg', description: 'Cropped tops for layering', keywords: ['Crop Top'] },
+  { name: 'Crop Tanks', image: '/mockups/1740553628croptank.jpg', description: 'Sleeveless cropped tanks', keywords: ['Crop Tank'] },
+  { name: 'Shirts', image: '/mockups/1757131619OversizedShirt1.webp', description: 'Oversized button-up shirts', keywords: ['Oversized Shirt'] },
   { name: 'Bottomwear', image: '/mockups/Bottomwear.PNG.webp', description: 'Joggers, shorts & sweatpants', keywords: ['Jogger', 'Short', 'Sweatpants', 'Legging'] },
   { name: 'Headwear', image: '/mockups/Headwear.PNG.webp', description: 'Caps, bucket hats, snapbacks & balaclava', keywords: ['Cap', 'Hat', 'Snapback', 'Trucker', 'Balaclava', 'Bucket'] },
   { name: 'Drinkware', image: '/mockups/Drink-ware.PNG.webp', description: 'Mugs, sippers, tumblers & bottles', keywords: ['Mug', 'Sipper', 'Tumbler', 'Bottle', 'Enamel'] },
@@ -260,6 +264,35 @@ const UV34_VIEWS = {
   left_sleeve:  { template: '/mockups/UV34/left_sleeve_base.png',   printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
   right_sleeve: { template: '/mockups/UV34/right_sleeve_base.png',  printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
 };
+
+// Per-product view config (front / back / sleeves). Missing views are null and
+// render a placeholder/disabled state in the editor until assets are supplied.
+const PRODUCT_VIEWS = {
+  'UV34': {
+    front:   { template: '/mockups/UV34/front_base.png', printArea: { x: 161, y: 206, w: 297, h: 350 }, tintable: true },
+    back:    { template: '/mockups/UV34/back_base.png',  printArea: { x: 161, y: 143, w: 297, h: 398 }, tintable: true },
+    sleeves: { template: '/mockups/UV34/left_sleeve_base.png', printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
+  },
+  'US22': {
+    front:   { template: '/mockups/US22/white.png', printArea: { x: 161, y: 206, w: 297, h: 350 }, tintable: true },
+    back:    null,
+    sleeves: null,
+  },
+  'CLASSIC_CREW': {
+    front:   { template: '/mockups/1757067029Classiccrewtee1.webp', printArea: { x: 161, y: 206, w: 297, h: 350 }, tintable: false },
+    back:    null,
+    sleeves: null,
+  },
+};
+
+// Map a catalog category string to a PRODUCT_VIEWS key.
+function viewsKeyFor(category) {
+  const c = (category || '').toUpperCase();
+  if (c.includes('UV34')) return 'UV34';
+  if (c.includes('US22')) return 'US22';
+  if (c.includes('CLASSIC CREW')) return 'CLASSIC_CREW';
+  return 'UV34';
+}
 
 const MAX_FILE_MB = 20;
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
