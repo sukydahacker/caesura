@@ -1,74 +1,32 @@
 {
-  "Terry Oversized Tee | UT27": {
-    "genders": [
-      "Unisex"
-    ],
-    "base_prices": [
-      280.0,
-      310.0
-    ],
-    "weights": [
-      380.0,
-      420.0,
-      650.0
-    ],
-    "tax_rate": 5
-  },
-  "Hoodie | UH24": {
-    "genders": [
-      "Unisex"
-    ],
-    "base_prices": [
-      250.0,
-      300.0,
-      430.0,
-      470.0
-    ],
-    "weights": [
-      480.0,
-      500.0,
-      740.0,
-      750.0
-    ],
-    "tax_rate": 5
-  },
-  "Sweatshirt | UH26": {
-    "genders": [
-      "Unisex"
-    ],
-    "base_prices": [
-      330.0,
-      370.0
-    ],
-    "weights": [
-      620.0,
-      630.0,
-      650.0
-    ],
-    "tax_rate": 5
-  },
-  "Standard Crew T-Shirt | US21": {
-    "genders": [
-      "Male"
-    ],
-    "base_prices": [
-      140.0
-    ],
-    "weights": [
-      240.0
-    ],
-    "tax_rate": 5
-  },
-  "V Neck T-Shirt | UV34": {
-    "genders": [
-      "Male"
-    ],
-    "base_prices": [
-      140.0
-    ],
-    "weights": [
-      200.0
-    ],
-    "tax_rate": 5
-  }
+  "Terry Oversized Tee | UT27": { "genders": ["Unisex"], "base_prices": [280.0, 310.0], "weights": [380.0, 420.0, 650.0], "tax_rate": 5 },
+  "Oversized Classic T-Shirt | UC22": { "genders": ["Unisex"], "base_prices": [260.0, 290.0], "weights": [350.0, 390.0, 600.0], "tax_rate": 5 },
+  "Oversized Standard T-Shirt | US22": { "genders": ["Unisex"], "base_prices": [240.0, 270.0], "weights": [340.0, 380.0, 590.0], "tax_rate": 5 },
+  "Acid Wash Oversized Tee | UC61": { "genders": ["Unisex"], "base_prices": [320.0, 360.0], "weights": [380.0, 420.0], "tax_rate": 5 },
+  "Tie Dye Oversized T-Shirt | UT58": { "genders": ["Unisex"], "base_prices": [310.0, 350.0], "weights": [370.0, 410.0], "tax_rate": 5 },
+  "Standard Crew T-Shirt | US21": { "genders": ["Male"], "base_prices": [140.0], "weights": [240.0], "tax_rate": 5 },
+  "Classic Crew T-Shirt": { "genders": ["Male", "Female"], "base_prices": [130.0], "weights": [220.0], "tax_rate": 5 },
+  "V Neck T-Shirt | UV34": { "genders": ["Male"], "base_prices": [140.0], "weights": [200.0], "tax_rate": 5 },
+  "Supima T-Shirt | UC23": { "genders": ["Unisex"], "base_prices": [180.0], "weights": [260.0], "tax_rate": 5 },
+  "Polo | MP25": { "genders": ["Male"], "base_prices": [200.0, 220.0], "weights": [280.0, 320.0], "tax_rate": 5 },
+  "Raglan T-Shirt | UR37": { "genders": ["Male"], "base_prices": [160.0], "weights": [250.0], "tax_rate": 5 },
+  "Sleeveless T-Shirt | MS36": { "genders": ["Male"], "base_prices": [130.0], "weights": [180.0], "tax_rate": 5 },
+  "Baby Tee | FT47": { "genders": ["Female"], "base_prices": [150.0], "weights": [160.0], "tax_rate": 5 },
+  "Crop Top | FC39": { "genders": ["Female"], "base_prices": [140.0], "weights": [170.0], "tax_rate": 5 },
+  "Crop Tank | FC40": { "genders": ["Female"], "base_prices": [130.0], "weights": [150.0], "tax_rate": 5 },
+  "Oversized Shirt | UC28": { "genders": ["Unisex"], "base_prices": [270.0, 300.0], "weights": [310.0, 360.0], "tax_rate": 5 },
+  "Hoodie | UH24": { "genders": ["Unisex"], "base_prices": [250.0, 300.0, 430.0, 470.0], "weights": [480.0, 500.0, 740.0, 750.0], "tax_rate": 5 },
+  "Sweatshirt | UH26": { "genders": ["Unisex"], "base_prices": [330.0, 370.0], "weights": [620.0, 630.0, 650.0], "tax_rate": 5 },
+  "Zip Hoodie | UH32": { "genders": ["Unisex"], "base_prices": [380.0, 420.0], "weights": [520.0, 560.0, 780.0], "tax_rate": 5 },
+  "Varsity Jacket | UJ31": { "genders": ["Unisex"], "base_prices": [650.0, 700.0], "weights": [700.0, 750.0], "tax_rate": 12 },
+  "Joggers | UJ01": { "genders": ["Unisex"], "base_prices": [280.0, 320.0], "weights": [400.0, 440.0], "tax_rate": 12 },
+  "Shorts | US10": { "genders": ["Unisex"], "base_prices": [220.0, 250.0], "weights": [280.0, 310.0], "tax_rate": 12 },
+  "Structured Cap | BC01": { "genders": ["Unisex"], "base_prices": [180.0], "weights": [130.0], "tax_rate": 12 },
+  "Trucker Cap | MT45": { "genders": ["Unisex"], "base_prices": [190.0], "weights": [120.0], "tax_rate": 12 },
+  "Bucket Hat": { "genders": ["Unisex"], "base_prices": [200.0], "weights": [110.0], "tax_rate": 12 },
+  "Classic Mug | CM11": { "genders": ["Unisex"], "base_prices": [150.0], "weights": [320.0], "tax_rate": 12 },
+  "Magic Mug | MM01": { "genders": ["Unisex"], "base_prices": [200.0], "weights": [330.0], "tax_rate": 12 },
+  "Sipper Bottle | SB01": { "genders": ["Unisex"], "base_prices": [350.0], "weights": [450.0], "tax_rate": 12 },
+  "Tote Bag | TB01": { "genders": ["Unisex"], "base_prices": [150.0], "weights": [200.0], "tax_rate": 12 },
+  "Drawstring Bag | DB01": { "genders": ["Unisex"], "base_prices": [120.0], "weights": [150.0], "tax_rate": 12 }
 }

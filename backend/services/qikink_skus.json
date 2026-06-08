@@ -481,5 +481,1181 @@
       "XXL": "MVnHs-Gr-XXL",
       "3XL": "MVnHs-Gr-3XL"
     }
+  },
+  "Oversized Classic T-Shirt | UC22": {
+    "White": {
+      "XS": "UC22-Whit-XS",
+      "S": "UC22-Whit-S",
+      "M": "UC22-Whit-M",
+      "L": "UC22-Whit-L",
+      "XL": "UC22-Whit-XL",
+      "XXL": "UC22-Whit-XXL",
+      "3XL": "UC22-Whit-3XL"
+    },
+    "Black": {
+      "XS": "UC22-Blac-XS",
+      "S": "UC22-Blac-S",
+      "M": "UC22-Blac-M",
+      "L": "UC22-Blac-L",
+      "XL": "UC22-Blac-XL",
+      "XXL": "UC22-Blac-XXL",
+      "3XL": "UC22-Blac-3XL"
+    },
+    "Navy Blue": {
+      "XS": "UC22-Navy-XS",
+      "S": "UC22-Navy-S",
+      "M": "UC22-Navy-M",
+      "L": "UC22-Navy-L",
+      "XL": "UC22-Navy-XL",
+      "XXL": "UC22-Navy-XXL",
+      "3XL": "UC22-Navy-3XL"
+    },
+    "Bottle Green": {
+      "XS": "UC22-Bott-XS",
+      "S": "UC22-Bott-S",
+      "M": "UC22-Bott-M",
+      "L": "UC22-Bott-L",
+      "XL": "UC22-Bott-XL",
+      "XXL": "UC22-Bott-XXL",
+      "3XL": "UC22-Bott-3XL"
+    },
+    "Red": {
+      "XS": "UC22-Red-XS",
+      "S": "UC22-Red-S",
+      "M": "UC22-Red-M",
+      "L": "UC22-Red-L",
+      "XL": "UC22-Red-XL",
+      "XXL": "UC22-Red-XXL",
+      "3XL": "UC22-Red-3XL"
+    },
+    "Maroon": {
+      "XS": "UC22-Maro-XS",
+      "S": "UC22-Maro-S",
+      "M": "UC22-Maro-M",
+      "L": "UC22-Maro-L",
+      "XL": "UC22-Maro-XL",
+      "XXL": "UC22-Maro-XXL",
+      "3XL": "UC22-Maro-3XL"
+    },
+    "Light Baby Pink": {
+      "XS": "UC22-Ligh-XS",
+      "S": "UC22-Ligh-S",
+      "M": "UC22-Ligh-M",
+      "L": "UC22-Ligh-L",
+      "XL": "UC22-Ligh-XL",
+      "XXL": "UC22-Ligh-XXL",
+      "3XL": "UC22-Ligh-3XL"
+    },
+    "Lavender": {
+      "XS": "UC22-Lave-XS",
+      "S": "UC22-Lave-S",
+      "M": "UC22-Lave-M",
+      "L": "UC22-Lave-L",
+      "XL": "UC22-Lave-XL",
+      "XXL": "UC22-Lave-XXL",
+      "3XL": "UC22-Lave-3XL"
+    },
+    "Baby Blue": {
+      "XS": "UC22-Baby-XS",
+      "S": "UC22-Baby-S",
+      "M": "UC22-Baby-M",
+      "L": "UC22-Baby-L",
+      "XL": "UC22-Baby-XL",
+      "XXL": "UC22-Baby-XXL",
+      "3XL": "UC22-Baby-3XL"
+    },
+    "Mustard Yellow": {
+      "XS": "UC22-Must-XS",
+      "S": "UC22-Must-S",
+      "M": "UC22-Must-M",
+      "L": "UC22-Must-L",
+      "XL": "UC22-Must-XL",
+      "XXL": "UC22-Must-XXL",
+      "3XL": "UC22-Must-3XL"
+    },
+    "Olive Green": {
+      "XS": "UC22-Oliv-XS",
+      "S": "UC22-Oliv-S",
+      "M": "UC22-Oliv-M",
+      "L": "UC22-Oliv-L",
+      "XL": "UC22-Oliv-XL",
+      "XXL": "UC22-Oliv-XXL",
+      "3XL": "UC22-Oliv-3XL"
+    },
+    "Grey Melange": {
+      "XS": "UC22-Grey-XS",
+      "S": "UC22-Grey-S",
+      "M": "UC22-Grey-M",
+      "L": "UC22-Grey-L",
+      "XL": "UC22-Grey-XL",
+      "XXL": "UC22-Grey-XXL",
+      "3XL": "UC22-Grey-3XL"
+    },
+    "Petrol Blue": {
+      "XS": "UC22-Petr-XS",
+      "S": "UC22-Petr-S",
+      "M": "UC22-Petr-M",
+      "L": "UC22-Petr-L",
+      "XL": "UC22-Petr-XL",
+      "XXL": "UC22-Petr-XXL",
+      "3XL": "UC22-Petr-3XL"
+    },
+    "Golden Yellow": {
+      "XS": "UC22-Gold-XS",
+      "S": "UC22-Gold-S",
+      "M": "UC22-Gold-M",
+      "L": "UC22-Gold-L",
+      "XL": "UC22-Gold-XL",
+      "XXL": "UC22-Gold-XXL",
+      "3XL": "UC22-Gold-3XL"
+    },
+    "Purple": {
+      "XS": "UC22-Purp-XS",
+      "S": "UC22-Purp-S",
+      "M": "UC22-Purp-M",
+      "L": "UC22-Purp-L",
+      "XL": "UC22-Purp-XL",
+      "XXL": "UC22-Purp-XXL",
+      "3XL": "UC22-Purp-3XL"
+    },
+    "Off White": {
+      "XS": "UC22-OffW-XS",
+      "S": "UC22-OffW-S",
+      "M": "UC22-OffW-M",
+      "L": "UC22-OffW-L",
+      "XL": "UC22-OffW-XL",
+      "XXL": "UC22-OffW-XXL",
+      "3XL": "UC22-OffW-3XL"
+    },
+    "Flamingo": {
+      "XS": "UC22-Flam-XS",
+      "S": "UC22-Flam-S",
+      "M": "UC22-Flam-M",
+      "L": "UC22-Flam-L",
+      "XL": "UC22-Flam-XL",
+      "XXL": "UC22-Flam-XXL",
+      "3XL": "UC22-Flam-3XL"
+    },
+    "Jade": {
+      "XS": "UC22-Jade-XS",
+      "S": "UC22-Jade-S",
+      "M": "UC22-Jade-M",
+      "L": "UC22-Jade-L",
+      "XL": "UC22-Jade-XL",
+      "XXL": "UC22-Jade-XXL",
+      "3XL": "UC22-Jade-3XL"
+    },
+    "Coral": {
+      "XS": "UC22-Cora-XS",
+      "S": "UC22-Cora-S",
+      "M": "UC22-Cora-M",
+      "L": "UC22-Cora-L",
+      "XL": "UC22-Cora-XL",
+      "XXL": "UC22-Cora-XXL",
+      "3XL": "UC22-Cora-3XL"
+    },
+    "Mint": {
+      "XS": "UC22-Mint-XS",
+      "S": "UC22-Mint-S",
+      "M": "UC22-Mint-M",
+      "L": "UC22-Mint-L",
+      "XL": "UC22-Mint-XL",
+      "XXL": "UC22-Mint-XXL",
+      "3XL": "UC22-Mint-3XL"
+    }
+  },
+  "Oversized Standard T-Shirt | US22": {
+    "White": {
+      "XS": "US22-Whit-XS",
+      "S": "US22-Whit-S",
+      "M": "US22-Whit-M",
+      "L": "US22-Whit-L",
+      "XL": "US22-Whit-XL",
+      "XXL": "US22-Whit-XXL",
+      "3XL": "US22-Whit-3XL"
+    },
+    "Black": {
+      "XS": "US22-Blac-XS",
+      "S": "US22-Blac-S",
+      "M": "US22-Blac-M",
+      "L": "US22-Blac-L",
+      "XL": "US22-Blac-XL",
+      "XXL": "US22-Blac-XXL",
+      "3XL": "US22-Blac-3XL"
+    },
+    "Navy Blue": {
+      "XS": "US22-Navy-XS",
+      "S": "US22-Navy-S",
+      "M": "US22-Navy-M",
+      "L": "US22-Navy-L",
+      "XL": "US22-Navy-XL",
+      "XXL": "US22-Navy-XXL",
+      "3XL": "US22-Navy-3XL"
+    },
+    "Maroon": {
+      "XS": "US22-Maro-XS",
+      "S": "US22-Maro-S",
+      "M": "US22-Maro-M",
+      "L": "US22-Maro-L",
+      "XL": "US22-Maro-XL",
+      "XXL": "US22-Maro-XXL",
+      "3XL": "US22-Maro-3XL"
+    },
+    "Bottle Green": {
+      "XS": "US22-Bott-XS",
+      "S": "US22-Bott-S",
+      "M": "US22-Bott-M",
+      "L": "US22-Bott-L",
+      "XL": "US22-Bott-XL",
+      "XXL": "US22-Bott-XXL",
+      "3XL": "US22-Bott-3XL"
+    },
+    "Red": {
+      "XS": "US22-Red-XS",
+      "S": "US22-Red-S",
+      "M": "US22-Red-M",
+      "L": "US22-Red-L",
+      "XL": "US22-Red-XL",
+      "XXL": "US22-Red-XXL",
+      "3XL": "US22-Red-3XL"
+    },
+    "Grey Melange": {
+      "XS": "US22-Grey-XS",
+      "S": "US22-Grey-S",
+      "M": "US22-Grey-M",
+      "L": "US22-Grey-L",
+      "XL": "US22-Grey-XL",
+      "XXL": "US22-Grey-XXL",
+      "3XL": "US22-Grey-3XL"
+    },
+    "Light Baby Pink": {
+      "XS": "US22-Ligh-XS",
+      "S": "US22-Ligh-S",
+      "M": "US22-Ligh-M",
+      "L": "US22-Ligh-L",
+      "XL": "US22-Ligh-XL",
+      "XXL": "US22-Ligh-XXL",
+      "3XL": "US22-Ligh-3XL"
+    },
+    "Lavender": {
+      "XS": "US22-Lave-XS",
+      "S": "US22-Lave-S",
+      "M": "US22-Lave-M",
+      "L": "US22-Lave-L",
+      "XL": "US22-Lave-XL",
+      "XXL": "US22-Lave-XXL",
+      "3XL": "US22-Lave-3XL"
+    },
+    "Beige": {
+      "XS": "US22-Beig-XS",
+      "S": "US22-Beig-S",
+      "M": "US22-Beig-M",
+      "L": "US22-Beig-L",
+      "XL": "US22-Beig-XL",
+      "XXL": "US22-Beig-XXL",
+      "3XL": "US22-Beig-3XL"
+    }
+  },
+  "Acid Wash Oversized Tee | UC61": {
+    "Black": {
+      "XS": "UC61-Blac-XS",
+      "S": "UC61-Blac-S",
+      "M": "UC61-Blac-M",
+      "L": "UC61-Blac-L",
+      "XL": "UC61-Blac-XL",
+      "XXL": "UC61-Blac-XXL",
+      "3XL": "UC61-Blac-3XL"
+    },
+    "White": {
+      "XS": "UC61-Whit-XS",
+      "S": "UC61-Whit-S",
+      "M": "UC61-Whit-M",
+      "L": "UC61-Whit-L",
+      "XL": "UC61-Whit-XL",
+      "XXL": "UC61-Whit-XXL",
+      "3XL": "UC61-Whit-3XL"
+    },
+    "Navy Blue": {
+      "XS": "UC61-Navy-XS",
+      "S": "UC61-Navy-S",
+      "M": "UC61-Navy-M",
+      "L": "UC61-Navy-L",
+      "XL": "UC61-Navy-XL",
+      "XXL": "UC61-Navy-XXL",
+      "3XL": "UC61-Navy-3XL"
+    },
+    "Maroon": {
+      "XS": "UC61-Maro-XS",
+      "S": "UC61-Maro-S",
+      "M": "UC61-Maro-M",
+      "L": "UC61-Maro-L",
+      "XL": "UC61-Maro-XL",
+      "XXL": "UC61-Maro-XXL",
+      "3XL": "UC61-Maro-3XL"
+    },
+    "Bottle Green": {
+      "XS": "UC61-Bott-XS",
+      "S": "UC61-Bott-S",
+      "M": "UC61-Bott-M",
+      "L": "UC61-Bott-L",
+      "XL": "UC61-Bott-XL",
+      "XXL": "UC61-Bott-XXL",
+      "3XL": "UC61-Bott-3XL"
+    },
+    "Olive Green": {
+      "XS": "UC61-Oliv-XS",
+      "S": "UC61-Oliv-S",
+      "M": "UC61-Oliv-M",
+      "L": "UC61-Oliv-L",
+      "XL": "UC61-Oliv-XL",
+      "XXL": "UC61-Oliv-XXL",
+      "3XL": "UC61-Oliv-3XL"
+    }
+  },
+  "Tie Dye Oversized T-Shirt | UT58": {
+    "Blue White": {
+      "XS": "UT58-Blue-XS",
+      "S": "UT58-Blue-S",
+      "M": "UT58-Blue-M",
+      "L": "UT58-Blue-L",
+      "XL": "UT58-Blue-XL",
+      "XXL": "UT58-Blue-XXL",
+      "3XL": "UT58-Blue-3XL"
+    },
+    "Pink White": {
+      "XS": "UT58-Pink-XS",
+      "S": "UT58-Pink-S",
+      "M": "UT58-Pink-M",
+      "L": "UT58-Pink-L",
+      "XL": "UT58-Pink-XL",
+      "XXL": "UT58-Pink-XXL",
+      "3XL": "UT58-Pink-3XL"
+    },
+    "Green White": {
+      "XS": "UT58-Gree-XS",
+      "S": "UT58-Gree-S",
+      "M": "UT58-Gree-M",
+      "L": "UT58-Gree-L",
+      "XL": "UT58-Gree-XL",
+      "XXL": "UT58-Gree-XXL",
+      "3XL": "UT58-Gree-3XL"
+    },
+    "Yellow White": {
+      "XS": "UT58-Yell-XS",
+      "S": "UT58-Yell-S",
+      "M": "UT58-Yell-M",
+      "L": "UT58-Yell-L",
+      "XL": "UT58-Yell-XL",
+      "XXL": "UT58-Yell-XXL",
+      "3XL": "UT58-Yell-3XL"
+    },
+    "Purple White": {
+      "XS": "UT58-Purp-XS",
+      "S": "UT58-Purp-S",
+      "M": "UT58-Purp-M",
+      "L": "UT58-Purp-L",
+      "XL": "UT58-Purp-XL",
+      "XXL": "UT58-Purp-XXL",
+      "3XL": "UT58-Purp-3XL"
+    }
+  },
+  "Classic Crew T-Shirt": {
+    "White": {
+      "S": "CCT-Whit-S",
+      "M": "CCT-Whit-M",
+      "L": "CCT-Whit-L",
+      "XL": "CCT-Whit-XL",
+      "XXL": "CCT-Whit-XXL"
+    },
+    "Black": {
+      "S": "CCT-Blac-S",
+      "M": "CCT-Blac-M",
+      "L": "CCT-Blac-L",
+      "XL": "CCT-Blac-XL",
+      "XXL": "CCT-Blac-XXL"
+    },
+    "Navy Blue": {
+      "S": "CCT-Navy-S",
+      "M": "CCT-Navy-M",
+      "L": "CCT-Navy-L",
+      "XL": "CCT-Navy-XL",
+      "XXL": "CCT-Navy-XXL"
+    },
+    "Bottle Green": {
+      "S": "CCT-Bott-S",
+      "M": "CCT-Bott-M",
+      "L": "CCT-Bott-L",
+      "XL": "CCT-Bott-XL",
+      "XXL": "CCT-Bott-XXL"
+    },
+    "Red": {
+      "S": "CCT-Red-S",
+      "M": "CCT-Red-M",
+      "L": "CCT-Red-L",
+      "XL": "CCT-Red-XL",
+      "XXL": "CCT-Red-XXL"
+    },
+    "Maroon": {
+      "S": "CCT-Maro-S",
+      "M": "CCT-Maro-M",
+      "L": "CCT-Maro-L",
+      "XL": "CCT-Maro-XL",
+      "XXL": "CCT-Maro-XXL"
+    },
+    "Light Baby Pink": {
+      "S": "CCT-Ligh-S",
+      "M": "CCT-Ligh-M",
+      "L": "CCT-Ligh-L",
+      "XL": "CCT-Ligh-XL",
+      "XXL": "CCT-Ligh-XXL"
+    },
+    "Lavender": {
+      "S": "CCT-Lave-S",
+      "M": "CCT-Lave-M",
+      "L": "CCT-Lave-L",
+      "XL": "CCT-Lave-XL",
+      "XXL": "CCT-Lave-XXL"
+    },
+    "Baby Blue": {
+      "S": "CCT-Baby-S",
+      "M": "CCT-Baby-M",
+      "L": "CCT-Baby-L",
+      "XL": "CCT-Baby-XL",
+      "XXL": "CCT-Baby-XXL"
+    },
+    "Mustard Yellow": {
+      "S": "CCT-Must-S",
+      "M": "CCT-Must-M",
+      "L": "CCT-Must-L",
+      "XL": "CCT-Must-XL",
+      "XXL": "CCT-Must-XXL"
+    },
+    "Olive Green": {
+      "S": "CCT-Oliv-S",
+      "M": "CCT-Oliv-M",
+      "L": "CCT-Oliv-L",
+      "XL": "CCT-Oliv-XL",
+      "XXL": "CCT-Oliv-XXL"
+    },
+    "Grey Melange": {
+      "S": "CCT-Grey-S",
+      "M": "CCT-Grey-M",
+      "L": "CCT-Grey-L",
+      "XL": "CCT-Grey-XL",
+      "XXL": "CCT-Grey-XXL"
+    }
+  },
+  "Supima T-Shirt | UC23": {
+    "White": {
+      "S": "UC23-Whit-S",
+      "M": "UC23-Whit-M",
+      "L": "UC23-Whit-L",
+      "XL": "UC23-Whit-XL",
+      "XXL": "UC23-Whit-XXL"
+    },
+    "Black": {
+      "S": "UC23-Blac-S",
+      "M": "UC23-Blac-M",
+      "L": "UC23-Blac-L",
+      "XL": "UC23-Blac-XL",
+      "XXL": "UC23-Blac-XXL"
+    },
+    "Navy Blue": {
+      "S": "UC23-Navy-S",
+      "M": "UC23-Navy-M",
+      "L": "UC23-Navy-L",
+      "XL": "UC23-Navy-XL",
+      "XXL": "UC23-Navy-XXL"
+    },
+    "Bottle Green": {
+      "S": "UC23-Bott-S",
+      "M": "UC23-Bott-M",
+      "L": "UC23-Bott-L",
+      "XL": "UC23-Bott-XL",
+      "XXL": "UC23-Bott-XXL"
+    },
+    "Maroon": {
+      "S": "UC23-Maro-S",
+      "M": "UC23-Maro-M",
+      "L": "UC23-Maro-L",
+      "XL": "UC23-Maro-XL",
+      "XXL": "UC23-Maro-XXL"
+    },
+    "Olive Green": {
+      "S": "UC23-Oliv-S",
+      "M": "UC23-Oliv-M",
+      "L": "UC23-Oliv-L",
+      "XL": "UC23-Oliv-XL",
+      "XXL": "UC23-Oliv-XXL"
+    },
+    "Lavender": {
+      "S": "UC23-Lave-S",
+      "M": "UC23-Lave-M",
+      "L": "UC23-Lave-L",
+      "XL": "UC23-Lave-XL",
+      "XXL": "UC23-Lave-XXL"
+    }
+  },
+  "Polo | MP25": {
+    "White": {
+      "S": "MP25-Whit-S",
+      "M": "MP25-Whit-M",
+      "L": "MP25-Whit-L",
+      "XL": "MP25-Whit-XL",
+      "XXL": "MP25-Whit-XXL"
+    },
+    "Black": {
+      "S": "MP25-Blac-S",
+      "M": "MP25-Blac-M",
+      "L": "MP25-Blac-L",
+      "XL": "MP25-Blac-XL",
+      "XXL": "MP25-Blac-XXL"
+    },
+    "Navy Blue": {
+      "S": "MP25-Navy-S",
+      "M": "MP25-Navy-M",
+      "L": "MP25-Navy-L",
+      "XL": "MP25-Navy-XL",
+      "XXL": "MP25-Navy-XXL"
+    },
+    "Grey Melange": {
+      "S": "MP25-Grey-S",
+      "M": "MP25-Grey-M",
+      "L": "MP25-Grey-L",
+      "XL": "MP25-Grey-XL",
+      "XXL": "MP25-Grey-XXL"
+    },
+    "Maroon": {
+      "S": "MP25-Maro-S",
+      "M": "MP25-Maro-M",
+      "L": "MP25-Maro-L",
+      "XL": "MP25-Maro-XL",
+      "XXL": "MP25-Maro-XXL"
+    },
+    "Royal Blue": {
+      "S": "MP25-Roya-S",
+      "M": "MP25-Roya-M",
+      "L": "MP25-Roya-L",
+      "XL": "MP25-Roya-XL",
+      "XXL": "MP25-Roya-XXL"
+    },
+    "Bottle Green": {
+      "S": "MP25-Bott-S",
+      "M": "MP25-Bott-M",
+      "L": "MP25-Bott-L",
+      "XL": "MP25-Bott-XL",
+      "XXL": "MP25-Bott-XXL"
+    },
+    "Mustard Yellow": {
+      "S": "MP25-Must-S",
+      "M": "MP25-Must-M",
+      "L": "MP25-Must-L",
+      "XL": "MP25-Must-XL",
+      "XXL": "MP25-Must-XXL"
+    }
+  },
+  "Raglan T-Shirt | UR37": {
+    "White Black": {
+      "S": "UR37-Whit-S",
+      "M": "UR37-Whit-M",
+      "L": "UR37-Whit-L",
+      "XL": "UR37-Whit-XL",
+      "XXL": "UR37-Whit-XXL"
+    },
+    "White Navy": {
+      "S": "UR37-Whit-S",
+      "M": "UR37-Whit-M",
+      "L": "UR37-Whit-L",
+      "XL": "UR37-Whit-XL",
+      "XXL": "UR37-Whit-XXL"
+    },
+    "White Maroon": {
+      "S": "UR37-Whit-S",
+      "M": "UR37-Whit-M",
+      "L": "UR37-Whit-L",
+      "XL": "UR37-Whit-XL",
+      "XXL": "UR37-Whit-XXL"
+    },
+    "White Red": {
+      "S": "UR37-Whit-S",
+      "M": "UR37-Whit-M",
+      "L": "UR37-Whit-L",
+      "XL": "UR37-Whit-XL",
+      "XXL": "UR37-Whit-XXL"
+    }
+  },
+  "Sleeveless T-Shirt | MS36": {
+    "White": {
+      "S": "MS36-Whit-S",
+      "M": "MS36-Whit-M",
+      "L": "MS36-Whit-L",
+      "XL": "MS36-Whit-XL",
+      "XXL": "MS36-Whit-XXL"
+    },
+    "Black": {
+      "S": "MS36-Blac-S",
+      "M": "MS36-Blac-M",
+      "L": "MS36-Blac-L",
+      "XL": "MS36-Blac-XL",
+      "XXL": "MS36-Blac-XXL"
+    },
+    "Grey Melange": {
+      "S": "MS36-Grey-S",
+      "M": "MS36-Grey-M",
+      "L": "MS36-Grey-L",
+      "XL": "MS36-Grey-XL",
+      "XXL": "MS36-Grey-XXL"
+    },
+    "Maroon": {
+      "S": "MS36-Maro-S",
+      "M": "MS36-Maro-M",
+      "L": "MS36-Maro-L",
+      "XL": "MS36-Maro-XL",
+      "XXL": "MS36-Maro-XXL"
+    },
+    "Olive Green": {
+      "S": "MS36-Oliv-S",
+      "M": "MS36-Oliv-M",
+      "L": "MS36-Oliv-L",
+      "XL": "MS36-Oliv-XL",
+      "XXL": "MS36-Oliv-XXL"
+    },
+    "Lavender": {
+      "S": "MS36-Lave-S",
+      "M": "MS36-Lave-M",
+      "L": "MS36-Lave-L",
+      "XL": "MS36-Lave-XL",
+      "XXL": "MS36-Lave-XXL"
+    },
+    "Charcoal Melange": {
+      "S": "MS36-Char-S",
+      "M": "MS36-Char-M",
+      "L": "MS36-Char-L",
+      "XL": "MS36-Char-XL",
+      "XXL": "MS36-Char-XXL"
+    }
+  },
+  "Baby Tee | FT47": {
+    "White": {
+      "XS": "FT47-Whit-XS",
+      "S": "FT47-Whit-S",
+      "M": "FT47-Whit-M",
+      "L": "FT47-Whit-L",
+      "XL": "FT47-Whit-XL"
+    },
+    "Black": {
+      "XS": "FT47-Blac-XS",
+      "S": "FT47-Blac-S",
+      "M": "FT47-Blac-M",
+      "L": "FT47-Blac-L",
+      "XL": "FT47-Blac-XL"
+    },
+    "Light Baby Pink": {
+      "XS": "FT47-Ligh-XS",
+      "S": "FT47-Ligh-S",
+      "M": "FT47-Ligh-M",
+      "L": "FT47-Ligh-L",
+      "XL": "FT47-Ligh-XL"
+    },
+    "Lavender": {
+      "XS": "FT47-Lave-XS",
+      "S": "FT47-Lave-S",
+      "M": "FT47-Lave-M",
+      "L": "FT47-Lave-L",
+      "XL": "FT47-Lave-XL"
+    },
+    "Baby Blue": {
+      "XS": "FT47-Baby-XS",
+      "S": "FT47-Baby-S",
+      "M": "FT47-Baby-M",
+      "L": "FT47-Baby-L",
+      "XL": "FT47-Baby-XL"
+    },
+    "Mint": {
+      "XS": "FT47-Mint-XS",
+      "S": "FT47-Mint-S",
+      "M": "FT47-Mint-M",
+      "L": "FT47-Mint-L",
+      "XL": "FT47-Mint-XL"
+    },
+    "Coral": {
+      "XS": "FT47-Cora-XS",
+      "S": "FT47-Cora-S",
+      "M": "FT47-Cora-M",
+      "L": "FT47-Cora-L",
+      "XL": "FT47-Cora-XL"
+    }
+  },
+  "Crop Top | FC39": {
+    "White": {
+      "XS": "FC39-Whit-XS",
+      "S": "FC39-Whit-S",
+      "M": "FC39-Whit-M",
+      "L": "FC39-Whit-L"
+    },
+    "Black": {
+      "XS": "FC39-Blac-XS",
+      "S": "FC39-Blac-S",
+      "M": "FC39-Blac-M",
+      "L": "FC39-Blac-L"
+    },
+    "Light Baby Pink": {
+      "XS": "FC39-Ligh-XS",
+      "S": "FC39-Ligh-S",
+      "M": "FC39-Ligh-M",
+      "L": "FC39-Ligh-L"
+    },
+    "Lavender": {
+      "XS": "FC39-Lave-XS",
+      "S": "FC39-Lave-S",
+      "M": "FC39-Lave-M",
+      "L": "FC39-Lave-L"
+    }
+  },
+  "Crop Tank | FC40": {
+    "White": {
+      "XS": "FC40-Whit-XS",
+      "S": "FC40-Whit-S",
+      "M": "FC40-Whit-M",
+      "L": "FC40-Whit-L"
+    },
+    "Black": {
+      "XS": "FC40-Blac-XS",
+      "S": "FC40-Blac-S",
+      "M": "FC40-Blac-M",
+      "L": "FC40-Blac-L"
+    },
+    "Light Baby Pink": {
+      "XS": "FC40-Ligh-XS",
+      "S": "FC40-Ligh-S",
+      "M": "FC40-Ligh-M",
+      "L": "FC40-Ligh-L"
+    },
+    "Lavender": {
+      "XS": "FC40-Lave-XS",
+      "S": "FC40-Lave-S",
+      "M": "FC40-Lave-M",
+      "L": "FC40-Lave-L"
+    },
+    "Navy Blue": {
+      "XS": "FC40-Navy-XS",
+      "S": "FC40-Navy-S",
+      "M": "FC40-Navy-M",
+      "L": "FC40-Navy-L"
+    }
+  },
+  "Oversized Shirt | UC28": {
+    "White": {
+      "XS": "UC28-Whit-XS",
+      "S": "UC28-Whit-S",
+      "M": "UC28-Whit-M",
+      "L": "UC28-Whit-L",
+      "XL": "UC28-Whit-XL",
+      "XXL": "UC28-Whit-XXL",
+      "3XL": "UC28-Whit-3XL"
+    },
+    "Black": {
+      "XS": "UC28-Blac-XS",
+      "S": "UC28-Blac-S",
+      "M": "UC28-Blac-M",
+      "L": "UC28-Blac-L",
+      "XL": "UC28-Blac-XL",
+      "XXL": "UC28-Blac-XXL",
+      "3XL": "UC28-Blac-3XL"
+    },
+    "Navy Blue": {
+      "XS": "UC28-Navy-XS",
+      "S": "UC28-Navy-S",
+      "M": "UC28-Navy-M",
+      "L": "UC28-Navy-L",
+      "XL": "UC28-Navy-XL",
+      "XXL": "UC28-Navy-XXL",
+      "3XL": "UC28-Navy-3XL"
+    },
+    "Lavender": {
+      "XS": "UC28-Lave-XS",
+      "S": "UC28-Lave-S",
+      "M": "UC28-Lave-M",
+      "L": "UC28-Lave-L",
+      "XL": "UC28-Lave-XL",
+      "XXL": "UC28-Lave-XXL",
+      "3XL": "UC28-Lave-3XL"
+    },
+    "Maroon": {
+      "XS": "UC28-Maro-XS",
+      "S": "UC28-Maro-S",
+      "M": "UC28-Maro-M",
+      "L": "UC28-Maro-L",
+      "XL": "UC28-Maro-XL",
+      "XXL": "UC28-Maro-XXL",
+      "3XL": "UC28-Maro-3XL"
+    },
+    "Baby Blue": {
+      "XS": "UC28-Baby-XS",
+      "S": "UC28-Baby-S",
+      "M": "UC28-Baby-M",
+      "L": "UC28-Baby-L",
+      "XL": "UC28-Baby-XL",
+      "XXL": "UC28-Baby-XXL",
+      "3XL": "UC28-Baby-3XL"
+    },
+    "Light Baby Pink": {
+      "XS": "UC28-Ligh-XS",
+      "S": "UC28-Ligh-S",
+      "M": "UC28-Ligh-M",
+      "L": "UC28-Ligh-L",
+      "XL": "UC28-Ligh-XL",
+      "XXL": "UC28-Ligh-XXL",
+      "3XL": "UC28-Ligh-3XL"
+    }
+  },
+  "Zip Hoodie | UH32": {
+    "White": {
+      "XS": "UH32-Whit-XS",
+      "S": "UH32-Whit-S",
+      "M": "UH32-Whit-M",
+      "L": "UH32-Whit-L",
+      "XL": "UH32-Whit-XL",
+      "XXL": "UH32-Whit-XXL",
+      "3XL": "UH32-Whit-3XL"
+    },
+    "Black": {
+      "XS": "UH32-Blac-XS",
+      "S": "UH32-Blac-S",
+      "M": "UH32-Blac-M",
+      "L": "UH32-Blac-L",
+      "XL": "UH32-Blac-XL",
+      "XXL": "UH32-Blac-XXL",
+      "3XL": "UH32-Blac-3XL"
+    },
+    "Navy Blue": {
+      "XS": "UH32-Navy-XS",
+      "S": "UH32-Navy-S",
+      "M": "UH32-Navy-M",
+      "L": "UH32-Navy-L",
+      "XL": "UH32-Navy-XL",
+      "XXL": "UH32-Navy-XXL",
+      "3XL": "UH32-Navy-3XL"
+    },
+    "Maroon": {
+      "XS": "UH32-Maro-XS",
+      "S": "UH32-Maro-S",
+      "M": "UH32-Maro-M",
+      "L": "UH32-Maro-L",
+      "XL": "UH32-Maro-XL",
+      "XXL": "UH32-Maro-XXL",
+      "3XL": "UH32-Maro-3XL"
+    },
+    "Light Baby Pink": {
+      "XS": "UH32-Ligh-XS",
+      "S": "UH32-Ligh-S",
+      "M": "UH32-Ligh-M",
+      "L": "UH32-Ligh-L",
+      "XL": "UH32-Ligh-XL",
+      "XXL": "UH32-Ligh-XXL",
+      "3XL": "UH32-Ligh-3XL"
+    },
+    "Lavender": {
+      "XS": "UH32-Lave-XS",
+      "S": "UH32-Lave-S",
+      "M": "UH32-Lave-M",
+      "L": "UH32-Lave-L",
+      "XL": "UH32-Lave-XL",
+      "XXL": "UH32-Lave-XXL",
+      "3XL": "UH32-Lave-3XL"
+    }
+  },
+  "Varsity Jacket | UJ31": {
+    "Black": {
+      "S": "UJ31-Blac-S",
+      "M": "UJ31-Blac-M",
+      "L": "UJ31-Blac-L",
+      "XL": "UJ31-Blac-XL",
+      "XXL": "UJ31-Blac-XXL"
+    },
+    "Navy Blue": {
+      "S": "UJ31-Navy-S",
+      "M": "UJ31-Navy-M",
+      "L": "UJ31-Navy-L",
+      "XL": "UJ31-Navy-XL",
+      "XXL": "UJ31-Navy-XXL"
+    },
+    "Maroon": {
+      "S": "UJ31-Maro-S",
+      "M": "UJ31-Maro-M",
+      "L": "UJ31-Maro-L",
+      "XL": "UJ31-Maro-XL",
+      "XXL": "UJ31-Maro-XXL"
+    },
+    "Bottle Green": {
+      "S": "UJ31-Bott-S",
+      "M": "UJ31-Bott-M",
+      "L": "UJ31-Bott-L",
+      "XL": "UJ31-Bott-XL",
+      "XXL": "UJ31-Bott-XXL"
+    },
+    "Red": {
+      "S": "UJ31-Red-S",
+      "M": "UJ31-Red-M",
+      "L": "UJ31-Red-L",
+      "XL": "UJ31-Red-XL",
+      "XXL": "UJ31-Red-XXL"
+    },
+    "Lavender": {
+      "S": "UJ31-Lave-S",
+      "M": "UJ31-Lave-M",
+      "L": "UJ31-Lave-L",
+      "XL": "UJ31-Lave-XL",
+      "XXL": "UJ31-Lave-XXL"
+    }
+  },
+  "Joggers | UJ01": {
+    "Black": {
+      "XS": "UJ01-Blac-XS",
+      "S": "UJ01-Blac-S",
+      "M": "UJ01-Blac-M",
+      "L": "UJ01-Blac-L",
+      "XL": "UJ01-Blac-XL",
+      "XXL": "UJ01-Blac-XXL",
+      "3XL": "UJ01-Blac-3XL"
+    },
+    "Navy Blue": {
+      "XS": "UJ01-Navy-XS",
+      "S": "UJ01-Navy-S",
+      "M": "UJ01-Navy-M",
+      "L": "UJ01-Navy-L",
+      "XL": "UJ01-Navy-XL",
+      "XXL": "UJ01-Navy-XXL",
+      "3XL": "UJ01-Navy-3XL"
+    },
+    "Grey Melange": {
+      "XS": "UJ01-Grey-XS",
+      "S": "UJ01-Grey-S",
+      "M": "UJ01-Grey-M",
+      "L": "UJ01-Grey-L",
+      "XL": "UJ01-Grey-XL",
+      "XXL": "UJ01-Grey-XXL",
+      "3XL": "UJ01-Grey-3XL"
+    },
+    "White": {
+      "XS": "UJ01-Whit-XS",
+      "S": "UJ01-Whit-S",
+      "M": "UJ01-Whit-M",
+      "L": "UJ01-Whit-L",
+      "XL": "UJ01-Whit-XL",
+      "XXL": "UJ01-Whit-XXL",
+      "3XL": "UJ01-Whit-3XL"
+    },
+    "Maroon": {
+      "XS": "UJ01-Maro-XS",
+      "S": "UJ01-Maro-S",
+      "M": "UJ01-Maro-M",
+      "L": "UJ01-Maro-L",
+      "XL": "UJ01-Maro-XL",
+      "XXL": "UJ01-Maro-XXL",
+      "3XL": "UJ01-Maro-3XL"
+    },
+    "Olive Green": {
+      "XS": "UJ01-Oliv-XS",
+      "S": "UJ01-Oliv-S",
+      "M": "UJ01-Oliv-M",
+      "L": "UJ01-Oliv-L",
+      "XL": "UJ01-Oliv-XL",
+      "XXL": "UJ01-Oliv-XXL",
+      "3XL": "UJ01-Oliv-3XL"
+    }
+  },
+  "Shorts | US10": {
+    "Black": {
+      "S": "US10-Blac-S",
+      "M": "US10-Blac-M",
+      "L": "US10-Blac-L",
+      "XL": "US10-Blac-XL",
+      "XXL": "US10-Blac-XXL"
+    },
+    "Navy Blue": {
+      "S": "US10-Navy-S",
+      "M": "US10-Navy-M",
+      "L": "US10-Navy-L",
+      "XL": "US10-Navy-XL",
+      "XXL": "US10-Navy-XXL"
+    },
+    "Grey Melange": {
+      "S": "US10-Grey-S",
+      "M": "US10-Grey-M",
+      "L": "US10-Grey-L",
+      "XL": "US10-Grey-XL",
+      "XXL": "US10-Grey-XXL"
+    },
+    "White": {
+      "S": "US10-Whit-S",
+      "M": "US10-Whit-M",
+      "L": "US10-Whit-L",
+      "XL": "US10-Whit-XL",
+      "XXL": "US10-Whit-XXL"
+    },
+    "Olive Green": {
+      "S": "US10-Oliv-S",
+      "M": "US10-Oliv-M",
+      "L": "US10-Oliv-L",
+      "XL": "US10-Oliv-XL",
+      "XXL": "US10-Oliv-XXL"
+    },
+    "Maroon": {
+      "S": "US10-Maro-S",
+      "M": "US10-Maro-M",
+      "L": "US10-Maro-L",
+      "XL": "US10-Maro-XL",
+      "XXL": "US10-Maro-XXL"
+    },
+    "Bottle Green": {
+      "S": "US10-Bott-S",
+      "M": "US10-Bott-M",
+      "L": "US10-Bott-L",
+      "XL": "US10-Bott-XL",
+      "XXL": "US10-Bott-XXL"
+    }
+  },
+  "Structured Cap | BC01": {
+    "Black": {
+      "S/M": "BC01-Blac-SM",
+      "L/XL": "BC01-Blac-LXL"
+    },
+    "Navy Blue": {
+      "S/M": "BC01-Navy-SM",
+      "L/XL": "BC01-Navy-LXL"
+    },
+    "White": {
+      "S/M": "BC01-Whit-SM",
+      "L/XL": "BC01-Whit-LXL"
+    },
+    "Red": {
+      "S/M": "BC01-Red-SM",
+      "L/XL": "BC01-Red-LXL"
+    },
+    "Maroon": {
+      "S/M": "BC01-Maro-SM",
+      "L/XL": "BC01-Maro-LXL"
+    },
+    "Olive Green": {
+      "S/M": "BC01-Oliv-SM",
+      "L/XL": "BC01-Oliv-LXL"
+    },
+    "Mustard Yellow": {
+      "S/M": "BC01-Must-SM",
+      "L/XL": "BC01-Must-LXL"
+    },
+    "Royal Blue": {
+      "S/M": "BC01-Roya-SM",
+      "L/XL": "BC01-Roya-LXL"
+    },
+    "Bottle Green": {
+      "S/M": "BC01-Bott-SM",
+      "L/XL": "BC01-Bott-LXL"
+    },
+    "Grey": {
+      "S/M": "BC01-Grey-SM",
+      "L/XL": "BC01-Grey-LXL"
+    },
+    "Petrol Blue": {
+      "S/M": "BC01-Petr-SM",
+      "L/XL": "BC01-Petr-LXL"
+    },
+    "Coffee Brown": {
+      "S/M": "BC01-Coff-SM",
+      "L/XL": "BC01-Coff-LXL"
+    }
+  },
+  "Trucker Cap | MT45": {
+    "Black": {
+      "S/M": "MT45-Blac-SM",
+      "L/XL": "MT45-Blac-LXL"
+    },
+    "White": {
+      "S/M": "MT45-Whit-SM",
+      "L/XL": "MT45-Whit-LXL"
+    },
+    "Navy Blue": {
+      "S/M": "MT45-Navy-SM",
+      "L/XL": "MT45-Navy-LXL"
+    },
+    "Lavender": {
+      "S/M": "MT45-Lave-SM",
+      "L/XL": "MT45-Lave-LXL"
+    },
+    "Flamingo": {
+      "S/M": "MT45-Flam-SM",
+      "L/XL": "MT45-Flam-LXL"
+    }
+  },
+  "Bucket Hat": {
+    "Black": {
+      "One Size": "BKH-Blac-One Size"
+    },
+    "White": {
+      "One Size": "BKH-Whit-One Size"
+    },
+    "Navy Blue": {
+      "One Size": "BKH-Navy-One Size"
+    },
+    "Olive Green": {
+      "One Size": "BKH-Oliv-One Size"
+    },
+    "Maroon": {
+      "One Size": "BKH-Maro-One Size"
+    },
+    "Lavender": {
+      "One Size": "BKH-Lave-One Size"
+    }
+  },
+  "Classic Mug | CM11": {
+    "350ml": {
+      "350ml": "CM11-350ml"
+    },
+    "450ml": {
+      "450ml": "CM11-450ml"
+    }
+  },
+  "Magic Mug | MM01": {
+    "350ml": {
+      "350ml": "MM01-350ml"
+    },
+    "450ml": {
+      "450ml": "MM01-450ml"
+    }
+  },
+  "Sipper Bottle | SB01": {
+    "Stainless Steel": {
+      "500ml": "SB01-500ml",
+      "750ml": "SB01-750ml"
+    }
+  },
+  "Tote Bag | TB01": {
+    "Natural": {
+      "One Size": "TB01-Natu-One Size"
+    },
+    "Black": {
+      "One Size": "TB01-Blac-One Size"
+    },
+    "Navy Blue": {
+      "One Size": "TB01-Navy-One Size"
+    },
+    "Maroon": {
+      "One Size": "TB01-Maro-One Size"
+    }
+  },
+  "Drawstring Bag | DB01": {
+    "Black": {
+      "One Size": "DB01-Blac-One Size"
+    },
+    "Navy Blue": {
+      "One Size": "DB01-Navy-One Size"
+    },
+    "Maroon": {
+      "One Size": "DB01-Maro-One Size"
+    },
+    "Royal Blue": {
+      "One Size": "DB01-Roya-One Size"
+    }
   }
 }
