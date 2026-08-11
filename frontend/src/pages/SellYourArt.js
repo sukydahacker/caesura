@@ -36,56 +36,59 @@ const CANVAS_H = 796;
 // Black / charcoal variants use the black template directly.
 // Grey variants use the grey template directly.
 // All other colors use the white template + multiply-blend tint at runtime.
+// Official Qikink hex codes (source: help.qikink.com/portal/en/kb/articles/hex-codes-for-apparels)
 const COLOR_HEX = {
   'white':                '#FFFFFF',
-  'off white':            '#F5F0EB',
+  'off white':            '#fffae7',
   'white black':          '#FFFFFF',
   'white lavender':       '#F5F0FF',
-  'black':                '#1A1A1A',
+  'black':                '#151515',
   'black melange':        '#252525',
   'black charcoal melange':'#2D2D2D',
-  'black white':          '#1A1A1A',
+  'black white':          '#151515',
   'brown black':          '#2C1810',
   'green black':          '#1B3020',
-  'charcoal melange':     '#4A4A4A',
-  'grey':                 '#9E9E9E',
-  'grey melange':         '#A8A8A8',
-  'steel grey':           '#71797E',
+  'charcoal melange':     '#6E6E6E',
+  'grey':                 '#C3C3C3',
+  'grey melange':         '#C3C3C3',
+  'steel grey':           '#3A3E41',
   'silver':               '#C0C0C0',
-  'mushroom':             '#C0A898',
-  'navy blue':            '#1C2B4A',
+  'mushroom':             '#cc9d93',
+  'navy blue':            '#2D314A',
   'navy melange':         '#3A4B5E',
-  'royal blue':           '#2845B4',
-  'petrol blue':          '#005F73',
+  'royal blue':           '#1F286A',
+  'petrol blue':          '#002A2F',
   'orchid blue':          '#7B68EE',
-  'skyblue':              '#5BB8F5',
-  'baby blue':            '#B0D8F0',
-  'red':                  '#C0392B',
-  'brick red':            '#8B2500',
-  'maroon':               '#7B1818',
-  'orange':               '#F37021',
-  'coral':                '#FF6B5B',
-  'flamingo':             '#FC8EAC',
-  'pink':                 '#FF8FA3',
+  'skyblue':              '#19E4FF',
+  'sky blue':             '#19E4FF',
+  'baby blue':            '#a4cef8',
+  'red':                  '#A50303',
+  'brick red':            '#7B2F1D',
+  'maroon':               '#2D0101',
+  'orange':               '#E65E00',
+  'coral':                '#C86E4E',
+  'flamingo':             '#E29891',
+  'pink':                 '#CC2867',
   'baby pink':            '#F9C0CB',
-  'light baby pink':      '#FFCDD2',
-  'peach':                '#FFCBA4',
-  'purple':               '#6A1B9A',
+  'light baby pink':      '#FFD5DB',
+  'light pink':           '#FFD5DB',
+  'peach':                '#ffdec6',
+  'purple':               '#321541',
   'purple melange':       '#7E57C2',
-  'lavender':             '#B57EDC',
-  'bottle green':         '#1B4332',
-  'flag green':           '#138808',
-  'olive green':          '#708238',
-  'jade':                 '#00A36C',
-  'mint':                 '#98D8C8',
-  'yellow':               '#F9CB1B',
-  'new yellow':           '#F9CB1B',
-  'mustard yellow':       '#E6AC20',
-  'golden yellow':        '#FFC107',
-  'khaki':                '#C3B091',
-  'beige':                '#F5E6C8',
-  'coffee brown':         '#6F4E37',
-  'copper':               '#B87333',
+  'lavender':             '#BBB1D2',
+  'bottle green':         '#22482E',
+  'flag green':           '#159512',
+  'olive green':          '#453E2F',
+  'jade':                 '#ccf5c9',
+  'mint':                 '#BFFCF7',
+  'yellow':               '#F9D168',
+  'new yellow':           '#FCFA30',
+  'mustard yellow':       '#CF8F26',
+  'golden yellow':        '#EF9A31',
+  'khaki':                '#9d6333',
+  'beige':                '#EBCD8B',
+  'coffee brown':         '#1C100F',
+  'copper':               '#c2745f',
   'na':                   '#CCCCCC',
 };
 
@@ -193,9 +196,9 @@ const PSD_MOCKUPS = {
 //   UH24 Unisex Hoodie        → 24" wide, ppi≈16  (PSD 1000×1000, garment x178-822 y92-924)
 //   UH26 Unisex Sweatshirt    → 24" wide, ppi≈22  (PSD 1500×1500, garment x78-1387 y153-1334)
 const PSD_PRINT_AREAS = {
-  'UT27': { x: 136, y: 191, w: 347, h: 366 },  // 12"×14" scaled from 420×600 → 620×796
-  'UH24': { x: 174, y: 303, w: 273, h: 303 },  // 11"×13" scaled
-  'UH26': { x: 161, y: 207, w: 298, h: 350 },  // 12"×14" scaled
+  'UT27': { x: 136, y: 191, w: 347, h: 366 },  // 12"×14" on 620×796 canvas
+  'UH24': { x: 162, y: 220, w: 270, h: 310 },  // 12"×14" on 620×796 canvas (hoodie PNG 800×800, garment x111-657)
+  'UH26': { x: 161, y: 207, w: 298, h: 350 },  // 12"×14" on 620×796 canvas
 };
 
 // Normalize a color name to a PSD map key
@@ -261,6 +264,92 @@ const UV34_VIEWS = {
   right_sleeve: { template: '/mockups/UV34/right_sleeve_base.png',  printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
 };
 
+// ── Per-SKU back-view images (color-keyed, same structure as PSD_MOCKUPS) ─────
+// Only needed for SKUs that have dedicated per-color back images extracted.
+// For any SKU not listed here SKU_BACK_IMAGES is checked, then PRODUCT_TYPE_VIEWS.
+const PSD_BACK_VIEWS = {
+  // Add per-color back entries here as they become available, e.g.:
+  // 'UH24': { black: '/mockups/UH24/back_black.png', white: '/mockups/UH24/back_white.png', ... }
+};
+
+// ── Per-SKU single back image (one image for all colors, no tinting) ─────────
+const SKU_BACK_IMAGES = {
+  'UH24': '/mockups/UH24/back.webp',
+};
+
+// ── Per-product-type canvas configs for non-front views ──────────────────────
+// template: image to load on canvas for this view (null = fall back to product front)
+// printArea: where the design can be placed on the 620×796 canvas
+// tintable: true = apply selected-color tint (template is a white/grey base image)
+const PRODUCT_TYPE_VIEWS = {
+  hoodie: {
+    // thumbnail: image shown in view-switcher sidebar
+    // template:  image loaded onto canvas (lifestyle photo scaled to cover 620×796)
+    // printArea: design placement zone in canvas px (derived from 640×640 source at scale 1.244, offset −88)
+    back:         { thumbnail: '/mockups/UH24/back.webp',         template: '/mockups/UH24/back.webp',         printArea: { x: 130, y: 143, w: 361, h: 410 }, tintable: false },
+    left_pocket:  { thumbnail: '/mockups/UH24/left_pocket.webp',  template: '/mockups/UH24/left_pocket.webp',  printArea: { x: 161, y: 448, w: 249, h: 187 }, tintable: false },
+    right_pocket: { thumbnail: '/mockups/UH24/right_pocket.webp', template: '/mockups/UH24/right_pocket.webp', printArea: { x: 210, y: 448, w: 249, h: 187 }, tintable: false },
+    left_sleeve:  { thumbnail: '/mockups/UH24/left_sleeve.webp',  template: '/mockups/UH24/left_sleeve.webp',  printArea: { x: 0,   y: 93,  w: 160, h: 585 }, tintable: false },
+    right_sleeve: { thumbnail: '/mockups/UH24/right_sleeve.webp', template: '/mockups/UH24/right_sleeve.webp', printArea: { x: 460, y: 93,  w: 160, h: 585 }, tintable: false },
+  },
+  tshirt: {
+    back:         { template: '/mockups/tshirt-whitebackog.png',      printArea: { x: 136, y: 143, w: 347, h: 398 }, tintable: true  },
+    left_pocket:  { template: '/mockups/UV34/left_pocket_base.png',   printArea: { x: 341, y: 278, w: 111, h: 111 }, tintable: true  },
+    right_pocket: { template: '/mockups/UV34/right_pocket_base.png',  printArea: { x: 167, y: 278, w: 111, h: 111 }, tintable: true  },
+    left_sleeve:  { template: '/mockups/UV34/left_sleeve_base.png',   printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
+    right_sleeve: { template: '/mockups/UV34/right_sleeve_base.png',  printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
+  },
+};
+
+function getProductTypeKey(category) {
+  return /hoodie|sweatshirt|pullover/i.test(category) ? 'hoodie' : 'tshirt';
+}
+
+// Returns 6 views for all products. Thumbnails use angle-specific images where
+// available; pocket/sleeve views on hoodies fall back to the front image since
+// those print areas live on the front of the garment.
+function getProductViewList(category, colorName) {
+  if (!category) return [{ label: 'Front', key: 'front', img: '/mockups/oversized-tee-white.jpg' }];
+
+  if (category.includes('UV34')) {
+    return [
+      { label: 'Front',        key: 'front',        img: '/mockups/UV34/front_base.png' },
+      { label: 'Back',         key: 'back',         img: '/mockups/UV34/back_base.png' },
+      { label: 'Left Pocket',  key: 'left_pocket',  img: '/mockups/UV34/left_pocket_base.png' },
+      { label: 'Right Pocket', key: 'right_pocket', img: '/mockups/UV34/right_pocket_base.png' },
+      { label: 'Left Sleeve',  key: 'left_sleeve',  img: '/mockups/UV34/left_sleeve_base.png' },
+      { label: 'Right Sleeve', key: 'right_sleeve', img: '/mockups/UV34/right_sleeve_base.png' },
+    ];
+  }
+
+  const psd = getPsdMockup(category, colorName);
+  const frontImg = psd?.url || getProductImage(category) || '/mockups/oversized-tee-white.jpg';
+  const typeKey = getProductTypeKey(category);
+  const typeViews = PRODUCT_TYPE_VIEWS[typeKey];
+
+  // Resolve back-view thumbnail: per-SKU per-color → per-SKU single → type default → front
+  const skuMatch = category.match(/\|\s*([A-Z0-9]+)\s*$/);
+  const sku = skuMatch ? skuMatch[1] : null;
+  const colorKey = normColorKey(colorName);
+  const backImg =
+    (sku && PSD_BACK_VIEWS[sku] && (PSD_BACK_VIEWS[sku][colorKey] || PSD_BACK_VIEWS[sku].base_white || Object.values(PSD_BACK_VIEWS[sku])[0])) ||
+    (sku && SKU_BACK_IMAGES[sku]) ||
+    typeViews.back.thumbnail || typeViews.back.template ||
+    frontImg;
+
+  // thumbnail > template > front fallback
+  const resolveImg = (viewCfg) => viewCfg?.thumbnail || viewCfg?.template || frontImg;
+
+  return [
+    { label: 'Front',        key: 'front',        img: frontImg },
+    { label: 'Back',         key: 'back',         img: backImg },
+    { label: 'Left Pocket',  key: 'left_pocket',  img: resolveImg(typeViews.left_pocket) },
+    { label: 'Right Pocket', key: 'right_pocket', img: resolveImg(typeViews.right_pocket) },
+    { label: 'Left Sleeve',  key: 'left_sleeve',  img: resolveImg(typeViews.left_sleeve) },
+    { label: 'Right Sleeve', key: 'right_sleeve', img: resolveImg(typeViews.right_sleeve) },
+  ];
+}
+
 const MAX_FILE_MB = 20;
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
 
@@ -289,6 +378,7 @@ export default function SellYourArt() {
   const canvasElRef = useRef(null);
   const fabricRef = useRef(null);
   const designObjRef = useRef(null);
+  const activePrintAreaRef = useRef(UV34_VIEWS.front.printArea);
 
   // Step 1 = catalog, Step 2 = editor
   const [step, setStep] = useState(1);
@@ -502,14 +592,15 @@ export default function SellYourArt() {
     setDesignAngle(Math.round(obj.angle || 0));
   }, [activeView]);
 
-  // UV34 color lookup helper
+  // Color lookup helper — official Qikink hex codes
   const UV34_COLOR_MAP = {
-    'black': '#151515', 'navy blue': '#000b17', 'bottle green': '#073717',
-    'royal blue': '#131b4f', 'red': '#8f0001', 'maroon': '#290005',
-    'purple': '#270f33', 'golden yellow': '#ffa100', 'petrol blue': '#092b2f',
-    'olive green': '#252509', 'mustard yellow': '#b5830d', 'light baby pink': '#ffd3e9',
-    'lavender': '#dfd1fb', 'coral': '#b34945', 'mint': '#adffef',
-    'baby blue': '#adffef', 'grey': '#b3b5b9', 'white': '#f5f7f9',
+    'black': '#151515',       'navy blue': '#2D314A',    'bottle green': '#22482E',
+    'royal blue': '#1F286A',  'red': '#A50303',           'maroon': '#2D0101',
+    'purple': '#321541',      'golden yellow': '#EF9A31', 'petrol blue': '#002A2F',
+    'olive green': '#453E2F', 'mustard yellow': '#CF8F26','light baby pink': '#FFD5DB',
+    'light pink': '#FFD5DB',  'lavender': '#BBB1D2',      'coral': '#C86E4E',
+    'mint': '#BFFCF7',        'baby blue': '#a4cef8',     'grey': '#C3C3C3',
+    'grey melange': '#C3C3C3','white': '#FFFFFF',          'off white': '#fffae7',
   };
 
   // ── Canvas init ──────────────────────────────────────────────────────────────
@@ -524,8 +615,54 @@ export default function SellYourArt() {
       if (fabricRef.current && designObjRef.current) saveCurrentViewDesign();
       if (fabricRef.current) { fabricRef.current.dispose(); fabricRef.current = null; designObjRef.current = null; }
 
-      const viewConfig = UV34_VIEWS[activeView] || UV34_VIEWS.front;
-      const tmpl = { template: viewConfig.template, printArea: viewConfig.printArea };
+      const isUV34 = !selectedCategory || selectedCategory.category.includes('UV34');
+      let tmpl, viewConfig;
+      if (isUV34) {
+        viewConfig = UV34_VIEWS[activeView] || UV34_VIEWS.front;
+        tmpl = { template: viewConfig.template, printArea: viewConfig.printArea };
+      } else {
+        const psd = getPsdMockup(selectedCategory.category, selectedColor);
+        const frontTemplate = psd ? psd.url : '/mockups/hoodie-white.jpg';
+        const frontPrintArea = psd?.printArea || PSD_PRINT_AREAS['UH24'];
+
+        if (activeView === 'front') {
+          tmpl = { template: frontTemplate, printArea: frontPrintArea };
+          viewConfig = { ...tmpl, tintable: false };
+        } else {
+          const typeKey = getProductTypeKey(selectedCategory.category);
+          const typeViews = PRODUCT_TYPE_VIEWS[typeKey];
+          const viewCfg = typeViews[activeView];
+          if (viewCfg && viewCfg.template) {
+            // For the back view, prefer per-SKU per-color → per-SKU single → type default
+            let backTemplate = viewCfg.template;
+            if (activeView === 'back') {
+              const skuMatch = selectedCategory.category.match(/\|\s*([A-Z0-9]+)\s*$/);
+              const sku = skuMatch ? skuMatch[1] : null;
+              if (sku) {
+                const backMap = PSD_BACK_VIEWS[sku];
+                if (backMap) {
+                  const ck = normColorKey(selectedColor);
+                  backTemplate = backMap[ck] || backMap.base_white || Object.values(backMap)[0] || backTemplate;
+                } else if (SKU_BACK_IMAGES[sku]) {
+                  backTemplate = SKU_BACK_IMAGES[sku];
+                }
+              }
+            }
+            tmpl = { template: backTemplate, printArea: viewCfg.printArea };
+            viewConfig = { ...tmpl, tintable: viewCfg.tintable };
+          } else if (viewCfg) {
+            // Config exists but no dedicated template (e.g., hoodie pockets/sleeves) —
+            // show the front garment image so the user sees the product, not a blank canvas.
+            tmpl = { template: frontTemplate, printArea: viewCfg.printArea };
+            viewConfig = { ...tmpl, tintable: false };
+          } else {
+            // No config for this view on this product type — fall back to front entirely.
+            tmpl = { template: frontTemplate, printArea: frontPrintArea };
+            viewConfig = { ...tmpl, tintable: false };
+          }
+        }
+      }
+      activePrintAreaRef.current = tmpl.printArea;
       const pa = tmpl.printArea;
 
       const canvas = new fabric.Canvas(canvasElRef.current, {
@@ -548,13 +685,13 @@ export default function SellYourArt() {
           selectable: false, evented: false, name: 'garment',
         });
 
-        // Color tinting — only on tintable views (front/back), skip sleeve/pocket
+        // Color tinting — only for UV34 (other products have real per-color PNGs)
         const colorKey = (selectedColor || '').toLowerCase().trim();
         const tintHex = UV34_COLOR_MAP[colorKey] || COLOR_HEX[colorKey];
-        const skipTint = !tintHex || colorKey === 'white' || colorKey === '' || tintHex === '#f5f7f9' || !viewConfig.tintable;
+        const skipTint = !viewConfig.tintable || !tintHex || colorKey === 'white' || colorKey === '' || tintHex === '#FFFFFF';
 
         if (!skipTint) {
-          const isLightColor = ['#ffd3e9','#dfd1fb','#adffef','#b3b5b9','#ffa100','#b5830d'].includes(tintHex);
+          const isLightColor = ['#FFD5DB','#BBB1D2','#BFFCF7','#C3C3C3','#a4cef8','#EF9A31','#CF8F26','#fffae7'].includes(tintHex);
           bgImg.filters = [new fabric.filters.BlendColor({
             color: tintHex,
             mode: isLightColor ? 'tint' : 'multiply',
@@ -786,8 +923,13 @@ export default function SellYourArt() {
           };
         }
         canvas.discardActiveObject();
+        // Hide print area overlay before exporting clean mockup
+        const printAreaObjs = canvas.getObjects().filter(o => o.name === 'printArea');
+        printAreaObjs.forEach(o => o.set('visible', false));
         canvas.renderAll();
         const dataUrl = canvas.toDataURL({ format: 'png', multiplier: 1 });
+        printAreaObjs.forEach(o => o.set('visible', true));
+        canvas.renderAll();
         const fetchRes = await fetch(dataUrl);
         const blob = await fetchRes.blob();
         const mockupFile = new File([blob], 'mockup.png', { type: 'image/png' });
@@ -929,7 +1071,7 @@ export default function SellYourArt() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                 {filteredCatalog.map(item => (
                   <ProductCard key={item.category} item={item} selected={selectedCategory?.category === item.category}
-                    onSelect={() => { setSelectedCategory(item); setSearchQuery(''); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setStep(2); }} />
+                    onSelect={() => { setSelectedCategory(item); setSearchQuery(''); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setActiveView('front'); setStep(2); }} />
                 ))}
               </div>
             </div>
@@ -946,7 +1088,7 @@ export default function SellYourArt() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                 {(catalogByCollection[selectedCollection] || []).map(item => (
                   <ProductCard key={item.category} item={item} selected={selectedCategory?.category === item.category}
-                    onSelect={() => { setSelectedCategory(item); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setStep(2); }} />
+                    onSelect={() => { setSelectedCategory(item); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setActiveView('front'); setStep(2); }} />
                 ))}
               </div>
             </div>
@@ -1040,20 +1182,13 @@ export default function SellYourArt() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginRight: '12px', paddingTop: '12px' }}>
                 <button style={{ background: 'none', border: 'none', color: '#777877', cursor: 'pointer', fontSize: '14px', padding: '4px' }}>▲</button>
 
-                {[
-                  { label: 'Front', key: 'front', img: '/mockups/UV34/front_base.png' },
-                  { label: 'Back', key: 'back', img: '/mockups/UV34/back_base.png' },
-                  { label: 'Left Pocket', key: 'left_pocket', img: '/mockups/UV34/left_pocket_base.png' },
-                  { label: 'Right Pocket', key: 'right_pocket', img: '/mockups/UV34/right_pocket_base.png' },
-                  { label: 'Left Sleeve', key: 'left_sleeve', img: '/mockups/UV34/left_sleeve_base.png' },
-                  { label: 'Right Sleeve', key: 'right_sleeve', img: '/mockups/UV34/right_sleeve_base.png' },
-                ].map((view) => {
+                {getProductViewList(selectedCategory?.category, selectedColor).map((view) => {
                   const isViewActive = activeView === view.key;
                   return (
                     <div key={view.key} onClick={() => { saveCurrentViewDesign(); setActiveView(view.key); }}
                       style={{ cursor: 'pointer', textAlign: 'center', marginBottom: '6px' }}>
                       <div style={{
-                        width: '81px', height: '81px', overflow: 'hidden',
+                        width: '64px', height: '64px', overflow: 'hidden',
                         border: isViewActive ? '2px solid #FF6700' : '1px solid #DDDCDC',
                         background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
@@ -1070,15 +1205,15 @@ export default function SellYourArt() {
 
               {/* Canvas */}
               <div style={{ position: 'relative' }}>
-                <div style={{ border: '1px solid #DDDCDC', overflow: 'hidden', display: 'inline-block', lineHeight: 0 }}>
+                <div style={{ overflow: 'hidden', display: 'inline-block', lineHeight: 0 }}>
                   <canvas ref={canvasElRef} />
                 </div>
 
                 {/* Alignment floating pill below canvas */}
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '10px 24px', borderRadius: '30px', boxShadow: '2px 2px 10px rgba(0,0,0,0.15)', background: '#fff', width: 'fit-content', margin: '16px auto 0' }}>
                   {[
-                    { label: 'Center Vertically', icon: '⇕', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ left: pa.x + pa.w / 2 }); d.setCoords(); c.renderAll(); }},
-                    { label: 'Center Horizontally', icon: '⇔', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ top: pa.y + pa.h / 2 }); d.setCoords(); c.renderAll(); }},
+                    { label: 'Center Vertically', icon: '⇕', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = activePrintAreaRef.current; d.set({ left: pa.x + pa.w / 2 }); d.setCoords(); c.renderAll(); }},
+                    { label: 'Center Horizontally', icon: '⇔', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = activePrintAreaRef.current; d.set({ top: pa.y + pa.h / 2 }); d.setCoords(); c.renderAll(); }},
                     { label: 'Flip Horizontal', icon: '⇄', action: () => { const d = designObjRef.current; if (!d) return; d.set({ flipX: !d.flipX }); fabricRef.current?.renderAll(); }},
                     { label: 'Flip Vertical', icon: '⇅', action: () => { const d = designObjRef.current; if (!d) return; d.set({ flipY: !d.flipY }); fabricRef.current?.renderAll(); }},
                     { label: 'Center Both', icon: '⊕', action: () => { const d = designObjRef.current; const c = fabricRef.current; if (!d || !c) return; const pa = (UV34_VIEWS[activeView] || UV34_VIEWS.front).printArea; d.set({ left: pa.x + pa.w / 2, top: pa.y + pa.h / 2 }); d.setCoords(); c.renderAll(); }},
@@ -1098,6 +1233,8 @@ export default function SellYourArt() {
             <div style={{ flex: '0 0 50%', borderLeft: '1px solid #DDDCDC', background: '#fff', overflow: 'auto', maxHeight: 'calc(100vh - 50px)' }}>
               <QikinkRightPane
                 productName={selectedCategory.category}
+                productColors={selectedCategory.colors || []}
+                productSizes={selectedCategory.sizes || []}
                 selectedColor={selectedColor}
                 onColorChange={setSelectedColor}
                 basePrice={140}

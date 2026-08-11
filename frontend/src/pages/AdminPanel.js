@@ -172,7 +172,7 @@ export default function AdminPanel() {
                   ...body, flex: 1, fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                   padding: '16px 20px', border: 'none', cursor: 'pointer',
-                  background: active ? BG3 : BG2, color: active ? TP : TT,
+                  background: active ? BG3 : BG2, color: active ? TP : TS,
                   borderBottom: active ? `2px solid ${AP}` : '2px solid transparent',
                   transition: 'all 0.2s',
                 }}>
@@ -514,18 +514,18 @@ export default function AdminPanel() {
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-              style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '100%', maxWidth: '440px', background: BG2, border: `1px solid ${BS}`, zIndex: 50, padding: '28px' }}>
+              style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '90%', maxWidth: '440px', maxHeight: '90vh', overflowY: 'auto', background: BG2, border: `1px solid ${BS}`, zIndex: 50, padding: '28px', boxSizing: 'border-box' }}>
               <h2 style={{ ...display, fontWeight: 700, fontSize: '20px', color: TP, margin: '0 0 4px', letterSpacing: '-0.02em' }}>Approve Design</h2>
               <p style={{ ...body, fontSize: '13px', color: TS, margin: '0 0 20px' }}>Qikink will print and ship automatically.</p>
 
-              <div style={{ aspectRatio: '1', background: BG3, position: 'relative', marginBottom: '16px' }}>
+              <div style={{ background: BG3, position: 'relative', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                 {selectedDesign.mockup_image_url ? (
-                  <img src={selectedDesign.mockup_image_url} alt="mockup" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <img src={selectedDesign.mockup_image_url} alt="mockup" style={{ maxWidth: '100%', maxHeight: '260px', objectFit: 'contain', display: 'block' }} />
                 ) : (
-                  <>
-                    <img src="/mockups/tshirt-whitefront.jpg" alt="t-shirt" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <img src="/mockups/tshirt-whitefront.jpg" alt="t-shirt" style={{ width: '100%', display: 'block', objectFit: 'contain' }} />
                     <img src={selectedDesign.image_url} alt={selectedDesign.title} style={{ position: 'absolute', top: '26%', left: '30%', width: '40%', height: '30%', objectFit: 'contain', pointerEvents: 'none' }} />
-                  </>
+                  </div>
                 )}
               </div>
 

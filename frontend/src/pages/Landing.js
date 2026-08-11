@@ -120,8 +120,8 @@ function SiteHeader({ user }) {
                 ))}
               </nav>
               <div style={{ padding: '24px 28px', borderTop: `1px solid ${BS}`, display: 'flex', gap: '12px' }}>
-                {[Twitter, Instagram, Youtube].map((Icon, i) => (
-                  <button key={i} style={{ width: '36px', height: '36px', borderRadius: '50%', border: `1px solid ${BS}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                {[[Twitter, '#'], [Instagram, 'https://www.instagram.com/caesura.in'], [Youtube, '#']].map(([Icon, href], i) => (
+                  <button key={i} onClick={() => href !== '#' && window.open(href, '_blank')} style={{ width: '36px', height: '36px', borderRadius: '50%', border: `1px solid ${BS}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: href !== '#' ? 'pointer' : 'default' }}>
                     <Icon size={14} color={TS} />
                   </button>
                 ))}
@@ -155,8 +155,8 @@ function SiteHeader({ user }) {
 
         {/* Center: Social */}
         <div style={{ display: 'flex', gap: '8px' }}>
-          {[Twitter, Instagram, Youtube].map((Icon, i) => (
-            <button key={i} style={{ width: '36px', height: '36px', borderRadius: '50%', border: `1px solid rgba(250,250,249,0.2)`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          {[[Twitter, '#'], [Instagram, 'https://www.instagram.com/caesura.in'], [Youtube, '#']].map(([Icon, href], i) => (
+            <button key={i} onClick={() => href !== '#' && window.open(href, '_blank')} style={{ width: '36px', height: '36px', borderRadius: '50%', border: `1px solid rgba(250,250,249,0.2)`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: href !== '#' ? 'pointer' : 'default' }}>
               <Icon size={14} color={TP} />
             </button>
           ))}
@@ -681,7 +681,7 @@ function SiteFooter() {
     { label: 'Shop',    links: [['Men', '/explore'], ['Women', '/explore'], ['Oversized', '/explore'], ['Trending', '/explore']] },
     { label: 'Create',  links: [['Sell Your Art', '/join'], ['Creator FAQ', '/faq'], ['How It Works', '/join']] },
     { label: 'Company', links: [['About', '/about'], ['Blog', '#'], ['Contact', 'mailto:hello@caesura.in']] },
-    { label: 'Help',    links: [['FAQ', '/faq'], ['Shipping', '#'], ['Size Guide', '/size-guide'], ['Terms', '#']] },
+    { label: 'Help',    links: [['FAQ', '/faq'], ['Shipping', '#'], ['Size Guide', '/size-guide'], ['Terms', '/terms']] },
   ];
 
   return (
@@ -701,8 +701,8 @@ function SiteFooter() {
               Premium streetwear marketplace for independent creators. No inventory. No limits.
             </p>
             <div style={{ display: 'flex', gap: '10px' }}>
-              {[Twitter, Instagram, Youtube].map((Icon, i) => (
-                <button key={i} style={{ width: '34px', height: '34px', borderRadius: '50%', border: `1px solid ${BS}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              {[[Twitter, '#'], [Instagram, 'https://www.instagram.com/caesura.in'], [Youtube, '#']].map(([Icon, href], i) => (
+                <button key={i} onClick={() => href !== '#' && window.open(href, '_blank')} style={{ width: '34px', height: '34px', borderRadius: '50%', border: `1px solid ${BS}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: href !== '#' ? 'pointer' : 'default' }}>
                   <Icon size={13} color={TS} />
                 </button>
               ))}
@@ -731,8 +731,8 @@ function SiteFooter() {
         <div style={{ borderTop: `1px solid ${BS}`, marginTop: '48px', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <span style={{ ...body, fontSize: '12px', color: TT }}>© {new Date().getFullYear()} Caesura Inc. Made with ♥ in India.</span>
           <div style={{ display: 'flex', gap: '24px' }}>
-            {['Privacy Policy', 'Terms of Service'].map(l => (
-              <a key={l} href="#" style={{ ...body, fontSize: '12px', color: TT, textDecoration: 'none' }}>{l}</a>
+            {[['Privacy Policy', '#'], ['Terms of Service', '/terms']].map(([l, path]) => (
+              <a key={l} href={path} onClick={e => { if (path !== '#') { e.preventDefault(); navigate(path); } }} style={{ ...body, fontSize: '12px', color: TT, textDecoration: 'none' }}>{l}</a>
             ))}
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

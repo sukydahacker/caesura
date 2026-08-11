@@ -12,25 +12,43 @@ const TEXT = '#292929';
 const GRAY = '#777877';
 const MUTED = '#757575cf';
 
+// Shared color name → hex lookup — official Qikink hex codes
+// Source: https://help.qikink.com/portal/en/kb/articles/hex-codes-for-apparels
+const COLOR_HEX_MAP = {
+  'black': '#151515',       'navy blue': '#2D314A',    'bottle green': '#22482E',
+  'royal blue': '#1F286A',  'red': '#A50303',           'maroon': '#2D0101',
+  'purple': '#321541',      'golden yellow': '#EF9A31', 'petrol blue': '#002A2F',
+  'olive green': '#453E2F', 'mustard yellow': '#CF8F26','light baby pink': '#FFD5DB',
+  'light pink': '#FFD5DB',  'lavender': '#BBB1D2',      'coral': '#C86E4E',
+  'mint': '#BFFCF7',        'baby blue': '#a4cef8',     'grey': '#C3C3C3',
+  'grey melange': '#C3C3C3','charcoal melange': '#6E6E6E','steel grey': '#3A3E41',
+  'white': '#FFFFFF',       'off white': '#fffae7',     'base white': '#fffae7',
+  'orange': '#E65E00',      'flag green': '#159512',    'pink': '#CC2867',
+  'yellow': '#F9D168',      'new yellow': '#FCFA30',    'sky blue': '#19E4FF',
+  'brick red': '#7B2F1D',   'coffee brown': '#1C100F',  'beige': '#EBCD8B',
+  'khaki': '#9d6333',       'flamingo': '#E29891',      'mushroom': '#cc9d93',
+  'jade': '#ccf5c9',        'copper': '#c2745f',        'peach': '#ffdec6',
+};
+
 const UV34_COLORS = [
-  { name: 'Black', hex: '#151515' },
-  { name: 'Navy Blue', hex: '#000b17' },
-  { name: 'Bottle Green', hex: '#073717' },
-  { name: 'Royal Blue', hex: '#131b4f' },
-  { name: 'Red', hex: '#8f0001' },
-  { name: 'Maroon', hex: '#290005' },
-  { name: 'Purple', hex: '#270f33' },
-  { name: 'Golden Yellow', hex: '#ffa100' },
-  { name: 'Petrol Blue', hex: '#092b2f' },
-  { name: 'Olive Green', hex: '#252509' },
-  { name: 'Mustard Yellow', hex: '#b5830d' },
-  { name: 'Light Baby Pink', hex: '#ffd3e9' },
-  { name: 'Lavender', hex: '#dfd1fb' },
-  { name: 'Coral', hex: '#b34945' },
-  { name: 'Mint', hex: '#adffef' },
-  { name: 'Baby Blue', hex: '#adffef' },
-  { name: 'Grey', hex: '#b3b5b9' },
-  { name: 'White', hex: '#f5f7f9' },
+  { name: 'Black',           hex: '#151515' },
+  { name: 'Navy Blue',       hex: '#2D314A' },
+  { name: 'Bottle Green',    hex: '#22482E' },
+  { name: 'Royal Blue',      hex: '#1F286A' },
+  { name: 'Red',             hex: '#A50303' },
+  { name: 'Maroon',          hex: '#2D0101' },
+  { name: 'Purple',          hex: '#321541' },
+  { name: 'Golden Yellow',   hex: '#EF9A31' },
+  { name: 'Petrol Blue',     hex: '#002A2F' },
+  { name: 'Olive Green',     hex: '#453E2F' },
+  { name: 'Mustard Yellow',  hex: '#CF8F26' },
+  { name: 'Light Baby Pink', hex: '#FFD5DB' },
+  { name: 'Lavender',        hex: '#BBB1D2' },
+  { name: 'Coral',           hex: '#C86E4E' },
+  { name: 'Mint',            hex: '#BFFCF7' },
+  { name: 'Baby Blue',       hex: '#a4cef8' },
+  { name: 'Grey',            hex: '#C3C3C3' },
+  { name: 'White',           hex: '#FFFFFF' },
 ];
 
 const UV34_SIZES = ['S', 'L', 'XL', 'XXL', '3XL'];
@@ -38,7 +56,7 @@ const UV34_SIZES = ['S', 'L', 'XL', 'XXL', '3XL'];
 /* ── Color Swatch with visible tooltip ── */
 function ColorSwatch({ name, hex, isSelected, onClick }) {
   const [hovered, setHovered] = useState(false);
-  const isLight = ['#f5f7f9','#ffd3e9','#dfd1fb','#adffef','#b3b5b9','#ffa100','#b5830d'].includes(hex?.toLowerCase());
+  const isLight = ['#ffffff','#ffd5db','#bbb1d2','#bffcf7','#c3c3c3','#a4cef8','#fffae7','#ef9a31','#cf8f26','#f9d168','#fcfa30','#19e4ff','#ebcd8b','#ffdec6','#e29891','#ccf5c9'].includes(hex?.toLowerCase());
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
@@ -119,6 +137,17 @@ function ProductDetailsContent({ productTitle, onProductTitleChange, description
 
   return (
     <div style={{ padding: '16px' }}>
+
+      {/* Product Title */}
+      <div style={{ border: `1px solid ${BORDER}`, borderRadius: '6px', marginBottom: '20px', overflow: 'hidden' }}>
+        <input
+          type="text"
+          placeholder="Enter Product Name Here"
+          value={productTitle}
+          onChange={(e) => onProductTitleChange?.(e.target.value)}
+          style={{ width: '100%', padding: '10px 12px', border: 'none', outline: 'none', fontSize: '15px', fontFamily: F, color: '#292929', boxSizing: 'border-box', textAlign: 'center' }}
+        />
+      </div>
 
       {/* Description with toolbar */}
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: '6px', marginBottom: '20px', overflow: 'hidden' }}>
@@ -206,10 +235,12 @@ function ProductDetailsContent({ productTitle, onProductTitleChange, description
 export default function QikinkRightPane({
   // product
   productName = '',
-  colors = [],            // [{name, hex}]
+  productColors = [],     // raw color name strings from catalog API
+  productSizes = [],      // raw size strings from catalog API
+  colors = [],            // [{name, hex}] (legacy, unused)
   selectedColor = '',
   onColorChange,
-  sizes = [],             // ['S','M','L','XL','XXL']
+  sizes = [],             // ['S','M','L','XL','XXL'] (legacy, unused)
   basePrice = 140,
   taxRate = 5,
 
@@ -271,16 +302,17 @@ export default function QikinkRightPane({
   const gst = (basePrice * taxRate / 100);
   const totalPrice = (basePrice + printingPrice + handlingPrice + gst).toFixed(2);
 
-  // Always use UV34 hardcoded data
-  const effectiveColors = UV34_COLORS;
-  const effectiveSizes = UV34_SIZES;
+  // Use product-specific colors/sizes from catalog; fall back to UV34 defaults
+  const effectiveColors = productColors.length > 0
+    ? productColors.map(name => ({ name, hex: COLOR_HEX_MAP[name.toLowerCase()] || '#999' }))
+    : UV34_COLORS;
+  const effectiveSizes = productSizes.length > 0 ? productSizes : UV34_SIZES;
 
   return (
     <div style={{ fontFamily: F, color: TEXT, background: '#fff', height: '100%', overflow: 'auto' }}>
 
-      {/* ── Product name + Default Color ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: `1px solid ${BORDER}`, flexWrap: 'wrap', gap: '8px' }}>
-        <p style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>{productName}</p>
+      {/* ── Default Color (no product name — it's shown in the left panel) ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '10px 16px', borderBottom: `1px solid ${BORDER}`, flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '13px' }}>Default Color</span>
           <span style={{ fontSize: '13px', color: MUTED, cursor: 'pointer' }} title="This color will be used as the primary display image in the store.">ⓘ</span>
@@ -350,7 +382,6 @@ export default function QikinkRightPane({
                   { label: 'DTG Printing', value: 1 },
                   { label: 'Embroidery', value: 3 },
                   { label: 'DTF Printing', value: 17 },
-                  { label: 'Vinyl Printing', value: 'vinyl' },
                 ].map(opt => (
                   <div key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
                     <input type="radio" name="printType" checked={printType === opt.value}
@@ -360,19 +391,6 @@ export default function QikinkRightPane({
                   </div>
                 ))}
 
-                {/* Vinyl sub-dropdown */}
-                {printType === 'vinyl' && (
-                  <select value={vinylSubOption} onChange={(e) => onVinylSubChange?.(e.target.value)}
-                    style={{ marginTop: '8px', width: '100%', padding: '6px 8px', border: `1px solid ${BORDER}`, borderRadius: '4px', fontSize: '13px', fontFamily: F }}>
-                    <option value="">Select Vinyl</option>
-                    <option value="7">Glow-In-Dark</option>
-                    <option value="12">Rainbow Vinyl</option>
-                    <option value="13">Gold Vinyl</option>
-                    <option value="14">Silver Vinyl</option>
-                    <option value="15">Reflective Grey Vinyl</option>
-                    <option value="18">Puff-Black</option>
-                  </select>
-                )}
               </div>
             </div>
 
@@ -391,8 +409,8 @@ export default function QikinkRightPane({
                 </button>
               )}
 
-              {/* Image Dimensions */}
-              <div style={{ fontSize: '13px' }}>
+              {/* Image Dimensions — only shown when a design is uploaded */}
+              {imagePreview && <div style={{ fontSize: '13px' }}>
                 {[
                   { label: 'Width', value: designDimensions.width ? designDimensions.width.toFixed(2) : '', suffix: 'In', editable: true, onChange: (v) => onWidthChange?.(Number(v) || 0) },
                   { label: 'Height', value: designDimensions.height ? designDimensions.height.toFixed(2) : '', suffix: 'In', editable: true, onChange: (v) => onHeightChange?.(Number(v) || 0) },
@@ -414,7 +432,7 @@ export default function QikinkRightPane({
                     </div>
                   </div>
                 ))}
-              </div>
+              </div>}
             </div>
           </div>
 
@@ -438,7 +456,7 @@ export default function QikinkRightPane({
                 style={{ fontSize: '13px', color: GRAY, cursor: 'pointer' }}>Select all</span>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px', alignItems: 'flex-start', overflowX: 'auto', paddingBottom: '4px' }}>
               {/* Apply to All */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <button onClick={() => {

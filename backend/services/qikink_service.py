@@ -59,7 +59,7 @@ class QikinkService:
         "vneck": "V Neck T-Shirt | UV34",
         "UT27": "Terry Oversized Tee | UT27",
         "UH24": "Hoodie | UH24",
-        "UH83": "Pullover Hoodie | UH83",
+        "UH83": "Hoodie | UH24",
         "UV34": "V Neck T-Shirt | UV34",
     }
 

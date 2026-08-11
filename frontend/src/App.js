@@ -23,6 +23,7 @@ const Drops        = lazy(() => import("@/pages/Drops"));
 const SizeGuide    = lazy(() => import("@/pages/SizeGuide"));
 const About        = lazy(() => import("@/pages/About"));
 const FAQ          = lazy(() => import("@/pages/FAQ"));
+const Terms        = lazy(() => import("@/pages/Terms"));
 
 const PageLoader = () => (
   <div style={{ minHeight: '100vh', background: '#0A0A0B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -59,6 +60,7 @@ function AppRouter() {
           <Route path="/size-guide"     element={<SizeGuide />} />
           <Route path="/about"          element={<About />} />
           <Route path="/faq"            element={<FAQ />} />
+          <Route path="/terms"          element={<Terms />} />
           <Route path="/join"           element={<AuthChoice />} />
           <Route path="/dev-login"      element={<DevLogin />} />
           {/* Protected */}
