@@ -28,6 +28,7 @@ from services.printify_service import printify_service
 from services.revenue_service import revenue_service
 from services.qikink_service import qikink_service
 from services.email_service import send_order_confirmation, send_design_approved, send_design_rejected
+from services import pricing_config
 
 # Import async PostgreSQL helpers
 from db import fetch_one, fetch_all, fetch_val, execute, get_pool, close_pool, to_jsonb
@@ -118,9 +119,9 @@ class Product(BaseModel):
     mockup_image: str
     printify_product_id: Optional[str] = None
     printify_blueprint_id: Optional[int] = None
-    base_cost: float = 500.0
-    creator_commission_rate: float = 0.8
-    platform_commission_rate: float = 0.2
+    base_cost: float = 0.0
+    creator_commission_rate: float = pricing_config.CREATOR_COMMISSION_RATE
+    platform_commission_rate: float = pricing_config.PLATFORM_COMMISSION_RATE
     product_status: str = "live"  # "live", "out_of_stock", "disabled"
     units_sold: int = 0
     created_at: datetime
@@ -527,6 +528,13 @@ async def create_product(request: Request, session_token: Optional[str] = Cookie
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
 
+    # Hard price floor — landed cost + minimum markup. Never trust the frontend's
+    # own validation; this is the real gate.
+    try:
+        landed_cost_breakdown = pricing_config.validate_retail_price(body["apparel_type"], float(body["price"]))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
     product_id = f"product_{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc)
     sizes = body.get("sizes", ["S", "M", "L", "XL", "XXL"])
@@ -534,13 +542,18 @@ async def create_product(request: Request, session_token: Optional[str] = Cookie
     await execute(
         """INSERT INTO products
                (product_id, design_id, user_id, title, description, apparel_type,
-                sizes, price, design_image, mockup_image, overlay_image, created_at, is_active)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)""",
+                sizes, price, design_image, mockup_image, overlay_image,
+                base_cost, creator_commission_rate, platform_commission_rate,
+                created_at, is_active)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)""",
         product_id, body["design_id"], user.user_id,
         body["title"], body.get("description"), body["apparel_type"],
         sizes, body["price"],
         design["image_url"], body.get("mockup_image", design["image_url"]),
-        design["image_url"], now, True,
+        design["image_url"],
+        landed_cost_breakdown["landed_cost"],
+        pricing_config.CREATOR_COMMISSION_RATE, pricing_config.PLATFORM_COMMISSION_RATE,
+        now, True,
     )
 
     product_doc = {
@@ -554,6 +567,9 @@ async def create_product(request: Request, session_token: Optional[str] = Cookie
         "price": body["price"],
         "design_image": design["image_url"],
         "mockup_image": body.get("mockup_image", design["image_url"]),
+        "base_cost": landed_cost_breakdown["landed_cost"],
+        "creator_commission_rate": pricing_config.CREATOR_COMMISSION_RATE,
+        "platform_commission_rate": pricing_config.PLATFORM_COMMISSION_RATE,
         "created_at": now,
         "is_active": True,
     }
@@ -710,57 +726,49 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
     now = datetime.now(timezone.utc)
     status = "paid" if body.get("razorpay_payment_id") else "pending"
 
-    await execute(
-        """INSERT INTO orders
-               (order_id, user_id, items, total_amount, razorpay_order_id,
-                razorpay_payment_id, fulfillment_status, status, shipping_address,
-                created_at, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,'pending',$7,$8,$9,$10)""",
-        order_id, user.user_id, to_jsonb(body["items"]), body["total_amount"],
-        body.get("razorpay_order_id"), body.get("razorpay_payment_id"),
-        status, to_jsonb(body["shipping_address"]), now, now,
-    )
-
-    order_doc = {
-        "order_id": order_id,
-        "user_id": user.user_id,
-        "items": body["items"],
-        "total_amount": body["total_amount"],
-        "razorpay_order_id": body.get("razorpay_order_id"),
-        "razorpay_payment_id": body.get("razorpay_payment_id"),
-        "fulfillment_status": "pending",
-        "status": status,
-        "shipping_address": body["shipping_address"],
-        "created_at": now,
-        "updated_at": now,
-    }
-
-    # ── Per-item: revenue splits + build Qikink line items ────────────────────
+    # ── Per-item: snapshot landed cost + revenue split, build Qikink line items ─
+    # Snapshotting matters because Qikink's catalog prices change over time — the
+    # split must be computed from the landed cost stored on the product at the
+    # moment of purchase, not recomputed later from the live catalog. That
+    # snapshot is written onto each order line item below, so historical orders
+    # and past earnings stay accurate even after catalog prices move.
+    enriched_items = []
     qikink_items = []
+    pending_splits = []  # recorded after the order row exists (FK: revenue_splits.order_id)
 
     for item in body["items"]:
         product_id = item["product_id"]
         product = await fetch_one("SELECT * FROM products WHERE product_id = $1", product_id)
 
         if not product:
+            enriched_items.append(item)
             continue
 
-        # Revenue split
+        landed_cost = float(product.get("base_cost") or 0)
         split_data = revenue_service.calculate_split(
             retail_price=item["price"],
-            base_cost=float(product.get("base_cost") or 500),
-            creator_commission_rate=float(product.get("creator_commission_rate") or 0.8),
-            platform_commission_rate=float(product.get("platform_commission_rate") or 0.2),
+            landed_cost=landed_cost,
+            creator_commission_rate=float(product["creator_commission_rate"]) if product.get("creator_commission_rate") is not None else None,
+            platform_commission_rate=float(product["platform_commission_rate"]) if product.get("platform_commission_rate") is not None else None,
         )
-        creator_earnings  = split_data["creator_amount"] * item["quantity"]
-        platform_earnings = split_data["platform_amount"] * item["quantity"]
-        split_id = await revenue_service.record_split(
-            order_id=order_id,
-            creator_id=product["user_id"],
-            creator_amount=creator_earnings,
-            platform_amount=platform_earnings,
-        )
-        logger.info(f"Revenue split {split_id}: order={order_id}, creator=₹{creator_earnings}, platform=₹{platform_earnings}")
+        creator_earnings  = round(split_data["creator_amount"] * item["quantity"], 2)
+        platform_earnings = round(split_data["platform_amount"] * item["quantity"], 2)
+        pending_splits.append({
+            "creator_id": product["user_id"],
+            "creator_amount": creator_earnings,
+            "platform_amount": platform_earnings,
+            "landed_cost": landed_cost,
+        })
+
+        # Snapshot onto the line item itself so it survives catalog/price changes.
+        enriched_items.append({
+            **item,
+            "landed_cost": landed_cost,
+            "gateway_fee": split_data["gateway_fee"],
+            "net_margin": split_data["net_margin"],
+            "creator_amount": creator_earnings,
+            "platform_amount": platform_earnings,
+        })
 
         # Gather design data for Qikink
         design = await fetch_one("SELECT * FROM designs WHERE design_id = $1", product.get("design_id"))
@@ -774,6 +782,35 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
                 "quantity": item["quantity"],
                 "price":    item["price"],
             })
+
+    await execute(
+        """INSERT INTO orders
+               (order_id, user_id, items, total_amount, razorpay_order_id,
+                razorpay_payment_id, fulfillment_status, status, shipping_address,
+                created_at, updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,'pending',$7,$8,$9,$10)""",
+        order_id, user.user_id, to_jsonb(enriched_items), body["total_amount"],
+        body.get("razorpay_order_id"), body.get("razorpay_payment_id"),
+        status, to_jsonb(body["shipping_address"]), now, now,
+    )
+
+    for s in pending_splits:
+        split_id = await revenue_service.record_split(order_id=order_id, **s)
+        logger.info(f"Revenue split {split_id}: order={order_id}, creator=₹{s['creator_amount']}, platform=₹{s['platform_amount']}")
+
+    order_doc = {
+        "order_id": order_id,
+        "user_id": user.user_id,
+        "items": enriched_items,
+        "total_amount": body["total_amount"],
+        "razorpay_order_id": body.get("razorpay_order_id"),
+        "razorpay_payment_id": body.get("razorpay_payment_id"),
+        "fulfillment_status": "pending",
+        "status": status,
+        "shipping_address": body["shipping_address"],
+        "created_at": now,
+        "updated_at": now,
+    }
 
     # ── Forward to Qikink ────────────────────────────────────────────────────────
     if qikink_items and qikink_service.is_configured:
@@ -1083,6 +1120,15 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
     }
     mockup_image = design.get("mockup_image_url") or FALLBACK_MOCKUPS.get(product_type, "/mockups/tshirt-whitefront.jpg")
 
+    # Build product — price is the lowest per-size price the creator set (see
+    # SellYourArt's size_prices flow), so validating it against the floor covers
+    # every size. Never trust the frontend's own validation; this is the real gate.
+    price = design.get("price") or 999.0
+    try:
+        landed_cost_breakdown = pricing_config.validate_retail_price(product_type, float(price))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
     # Update design status to approved
     now = datetime.now(timezone.utc)
     await execute(
@@ -1091,8 +1137,6 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
         admin_user.user_id, featured, now, design_id,
     )
 
-    # Build product
-    price = design.get("price") or 999.0
     product_id = f"product_{uuid.uuid4().hex[:12]}"
 
     await execute(
@@ -1108,7 +1152,8 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
         ["S", "M", "L", "XL", "XXL"], float(price),
         design["image_url"], mockup_image,
         to_jsonb(design.get("placement_coordinates")), design_id,
-        500.0, 0.8, 0.2,
+        landed_cost_breakdown["landed_cost"],
+        pricing_config.CREATOR_COMMISSION_RATE, pricing_config.PLATFORM_COMMISSION_RATE,
         "live", 0, now, True, True, now,
     )
 
@@ -1389,6 +1434,20 @@ async def update_product_status(product_id: str, request: Request, session_token
 async def get_product_catalog():
     """Return the full Qikink product catalog (categories, colors, sizes, base prices)."""
     return qikink_service.get_product_catalog()
+
+# Pricing Routes
+
+@api_router.get("/pricing/config")
+async def get_pricing_config():
+    """Non-secret pricing constants — lets the creator editor render a live breakdown
+    without hardcoding printing/handling/shipping/split numbers on the frontend."""
+    return pricing_config.public_config()
+
+@api_router.get("/pricing/landed-cost")
+async def get_landed_cost(product_type: str):
+    """True landed cost for a product type: Qikink base price + printing + handling + GST + shipping,
+    plus the minimum retail price (landed cost + minimum markup)."""
+    return pricing_config.compute_landed_cost(product_type)
 
 # Include router
 app.include_router(api_router)

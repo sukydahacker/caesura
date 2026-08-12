@@ -73,6 +73,10 @@ export const updateProductStatus = (productId, status) => api.put(`/admin/produc
 // Product Catalog (Qikink)
 export const getProductCatalog = () => api.get('/catalog/products');
 
+// Pricing
+export const getPricingConfig = () => api.get('/pricing/config');
+export const getLandedCost = (productType) => api.get('/pricing/landed-cost', { params: { product_type: productType } });
+
 // Creator Earnings
 export const getCreatorEarnings = () => api.get('/creator/earnings');
 

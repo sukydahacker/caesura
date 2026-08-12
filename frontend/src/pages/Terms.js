@@ -69,8 +69,8 @@ const SECTIONS = [
       {
         title: '4.4 Revenue & Payouts',
         bullets: [
-          'Creators earn 80% of the profit on each sale (retail price minus Qikink base production cost, times 80%).',
-          'Caesura retains 20% as a platform fee.',
+          'Creators earn 60% of the net margin on each sale (retail price minus landed production cost minus payment gateway fee, times 60%).',
+          'Caesura retains 40% as a platform fee, with a guaranteed minimum of ₹100 per item sold.',
           'Earnings are tracked in your dashboard. Payout timelines and methods will be communicated separately.',
           'We reserve the right to withhold payouts if a design is found to infringe on third-party rights or violate these Terms.',
         ],

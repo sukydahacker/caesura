@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { calculateSplit } from '@/lib/pricing';
 
 /*
  * QikinkRightPane — exact replica of the Qikink "Create Product" right-side panel.
@@ -105,8 +106,52 @@ function ColorSwatchGrid({ colors, selectedColor, onColorChange }) {
   );
 }
 
+/* ── Live pricing breakdown: landed cost, retail price, and creator earnings ── */
+function PricingBreakdownPanel({ landedCost, landedCostLoading, bestSplitEntry, minPrice }) {
+  if (landedCostLoading) {
+    return <div style={{ padding: '12px 16px', fontSize: '13px', color: GRAY, fontFamily: F }}>Loading pricing…</div>;
+  }
+  if (!landedCost) return null;
+
+  const { price, split } = bestSplitEntry || {};
+  const nearFloor = price != null && minPrice > 0 && price < minPrice * 1.15;
+
+  const row = (label, value) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: GRAY, padding: '3px 0' }}>
+      <span>{label}</span><span>{value}</span>
+    </div>
+  );
+
+  return (
+    <div style={{ margin: '0 16px 20px', padding: '16px', border: `1px solid ${BORDER}`, borderRadius: '6px', background: '#FAFAFA', fontFamily: F }}>
+      <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: TEXT }}>Pricing Breakdown</div>
+      {row('Landed cost', `₹${landedCost.landed_cost.toFixed(2)}`)}
+      {row(`Minimum price (cost + ₹${landedCost.min_markup.toFixed(0)})`, `₹${minPrice.toFixed(2)}`)}
+
+      {split ? (
+        <>
+          {row('Your retail price', `₹${price.toFixed(2)}`)}
+          {row('Payment gateway fee (2%)', `−₹${split.gatewayFee.toFixed(2)}`)}
+          <div style={{ height: '1px', background: BORDER, margin: '10px 0 8px' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: TEXT }}>You earn per sale</span>
+            <span style={{ fontSize: '26px', fontWeight: 800, color: '#1B8A3D' }}>₹{split.creatorAmount.toFixed(2)}</span>
+          </div>
+          {nearFloor && (
+            <p style={{ fontSize: '11px', color: '#8A6D1B', background: '#FFF6DE', border: '1px solid #F0DFA0', borderRadius: '4px', padding: '8px 10px', marginTop: '10px', lineHeight: 1.5 }}>
+              💡 You're pricing close to the minimum. Creators who price above the floor keep meaningfully more per sale — the minimum protects your margin, it isn't a target.
+            </p>
+          )}
+        </>
+      ) : (
+        <p style={{ fontSize: '11px', color: GRAY, marginTop: '8px' }}>Set a price of at least ₹{minPrice.toFixed(2)} for a selected size to see what you'll earn.</p>
+      )}
+    </div>
+  );
+}
+
 /* ── Product Details sub-component (Quill-style rich text) ── */
-function ProductDetailsContent({ productTitle, onProductTitleChange, descriptionHtml, onDescriptionChange, tags, onTagsChange, onSave, onDownloadMockups, submitting }) {
+function ProductDetailsContent({ productTitle, onProductTitleChange, descriptionHtml, onDescriptionChange, tags, onTagsChange, onSave, onDownloadMockups, submitting, canSubmit, disabledReason }) {
   const editorRef = useRef(null);
   const [tagInput, setTagInput] = useState('');
   const [isBold, setIsBold] = useState(false);
@@ -217,11 +262,15 @@ function ProductDetailsContent({ productTitle, onProductTitleChange, description
 
       {/* Save Product + Download Mockups */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <button onClick={onSave} disabled={submitting}
-          style={{ flex: 1, maxWidth: '300px', margin: '0 auto', padding: '14px', background: ORANGE, color: '#fff', border: 'none', borderRadius: '30px', fontSize: '15px', fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1, fontFamily: F, display: 'block' }}>
+        <button onClick={onSave} disabled={submitting || !canSubmit}
+          title={!canSubmit ? disabledReason : undefined}
+          style={{ flex: 1, maxWidth: '300px', margin: '0 auto', padding: '14px', background: ORANGE, color: '#fff', border: 'none', borderRadius: '30px', fontSize: '15px', fontWeight: 700, cursor: (submitting || !canSubmit) ? 'not-allowed' : 'pointer', opacity: (submitting || !canSubmit) ? 0.6 : 1, fontFamily: F, display: 'block' }}>
           {submitting ? 'Saving...' : 'Save Product'}
         </button>
       </div>
+      {!canSubmit && disabledReason && (
+        <p style={{ fontSize: '12px', color: '#D32F2F', textAlign: 'center', marginTop: '8px', fontFamily: F }}>{disabledReason}</p>
+      )}
       <div style={{ textAlign: 'right', marginTop: '8px' }}>
         <a href="#" onClick={(e) => { e.preventDefault(); onDownloadMockups?.(); }}
           style={{ fontSize: '13px', color: '#f2782c', textDecoration: 'none', fontFamily: F }}>
@@ -241,8 +290,12 @@ export default function QikinkRightPane({
   selectedColor = '',
   onColorChange,
   sizes = [],             // ['S','M','L','XL','XXL'] (legacy, unused)
-  basePrice = 140,
-  taxRate = 5,
+
+  // pricing — landed cost breakdown for the selected product (GET /pricing/landed-cost)
+  // and the global config constants (GET /pricing/config), both server-computed.
+  landedCost = null,      // { base_price, printing_charge, handling_charge, shipping_allowance, gst_rate, gst, landed_cost, min_markup, min_price }
+  landedCostLoading = false,
+  pricingConfig = null,   // { creator_commission_rate, platform_commission_rate, payment_gateway_fee_rate, platform_min_cut, ... }
 
   // state handlers
   selectedSizes = [],
@@ -297,10 +350,47 @@ export default function QikinkRightPane({
   const [applyAllPrice, setApplyAllPrice] = useState('');
   const [tagInput, setTagInput] = useState('');
 
-  const printingPrice = 0;
-  const handlingPrice = 0;
-  const gst = (basePrice * taxRate / 100);
-  const totalPrice = (basePrice + printingPrice + handlingPrice + gst).toFixed(2);
+  // ── Landed cost breakdown (from the backend — never hardcoded here) ──────────
+  const basePrice     = landedCost?.base_price ?? 0;
+  const printingPrice = landedCost?.printing_charge ?? 0;
+  const handlingPrice = landedCost?.handling_charge ?? 0;
+  const shippingPrice = landedCost?.shipping_allowance ?? 0;
+  const gst            = landedCost?.gst ?? 0;
+  const totalLandedCost = landedCost?.landed_cost ?? 0;
+  const minPrice        = landedCost?.min_price ?? 0;
+  const totalPrice = totalLandedCost.toFixed(2);
+
+  // ── Per-size validity + live earnings preview ───────────────────────────────
+  const sizeValidity = useMemo(() => {
+    const out = {};
+    for (const size of selectedSizes) {
+      const p = Number(sizePrices[size]);
+      const hasPrice = p > 0;
+      const belowFloor = landedCost ? (!hasPrice || p < minPrice) : false;
+      const split = (hasPrice && landedCost) ? calculateSplit(p, totalLandedCost, pricingConfig) : null;
+      out[size] = { price: p, hasPrice, belowFloor, split };
+    }
+    return out;
+  }, [selectedSizes, sizePrices, landedCost, pricingConfig, minPrice, totalLandedCost]);
+
+  const invalidSizes = selectedSizes.filter(s => !sizeValidity[s] || !sizeValidity[s].hasPrice || sizeValidity[s].belowFloor);
+  const canSubmit = !landedCostLoading && !!landedCost && selectedSizes.length > 0 && invalidSizes.length === 0;
+  const disabledReason = landedCostLoading
+    ? 'Loading pricing for this product…'
+    : !landedCost
+    ? 'Select a product to see its landed cost.'
+    : selectedSizes.length === 0
+    ? 'Select at least one size.'
+    : invalidSizes.length > 0
+    ? `Set a price of at least ₹${minPrice.toFixed(2)} for ${invalidSizes.join(', ')} (landed cost ₹${totalLandedCost.toFixed(2)} + ₹${(landedCost?.min_markup ?? 0).toFixed(0)} minimum markup).`
+    : '';
+
+  // Best-case earnings to headline — the highest-priced selected size, since
+  // that's the size a creator is most likely pricing intentionally above the floor.
+  const bestSplitEntry = selectedSizes
+    .map(s => sizeValidity[s])
+    .filter(v => v && v.hasPrice && !v.belowFloor && v.split)
+    .sort((a, b) => b.price - a.price)[0];
 
   // Use product-specific colors/sizes from catalog; fall back to UV34 defaults
   const effectiveColors = productColors.length > 0
@@ -476,6 +566,8 @@ export default function QikinkRightPane({
               {/* Size buttons */}
               {effectiveSizes.map(size => {
                 const isSelected = selectedSizes.includes(size);
+                const validity = sizeValidity[size];
+                const belowFloor = isSelected && validity?.belowFloor;
                 return (
                   <div key={size} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <button onClick={() => onToggleSize?.(size)}
@@ -485,19 +577,28 @@ export default function QikinkRightPane({
                         cursor: 'pointer', fontSize: '13px', fontWeight: 600, fontFamily: F, padding: '4px 8px',
                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                       }}
-                      title={`Product Price: ₹ ${basePrice.toFixed(2)}\nPrinting Price: ₹ ${printingPrice.toFixed(2)}\nHandling Price: ₹ ${handlingPrice.toFixed(2)}\nGST: ₹ ${gst.toFixed(2)}\nTotal: ₹ ${totalPrice}`}>
+                      title={`Qikink Base Price: ₹ ${basePrice.toFixed(2)}\nPrinting: ₹ ${printingPrice.toFixed(2)}\nHandling: ₹ ${handlingPrice.toFixed(2)}\nShipping: ₹ ${shippingPrice.toFixed(2)}\nGST (5%): ₹ ${gst.toFixed(2)}\nLanded Cost: ₹ ${totalPrice}\nMinimum Price (landed cost + ₹${(landedCost?.min_markup ?? 0).toFixed(0)}): ₹ ${minPrice.toFixed(2)}`}>
                       {size}
-                      <span style={{ fontSize: '10px', fontWeight: 400, color: GRAY }}>₹ {totalPrice}</span>
+                      <span style={{ fontSize: '10px', fontWeight: 400, color: GRAY }}>cost ₹{totalPrice}</span>
                     </button>
                     <input type="number" step="0.01" min="0" placeholder="₹"
                       value={sizePrices[size] || ''}
                       onChange={(e) => onSizePriceChange?.(size, Number(e.target.value))}
-                      style={{ width: '50px', fontSize: '11px', textAlign: 'center', border: `1px solid ${BORDER}`, borderRadius: '3px', marginTop: '4px', padding: '2px', fontFamily: F }} />
+                      title={belowFloor ? `Below the ₹${minPrice.toFixed(2)} minimum` : undefined}
+                      style={{ width: '50px', fontSize: '11px', textAlign: 'center', border: `1px solid ${belowFloor ? '#D32F2F' : BORDER}`, background: belowFloor ? '#FDECEC' : '#fff', borderRadius: '3px', marginTop: '4px', padding: '2px', fontFamily: F }} />
                   </div>
                 );
               })}
             </div>
           </div>
+
+          {/* ── Pricing Breakdown (live) ── */}
+          <PricingBreakdownPanel
+            landedCost={landedCost}
+            landedCostLoading={landedCostLoading}
+            bestSplitEntry={bestSplitEntry}
+            minPrice={minPrice}
+          />
 
           {/* ── Product Colors (single select with tooltip) ── */}
           <ColorSwatchGrid
@@ -508,10 +609,14 @@ export default function QikinkRightPane({
 
           {/* ── Save Product + Download Mockups ── */}
           <div style={{ padding: '16px' }}>
-            <button onClick={onSave} disabled={submitting}
-              style={{ width: '100%', padding: '14px', background: ORANGE, color: '#fff', border: 'none', borderRadius: '4px', fontSize: '15px', fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1, fontFamily: F }}>
+            <button onClick={onSave} disabled={submitting || !canSubmit}
+              title={!canSubmit ? disabledReason : undefined}
+              style={{ width: '100%', padding: '14px', background: ORANGE, color: '#fff', border: 'none', borderRadius: '4px', fontSize: '15px', fontWeight: 700, cursor: (submitting || !canSubmit) ? 'not-allowed' : 'pointer', opacity: (submitting || !canSubmit) ? 0.6 : 1, fontFamily: F }}>
               {submitting ? 'Saving...' : 'Save Product'}
             </button>
+            {!canSubmit && disabledReason && (
+              <p style={{ fontSize: '12px', color: '#D32F2F', textAlign: 'center', marginTop: '8px', fontFamily: F }}>{disabledReason}</p>
+            )}
             <div style={{ textAlign: 'right', marginTop: '8px' }}>
               <a href="#" onClick={(e) => { e.preventDefault(); onDownloadMockups?.(); }}
                 style={{ fontSize: '13px', color: '#f2782c', textDecoration: 'none', fontFamily: F }}>
@@ -534,6 +639,8 @@ export default function QikinkRightPane({
           onSave={onSave}
           onDownloadMockups={onDownloadMockups}
           submitting={submitting}
+          canSubmit={canSubmit}
+          disabledReason={disabledReason}
         />
       )}
     </div>

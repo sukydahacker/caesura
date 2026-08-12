@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as fabric from 'fabric';
-import { uploadDesignImage, createDesign, getProductCatalog, getDesignLibrary } from '@/lib/api';
+import { uploadDesignImage, createDesign, getProductCatalog, getDesignLibrary, getPricingConfig, getLandedCost } from '@/lib/api';
+import { calculateSplit } from '@/lib/pricing';
 import { QK, UV34_CONFIG, PRINTING_OPTIONS, VINYL_SUB_OPTIONS } from '@/config/qikinkTheme';
 import PrintingOptions from '@/components/qikink/PrintingOptions';
 import DesignUploadModal from '@/components/qikink/DesignUploadModal';
@@ -469,6 +470,27 @@ export default function SellYourArt() {
     }
   }, [catalog.length]);
 
+  // ── Pricing: config (constants) + live landed cost for the selected product ──
+
+  const [pricingConfig, setPricingConfig] = useState(null);
+  const [landedCost, setLandedCost] = useState(null);
+  const [landedCostLoading, setLandedCostLoading] = useState(false);
+
+  useEffect(() => {
+    getPricingConfig().then(res => setPricingConfig(res.data)).catch(() => setPricingConfig(null));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCategory?.category) { setLandedCost(null); return; }
+    let cancelled = false;
+    setLandedCostLoading(true);
+    getLandedCost(selectedCategory.category)
+      .then(res => { if (!cancelled) setLandedCost(res.data); })
+      .catch(() => { if (!cancelled) setLandedCost(null); })
+      .finally(() => { if (!cancelled) setLandedCostLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedCategory?.category]);
+
   const GENDER_ORDER = { 'male': 0, 'unisex': 1, 'female': 2, 'womens': 3, 'boy': 4, 'girl': 5 };
   const getGenderOrder = (cat) => {
     const prefix = cat.toLowerCase().split(' ')[0];
@@ -895,6 +917,19 @@ export default function SellYourArt() {
     if (!hasSizePrices && (!price || isNaN(Number(price)) || Number(price) <= 0)) { setError('Please set pricing for at least one size.'); return; }
     if (selectedSizes.length === 0) { setError('Please select at least one size.'); return; }
 
+    // Defensive minimum-markup check — the backend re-validates this regardless,
+    // but catch it here too so the error is immediate instead of a round trip.
+    if (landedCost) {
+      const pricesToCheck = hasSizePrices
+        ? selectedSizes.map(s => Number(sizePrices[s])).filter(v => v > 0)
+        : [Number(price)];
+      const belowFloor = pricesToCheck.some(v => v < landedCost.min_price);
+      if (belowFloor) {
+        setError(`Price must be at least ₹${landedCost.min_price.toFixed(2)} (landed cost ₹${landedCost.landed_cost.toFixed(2)} + ₹${landedCost.min_markup.toFixed(0)} minimum markup).`);
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       // 1. Upload design image
@@ -983,7 +1018,9 @@ export default function SellYourArt() {
           <p style={{ ...body, fontSize: '16px', color: TS, lineHeight: 1.7, margin: '0 0 12px' }}>
             Your design is pending admin review. Once approved it goes live on the marketplace.
           </p>
-          <p style={{ ...mono, fontSize: '11px', color: TT, margin: '0 0 40px' }}>You keep 80% of every sale.</p>
+          <p style={{ ...mono, fontSize: '11px', color: TT, margin: '0 0 40px' }}>
+            You keep {pricingConfig ? Math.round(pricingConfig.creator_commission_rate * 100) : 60}% of the net margin on every sale.
+          </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
             <button
               onClick={() => { setSuccess(false); setStep(1); setImageFile(null); setImagePreview(null); setImageUrl(''); setMockupImageUrl(''); setPlacement(null); setTitle(''); setDescription(''); setPrice(''); setSelectedCategory(null); setSelectedCollection(null); setSelectedSizes([]); setSelectedColor(''); }}
@@ -1237,8 +1274,9 @@ export default function SellYourArt() {
                 productSizes={selectedCategory.sizes || []}
                 selectedColor={selectedColor}
                 onColorChange={setSelectedColor}
-                basePrice={140}
-                taxRate={5}
+                landedCost={landedCost}
+                landedCostLoading={landedCostLoading}
+                pricingConfig={pricingConfig}
                 selectedSizes={selectedSizes}
                 onToggleSize={toggleSize}
                 sizePrices={sizePrices}

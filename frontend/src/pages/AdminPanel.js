@@ -376,11 +376,11 @@ export default function AdminPanel() {
                         {order.revenue_splits.map((split, si) => (
                           <div key={si} style={{ display: 'flex', gap: '32px' }}>
                             <div>
-                              <p style={{ ...body, fontSize: '11px', color: TT, margin: '0 0 2px', letterSpacing: '0.05em' }}>CREATOR 80%</p>
+                              <p style={{ ...body, fontSize: '11px', color: TT, margin: '0 0 2px', letterSpacing: '0.05em' }}>CREATOR (60%)</p>
                               <p style={{ ...display, fontSize: '16px', color: AS, margin: 0, fontWeight: 700 }}>₹{split.creator_amount.toFixed(2)}</p>
                             </div>
                             <div>
-                              <p style={{ ...body, fontSize: '11px', color: TT, margin: '0 0 2px', letterSpacing: '0.05em' }}>PLATFORM 20%</p>
+                              <p style={{ ...body, fontSize: '11px', color: TT, margin: '0 0 2px', letterSpacing: '0.05em' }}>PLATFORM (40%, min ₹100/item)</p>
                               <p style={{ ...display, fontSize: '16px', color: AP, margin: 0, fontWeight: 700 }}>₹{split.platform_amount.toFixed(2)}</p>
                             </div>
                           </div>
@@ -437,11 +437,11 @@ export default function AdminPanel() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: BS, border: `1px solid ${BS}` }}>
                   <div style={{ background: BG2, padding: '24px 28px' }}>
-                    <p style={{ ...body, fontSize: '11px', color: TT, margin: '0 0 8px', letterSpacing: '0.1em' }}>PLATFORM (20%)</p>
+                    <p style={{ ...body, fontSize: '11px', color: TT, margin: '0 0 8px', letterSpacing: '0.1em' }}>PLATFORM (40%)</p>
                     <p style={{ ...display, fontWeight: 700, fontSize: '28px', color: AS, margin: 0 }}>₹{analytics.revenue.platform_earnings.toFixed(2)}</p>
                   </div>
                   <div style={{ background: BG2, padding: '24px 28px' }}>
-                    <p style={{ ...body, fontSize: '11px', color: TT, margin: '0 0 8px', letterSpacing: '0.1em' }}>CREATOR (80%)</p>
+                    <p style={{ ...body, fontSize: '11px', color: TT, margin: '0 0 8px', letterSpacing: '0.1em' }}>CREATOR (60%)</p>
                     <p style={{ ...display, fontWeight: 700, fontSize: '28px', color: TP, margin: 0 }}>₹{analytics.revenue.creator_earnings.toFixed(2)}</p>
                   </div>
                 </div>

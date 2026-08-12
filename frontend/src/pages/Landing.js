@@ -337,7 +337,7 @@ const STEPS = [
   { num: '01', accent: GOLD,     icon: <Upload size={28} />,      title: 'Upload your art.',   sub: 'Any design. Any niche.',    desc: 'Drop your PNG or JPEG and watch it come to life on a tee. Oversized, classic, crop — you pick the cut.' },
   { num: '02', accent: BLUE,     icon: <Palette size={28} />,     title: 'We review it.',      sub: 'Quality assured.',          desc: 'Our team checks for originality and print quality. Once approved your design goes live on the marketplace.' },
   { num: '03', accent: AS,       icon: <Truck size={28} />,       title: 'We handle the rest.', sub: 'Print. Pack. Ship.',        desc: 'Every order is printed on premium 220gsm cotton using DTF tech, packed carefully, and shipped across India.' },
-  { num: '04', accent: AP,       icon: <Star size={28} />,        title: 'You get paid.',      sub: '80% of every sale.',        desc: 'Monthly payouts via UPI or bank transfer. Track sales, earnings, and fan orders from your dashboard.' },
+  { num: '04', accent: AP,       icon: <Star size={28} />,        title: 'You get paid.',      sub: '60% of every sale.',        desc: 'Monthly payouts via UPI or bank transfer. Track sales, earnings, and fan orders from your dashboard.' },
 ];
 
 function HowItWorks() {
@@ -405,7 +405,7 @@ function ForCreators() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', marginBottom: '64px' }}>
           {[
             { num: '₹0',   label: 'Upfront cost',     desc: 'No inventory, no storage, no risk.' },
-            { num: '80%',  label: 'Revenue you keep',  desc: 'The best split in the industry.' },
+            { num: '60%',  label: 'Revenue you keep',  desc: 'The best split in the industry.' },
             { num: '∞',    label: 'Creative freedom',  desc: 'Any design, any niche, any vision.' },
           ].map(({ num, label, desc }, i) => (
             <FV key={label} delay={i * 0.1}>
@@ -540,7 +540,7 @@ function QualityPromise() {
               {[
                 { bg: '#09090B', content: <ShieldCheck size={48} color="white" /> },
                 { bg: GOLD,      content: <span style={{ ...display, fontSize: '40px', fontWeight: 700, color: BG }}>100%</span> },
-                { bg: '#F0F0EC', content: <span style={{ ...display, fontSize: '40px', fontWeight: 700, color: BG }}>80/20</span> },
+                { bg: '#F0F0EC', content: <span style={{ ...display, fontSize: '40px', fontWeight: 700, color: BG }}>60/40</span> },
                 { bg: '#09090B', content: <Star size={48} color={GOLD} /> },
               ].map((cell, i) => (
                 <div key={i} style={{ aspectRatio: '1/1', background: cell.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }}>
