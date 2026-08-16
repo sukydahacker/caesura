@@ -102,6 +102,7 @@ class Design(BaseModel):
     design_analysis: Optional[dict] = None  # Analysis metadata
     # Internal metadata (for admin/production)
     print_metadata: Optional[dict] = None  # Internal print specifications
+    placements: Optional[List[dict]] = None  # one entry per view with a design
     created_at: datetime
     updated_at: datetime
 
@@ -391,15 +392,16 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
     selected_colors = body.get("selected_colors", [])  # TEXT[]
     print_type = body.get("print_type", "dtf")     # TEXT
     description_html = body.get("description_html") # TEXT (rich HTML)
+    placements = body.get("placements")             # JSONB: one entry per view with a design
 
     await execute(
         """INSERT INTO designs
                (design_id, user_id, title, description, image_url, mockup_image_url,
                 product_type, placement_coordinates, price, tags, approval_status,
                 featured, product_configs, design_analysis, print_metadata,
-                size_prices, selected_colors, print_type, description_html,
+                size_prices, selected_colors, print_type, description_html, placements,
                 created_at, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)""",
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)""",
         design_id, user.user_id, body["title"], body.get("description"),
         body["image_url"], body.get("mockup_image_url"),
         body.get("product_type", "UT27"),
@@ -407,7 +409,7 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
         body.get("price"), tags, initial_status,
         False, to_jsonb(product_configs), to_jsonb(design_analysis),
         to_jsonb(print_metadata),
-        to_jsonb(size_prices), selected_colors, print_type, description_html,
+        to_jsonb(size_prices), selected_colors, print_type, description_html, to_jsonb(placements),
         now, now,
     )
 
@@ -420,6 +422,7 @@ async def create_design(request: Request, session_token: Optional[str] = Cookie(
         "mockup_image_url": body.get("mockup_image_url"),
         "product_type": body.get("product_type", "UT27"),
         "placement_coordinates": body.get("placement_coordinates"),
+        "placements": placements,
         "price": body.get("price"),
         "tags": tags,
         "approval_status": initial_status,
@@ -499,7 +502,7 @@ async def get_design(design_id: str):
     design = await fetch_one("SELECT * FROM designs WHERE design_id = $1", design_id)
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
-    _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
+    _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata', 'placements')
     return Design(**design)
 
 @api_router.delete("/designs/{design_id}")
@@ -773,7 +776,28 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
         # Gather design data for Qikink
         design = await fetch_one("SELECT * FROM designs WHERE design_id = $1", product.get("design_id"))
         if design:
-            _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
+            _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata', 'placements')
+
+            # Translate the editor's per-view placements into Qikink's shape —
+            # one design per placement, each with its OWN image. Without this,
+            # every order defaults to a single "front" placement regardless of
+            # which views actually have art, so a back-only design would never
+            # print at all (or a front design could get mislabeled as "back").
+            qikink_placements = None
+            if design.get("placements"):
+                qikink_placements = []
+                for pl in design["placements"]:
+                    width_in, height_in = pl.get("width_inches"), pl.get("height_inches")
+                    link = pl.get("image_url") or design.get("image_url", "")
+                    entry = {
+                        "view": pl.get("view", "front"),
+                        "design_link": link,
+                        "mockup_link": link,
+                    }
+                    if width_in and height_in:
+                        entry["print_size"] = {"width_cm": round(width_in * 2.54, 2), "height_cm": round(height_in * 2.54, 2)}
+                    qikink_placements.append(entry)
+
             qikink_items.append({
                 "product":  product,
                 "design":   design,
@@ -781,6 +805,7 @@ async def create_order(request: Request, session_token: Optional[str] = Cookie(N
                 "color":    item.get("color", "white"),
                 "quantity": item["quantity"],
                 "price":    item["price"],
+                "placements": qikink_placements,
             })
 
     await execute(
@@ -1062,7 +1087,7 @@ async def get_pending_designs(request: Request, session_token: Optional[str] = C
     # Enrich each design with creator name
     result = []
     for d in designs:
-        _parse_jsonb(d, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
+        _parse_jsonb(d, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata', 'placements')
         creator = await fetch_one(
             "SELECT name, email FROM users WHERE user_id = $1", d["user_id"]
         )
@@ -1107,7 +1132,7 @@ async def approve_design_admin(design_id: str, request: Request, session_token: 
     design = await fetch_one("SELECT * FROM designs WHERE design_id = $1", design_id)
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
-    _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata')
+    _parse_jsonb(design, 'placement_coordinates', 'product_configs', 'design_analysis', 'print_metadata', 'placements')
 
     product_type = design.get("product_type") or apparel_type or "UT27"
 

@@ -191,6 +191,9 @@ class QikinkService:
           quantity: int
           price:    float
           color:    str  (optional, defaults to "white")
+          placements: [{view, design_link, mockup_link, print_size: {width_cm, height_cm}}, ...]
+                      (optional — one design per placement; falls back to a
+                      single "front" placement using `design.image_url` if omitted)
         """
         if not self.is_configured:
             raise ValueError("Qikink not configured — set QIKINK_CLIENT_ID and QIKINK_CLIENT_SECRET in .env")

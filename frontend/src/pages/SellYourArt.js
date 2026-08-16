@@ -95,7 +95,7 @@ const COLOR_HEX = {
 
 // ── Product collection groupings ────────────────────────────────────────────────
 const COLLECTIONS = [
-  { name: 'T-Shirts', image: '/mockups/T-shirts.PNG.webp', description: 'Crew necks, oversized, acid wash & more', keywords: ['T-Shirt', 'Tee', 'Baby Tee'] },
+  { name: 'T-Shirts', image: '/mockups/T-shirts.PNG.webp', description: 'Crew necks, oversized, acid wash & more', keywords: ['T-Shirt', 'Tee', 'Baby Tee', 'Shirt'] },
   { name: 'Hoodies & Jackets', image: '/mockups/Hoodies.PNG.webp', description: 'Hoodies, sweatshirts, bombers & varsity', keywords: ['Hoodie', 'Sweatshirt', 'Bomber', 'Varsity', 'Zip Hoodie'] },
   { name: 'Bottomwear', image: '/mockups/Bottomwear.PNG.webp', description: 'Joggers, shorts & sweatpants', keywords: ['Jogger', 'Short', 'Sweatpants', 'Legging'] },
   { name: 'Headwear', image: '/mockups/Headwear.PNG.webp', description: 'Caps, bucket hats, snapbacks & balaclava', keywords: ['Cap', 'Hat', 'Snapback', 'Trucker', 'Balaclava', 'Bucket'] },
@@ -173,7 +173,7 @@ function categorizeProduct(categoryName) {
 const PSD_MOCKUPS = {
   'UT27': { base_white:'/mockups/UT27/base_white.png', jade:'/mockups/UT27/jade.png', flamingo:'/mockups/UT27/flamingo.png', bottle_green:'/mockups/UT27/bottle_green.png', baby_blue:'/mockups/UT27/baby_blue.png', lavender:'/mockups/UT27/lavender.png', maroon:'/mockups/UT27/maroon.png', navy_blue:'/mockups/UT27/navy_blue.png', black:'/mockups/UT27/black.png', white:'/mockups/UT27/white_full_turn_off_texture.png' },
   'UH24': { base_white:'/mockups/UH24/base_white.png', grey:'/mockups/UH24/grey_full.png', grey_melange:'/mockups/UH24/grey_full.png', baby_blue:'/mockups/UH24/baby_blue.png', mint:'/mockups/UH24/mint.png', coral:'/mockups/UH24/coral.png', lavender:'/mockups/UH24/lavender.png', light_baby_pink:'/mockups/UH24/light_baby_pink.png', mustard_yellow:'/mockups/UH24/mustard_yellow.png', olive_green:'/mockups/UH24/olive_green.png', maroon:'/mockups/UH24/maroon.png', red:'/mockups/UH24/red.png', royal_blue:'/mockups/UH24/royal_blue.png', bottle_green:'/mockups/UH24/bottle_green.png', navy_blue:'/mockups/UH24/navy_blue.png', black:'/mockups/UH24/black.png', white:'/mockups/UH24/white_fullturn_off_texture.png' },
-  'UH32': { navy:'/mockups/UH32/navy.png', navy_blue:'/mockups/UH32/navy.png', green:'/mockups/UH32/green.png', maroon:'/mockups/UH32/maroon.png', light_pink:'/mockups/UH32/light_pink.png', light_baby_pink:'/mockups/UH32/light_pink.png', lavender:'/mockups/UH32/lavender.png', black:'/mockups/UH32/black.png', white:'/mockups/UH32/white.png' },
+  'UH32': { navy:'/mockups/UH32/navy.png', navy_blue:'/mockups/UH32/navy.png', green:'/mockups/UH32/green.png', bottle_green:'/mockups/UH32/green.png', maroon:'/mockups/UH32/maroon.png', light_pink:'/mockups/UH32/light_pink.png', light_baby_pink:'/mockups/UH32/light_pink.png', lavender:'/mockups/UH32/lavender.png', black:'/mockups/UH32/black.png', white:'/mockups/UH32/white.png' },
   'UH26': { light_baby_pink:'/mockups/UH26/light_baby_pink.png', navy_blue:'/mockups/UH26/navy_blue.png', black:'/mockups/UH26/black.png', olive_green:'/mockups/UH26/olive_green.png', lavender:'/mockups/UH26/lavender.png', coral:'/mockups/UH26/coral.png', white:'/mockups/UH26/white.png', maroon:'/mockups/UH26/maroon.png', mint:'/mockups/UH26/mint.png', grey_melange:'/mockups/UH26/grey_melange.png', grey:'/mockups/UH26/grey_melange.png' },
   'UH35': { navy:'/mockups/UH35/navy.png', navy_blue:'/mockups/UH35/navy.png', green:'/mockups/UH35/green.png', maroon:'/mockups/UH35/maroon.png', light_pink:'/mockups/UH35/light_pink.png', light_baby_pink:'/mockups/UH35/light_pink.png', lavender:'/mockups/UH35/lavender.png', black:'/mockups/UH35/black.png', white:'/mockups/UH35/white.png' },
   'UC22': { base_white:'/mockups/UC22/base_white.png', white:'/mockups/UC22/white_full.png', grey:'/mockups/UC22/grey_full.png', off_white:'/mockups/UC22/offwhite_full.png', baby_blue:'/mockups/UC22/baby_blue.png', mint:'/mockups/UC22/mint.png', coral:'/mockups/UC22/coral.png', lavender:'/mockups/UC22/lavender.png', light_baby_pink:'/mockups/UC22/light_baby_pink.png', mustard_yellow:'/mockups/UC22/mustard_yellow_copy.png', olive_green:'/mockups/UC22/olive_green.png', petrol_blue:'/mockups/UC22/petrol_blue.png', golden_yellow:'/mockups/UC22/golden_yellow.png', purple:'/mockups/UC22/purple.png', maroon:'/mockups/UC22/maroon.png', red:'/mockups/UC22/red.png', royal_blue:'/mockups/UC22/royal_blue.png', bottle_green:'/mockups/UC22/bottle_green.png', navy_blue:'/mockups/UC22/navy_blue.png', black:'/mockups/UC22/black.png' },
@@ -187,7 +187,28 @@ const PSD_MOCKUPS = {
   'UJ31': { lavender:'/mockups/UJ31/lavender.png', red:'/mockups/UJ31/red.png', bottle_green:'/mockups/UJ31/bottle_green.png', maroon:'/mockups/UJ31/maroon.png', navy:'/mockups/UJ31/navy.png', navy_blue:'/mockups/UJ31/navy.png', black:'/mockups/UJ31/black.png' },
   'FC32': { base_white:'/mockups/FC32/base.png', white:'/mockups/FC32/base.png', maroon:'/mockups/FC32/maroon.png', mustard_yellow:'/mockups/FC32/mustard_yellow.png', light_pink:'/mockups/FC32/light_pink.png', light_baby_pink:'/mockups/FC32/light_pink.png', black:'/mockups/FC32/black.png' },
   'FC39': { white:'/mockups/FC39/white.png' },
+  'UR37': { black_charcoal_melange:'/mockups/UR37/bk-cm.png', black_white:'/mockups/UR37/bk-wh.png', white_black:'/mockups/UR37/wh-bk.png' },
 };
+
+// SKUs whose colors are two-tone (contrasting body + sleeves) and therefore
+// can't be represented by a single flat hex or runtime tint — the color
+// swatches for these must show the actual per-color mockup photo instead.
+const NON_TINTABLE_SKUS = ['UR37'];
+
+// {colorName: imageUrl} for a non-tintable product's swatches, or null if the
+// product tints/uses flat hex swatches as normal.
+function getColorSwatchImages(category, colors) {
+  const skuMatch = category && category.match(/\|\s*([A-Z0-9]+)\s*$/);
+  const sku = skuMatch ? skuMatch[1] : null;
+  if (!sku || !NON_TINTABLE_SKUS.includes(sku)) return null;
+  const map = PSD_MOCKUPS[sku];
+  if (!map) return null;
+  const out = {};
+  for (const name of colors || []) {
+    out[name] = map[normColorKey(name)] || null;
+  }
+  return out;
+}
 
 // Print areas for PSD-backed products (pixel coords on 420×600 Fabric canvas)
 // Spec: 12"×14" print area, centered horizontally on each garment.
@@ -200,6 +221,7 @@ const PSD_PRINT_AREAS = {
   'UT27': { x: 136, y: 191, w: 347, h: 366 },  // 12"×14" on 620×796 canvas
   'UH24': { x: 162, y: 220, w: 270, h: 310 },  // 12"×14" on 620×796 canvas (hoodie PNG 800×800, garment x111-657)
   'UH26': { x: 161, y: 207, w: 298, h: 350 },  // 12"×14" on 620×796 canvas
+  'UR37': { x: 136, y: 191, w: 347, h: 366 },  // 12"×14" on 620×796 canvas — same crew-tee proportions as UT27
 };
 
 // Normalize a color name to a PSD map key
@@ -230,30 +252,6 @@ function getPsdMockup(categoryStr, colorName) {
   return { url: map[fallback], printArea: PSD_PRINT_AREAS[sku] };
 }
 
-// Canvas editor templates — keyed by keyword pattern, checked in order
-// All print areas 12"×14" (w:h = 1:1.167). JPG templates are 700×1000 at scale 0.6.
-const KEYWORD_TEMPLATES = [
-  { test: /hoodie/,                  template: '/mockups/hoodie-white.jpg',      printArea: { x: 174, y: 303, w: 273, h: 303 } },
-  { test: /sweatshirt|pullover/,     template: '/mockups/sweatshirt-white.jpg',  printArea: { x: 161, y: 207, w: 298, h: 350 } },
-  { test: /classic crew|standard crew|basic t-shirt|supima|cotton stretch/, template: '/mockups/crew-tee-white.jpg', printArea: { x: 161, y: 207, w: 298, h: 350 } },
-];
-const DEFAULT_TEMPLATE = { template: '/mockups/oversized-tee-white.jpg', printArea: { x: 136, y: 191, w: 347, h: 366 } };
-
-// Specific per-SKU overrides for products without PSD mockups
-// US21: 700×1000 JPG at scale 0.6 → 420×600 canvas. Garment 22" wide (ppi≈12.3). 12"×14" print.
-const PRODUCT_TEMPLATES = {
-  'Male Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
-  'Female Classic Crew T-Shirt':                { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
-  'Boy Classic Crew T-Shirt':                   { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
-  'Girl Classic Crew T-Shirt':                  { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
-  'Male Standard Crew T-Shirt | US21':          { template: '/mockups/crew-tee-white.jpg',      printArea: { x: 161, y: 207, w: 298, h: 350 } },
-  'Unisex Hoodie | UH24':                       { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
-  'Unisex Zip Hoodie | UH38':                   { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
-  'Unisex Pullover Hoodie | UH83':              { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
-  'Unisex Acid Wash Hoodie | UH62':             { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
-  'Kids Hoodie':                                { template: '/mockups/hoodie-white.jpg',        printArea: { x: 174, y: 303, w: 273, h: 303 } },
-};
-
 // ── UV34 view configs (template + print area per view on 620×796 canvas) ─────
 // Print areas derived from PSD layer bounds (1000×1000 PSD → 620×796 canvas)
 const UV34_VIEWS = {
@@ -271,6 +269,11 @@ const UV34_VIEWS = {
 const PSD_BACK_VIEWS = {
   // Add per-color back entries here as they become available, e.g.:
   // 'UH24': { black: '/mockups/UH24/back_black.png', white: '/mockups/UH24/back_white.png', ... }
+  'UR37': {
+    black_charcoal_melange: '/mockups/UR37/back-bk-cm.png',
+    black_white:            '/mockups/UR37/back-bk-wh.png',
+    white_black:            '/mockups/UR37/back-wh-bk.png',
+  },
 };
 
 // ── Per-SKU single back image (one image for all colors, no tinting) ─────────
@@ -300,17 +303,59 @@ const PRODUCT_TYPE_VIEWS = {
     left_sleeve:  { template: '/mockups/UV34/left_sleeve_base.png',   printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
     right_sleeve: { template: '/mockups/UV34/right_sleeve_base.png',  printArea: { x: 241, y: 238, w: 136, h: 159 }, tintable: false },
   },
+  // UR37 Raglan: Qikink's PSD only has Front/Back groups (no pocket or sleeve
+  // layers), and Qikink only accepts front/back/left_pocket/right_pocket
+  // placements for this product (see PRODUCT_VIEW_SUPPORT). Back uses real
+  // per-color images via PSD_BACK_VIEWS (template below is just the fallback
+  // if that lookup ever misses). Pocket views have no source art at all —
+  // `noPreview: true` renders a visible placeholder instead of silently
+  // showing a different garment.
+  raglan: {
+    back:         { template: '/mockups/UR37/back-bk-cm.png', printArea: PSD_PRINT_AREAS.UR37, tintable: false },
+    // Pocket placements don't need their own garment photo — Qikink's own
+    // editor shows pocket views on the front garment with a small upper-chest
+    // print zone, same as it does for every other product. No `template` here
+    // deliberately: the canvas-init "no dedicated template" branch falls back
+    // to the real per-color front mockup, which is what we want.
+    // ~4.5in wide (130px at UR37's ~28.9px/in), upper chest, either side of
+    // the main print area's centerline (x 136–483). "left_pocket" = wearer's
+    // left = image right, matching the existing UV34 pocket convention.
+    left_pocket:  { printArea: { x: 337, y: 266, w: 130, h: 130 }, tintable: false },
+    right_pocket: { printArea: { x: 153, y: 266, w: 130, h: 130 }, tintable: false },
+  },
 };
 
 function getProductTypeKey(category) {
-  return /hoodie|sweatshirt|pullover/i.test(category) ? 'hoodie' : 'tshirt';
+  if (/hoodie|sweatshirt|pullover/i.test(category)) return 'hoodie';
+  if (/raglan/i.test(category)) return 'raglan';
+  return 'tshirt';
 }
 
-// Returns 6 views for all products. Thumbnails use angle-specific images where
-// available; pocket/sleeve views on hoodies fall back to the front image since
-// those print areas live on the front of the garment.
+// Which print placements Qikink actually supports, per SKU — data-driven so a
+// product that doesn't support a placement (e.g. UR37 Raglan has no sleeve
+// print position at Qikink) simply never offers it, rather than every product
+// defaulting to the full front/back/pockets/sleeves set regardless of what's
+// actually printable. SKUs not listed here keep the full 6-view default,
+// matching existing behavior for products that haven't been audited against
+// Qikink's placement list yet.
+const PRODUCT_VIEW_SUPPORT = {
+  'UR37': ['front', 'back', 'left_pocket', 'right_pocket'],  // no sleeve placement for raglan at Qikink
+};
+const ALL_VIEW_KEYS = ['front', 'back', 'left_pocket', 'right_pocket', 'left_sleeve', 'right_sleeve'];
+
+function getSupportedViewKeys(category) {
+  const skuMatch = category && category.match(/\|\s*([A-Z0-9]+)\s*$/);
+  const sku = skuMatch ? skuMatch[1] : null;
+  return (sku && PRODUCT_VIEW_SUPPORT[sku]) || ALL_VIEW_KEYS;
+}
+
+// Returns the views available for a product. Thumbnails use angle-specific
+// images where available; pocket/sleeve views on hoodies fall back to the
+// front image since those print areas live on the front of the garment.
 function getProductViewList(category, colorName) {
   if (!category) return [{ label: 'Front', key: 'front', img: '/mockups/oversized-tee-white.jpg' }];
+
+  const supported = getSupportedViewKeys(category);
 
   if (category.includes('UV34')) {
     return [
@@ -320,7 +365,7 @@ function getProductViewList(category, colorName) {
       { label: 'Right Pocket', key: 'right_pocket', img: '/mockups/UV34/right_pocket_base.png' },
       { label: 'Left Sleeve',  key: 'left_sleeve',  img: '/mockups/UV34/left_sleeve_base.png' },
       { label: 'Right Sleeve', key: 'right_sleeve', img: '/mockups/UV34/right_sleeve_base.png' },
-    ];
+    ].filter(v => supported.includes(v.key));
   }
 
   const psd = getPsdMockup(category, colorName);
@@ -338,7 +383,9 @@ function getProductViewList(category, colorName) {
     typeViews.back.thumbnail || typeViews.back.template ||
     frontImg;
 
-  // thumbnail > template > front fallback
+  // thumbnail > template > front fallback (a view with no dedicated art still
+  // shows the correct garment's front image as its sidebar thumbnail — that's
+  // honest, unlike falling back to a different product's photo)
   const resolveImg = (viewCfg) => viewCfg?.thumbnail || viewCfg?.template || frontImg;
 
   return [
@@ -348,7 +395,72 @@ function getProductViewList(category, colorName) {
     { label: 'Right Pocket', key: 'right_pocket', img: resolveImg(typeViews.right_pocket) },
     { label: 'Left Sleeve',  key: 'left_sleeve',  img: resolveImg(typeViews.left_sleeve) },
     { label: 'Right Sleeve', key: 'right_sleeve', img: resolveImg(typeViews.right_sleeve) },
-  ];
+  ].filter(v => supported.includes(v.key));
+}
+
+// Approximate real-world print-area width, by view — used to convert canvas
+// pixels to inches. Shared by the live dimensions readout and the submit-time
+// per-placement payload so both agree on the same numbers.
+function printWidthInchesForView(view) {
+  return view.includes('pocket') ? 5 : view.includes('sleeve') ? 6 : 12;
+}
+
+// Resolve the template image + print area + tint flag for an arbitrary
+// (category, color, view) combination. Shared by the canvas-init effect
+// (for whichever view is currently active) and handleSubmit (once per view
+// that actually has a design placed, to get that view's own print-area
+// geometry for the per-placement payload) — one source of truth instead of
+// two implementations that could drift apart.
+function resolveViewTemplate(category, color, view) {
+  const isUV34 = !category || category.includes('UV34');
+  if (isUV34) {
+    const viewConfig = UV34_VIEWS[view] || UV34_VIEWS.front;
+    return { template: viewConfig.template, printArea: viewConfig.printArea, tintable: viewConfig.tintable };
+  }
+
+  const psd = getPsdMockup(category, color);
+  const frontTemplate = psd ? psd.url : '/mockups/hoodie-white.jpg';
+  const frontPrintArea = psd?.printArea || PSD_PRINT_AREAS['UH24'];
+
+  if (view === 'front') {
+    return { template: frontTemplate, printArea: frontPrintArea, tintable: false };
+  }
+
+  const typeKey = getProductTypeKey(category);
+  const typeViews = PRODUCT_TYPE_VIEWS[typeKey];
+  const viewCfg = typeViews[view];
+
+  if (viewCfg && viewCfg.template) {
+    // For the back view, prefer per-SKU per-color → per-SKU single → type default
+    let backTemplate = viewCfg.template;
+    if (view === 'back') {
+      const skuMatch = category.match(/\|\s*([A-Z0-9]+)\s*$/);
+      const sku = skuMatch ? skuMatch[1] : null;
+      if (sku) {
+        const backMap = PSD_BACK_VIEWS[sku];
+        if (backMap) {
+          const ck = normColorKey(color);
+          backTemplate = backMap[ck] || backMap.base_white || Object.values(backMap)[0] || backTemplate;
+        } else if (SKU_BACK_IMAGES[sku]) {
+          backTemplate = SKU_BACK_IMAGES[sku];
+        }
+      }
+    }
+    return { template: backTemplate, printArea: viewCfg.printArea, tintable: viewCfg.tintable };
+  }
+  if (viewCfg && viewCfg.noPreview) {
+    // No source art exists for this view on this product. Fail visibly
+    // (canvas-init renders a placeholder) instead of silently showing a
+    // different product's photo.
+    return { template: null, printArea: viewCfg.printArea, tintable: false, noPreview: true };
+  }
+  if (viewCfg) {
+    // Config exists but no dedicated template (e.g. pocket placements) —
+    // reuse the front garment image so the user sees the actual product.
+    return { template: frontTemplate, printArea: viewCfg.printArea, tintable: false };
+  }
+  // No config for this view on this product type — fall back to front entirely.
+  return { template: frontTemplate, printArea: frontPrintArea, tintable: false };
 }
 
 const MAX_FILE_MB = 20;
@@ -373,6 +485,26 @@ async function toDataURL(src) {
   });
 }
 
+async function dataUrlToFile(dataUrl, filename) {
+  const resp = await fetch(dataUrl);
+  const blob = await resp.blob();
+  return new File([blob], filename, { type: blob.type || 'image/png' });
+}
+
+// Returns a NEW viewDesigns object with `view`'s entry updated to match
+// designObj's live position/scale/angle — or `viewDesigns` unchanged if that
+// view has no design or there's no live object. Pure (no state access), so
+// it can be used both inside a setViewDesigns updater (persist-on-view-switch)
+// and synchronously in handleSubmit (snapshot the active view without waiting
+// on an async state update to land).
+function withLiveDesignPosition(viewDesigns, view, designObj) {
+  if (!designObj || !viewDesigns[view]) return viewDesigns;
+  return {
+    ...viewDesigns,
+    [view]: { ...viewDesigns[view], left: designObj.left, top: designObj.top, scaleX: designObj.scaleX, scaleY: designObj.scaleY, angle: designObj.angle || 0 },
+  };
+}
+
 export default function SellYourArt() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -393,8 +525,6 @@ export default function SellYourArt() {
 
   // Step 2 — editor
   const [dragOver, setDragOver] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [fileError, setFileError] = useState('');
@@ -434,6 +564,10 @@ export default function SellYourArt() {
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [viewDesigns, setViewDesigns] = useState({}); // { front: { dataUrl, left, top, scaleX, scaleY, angle }, ... }
 
+  // The active view's design, derived — never a separately-tracked "last
+  // uploaded image" that could leak into a view nothing was ever placed on.
+  const imagePreview = viewDesigns[activeView]?.dataUrl || null;
+
   // Load design library when upload modal opens
   useEffect(() => {
     if (showUploadModal && designLibrary.length === 0) {
@@ -470,10 +604,13 @@ export default function SellYourArt() {
     }
   }, [catalog.length]);
 
-  // ── Pricing: config (constants) + live landed cost for the selected product ──
+  // ── Pricing: config (constants) + live per-size landed cost for the selected product ──
+  // Landed cost varies by size — Qikink's base price AND shipping weight both
+  // tier by size (independently), so a 900g L and a 1500g XXL of the same
+  // hoodie have different floors. landedCostBySize is keyed by size.
 
   const [pricingConfig, setPricingConfig] = useState(null);
-  const [landedCost, setLandedCost] = useState(null);
+  const [landedCostBySize, setLandedCostBySize] = useState(null);
   const [landedCostLoading, setLandedCostLoading] = useState(false);
 
   useEffect(() => {
@@ -481,12 +618,12 @@ export default function SellYourArt() {
   }, []);
 
   useEffect(() => {
-    if (!selectedCategory?.category) { setLandedCost(null); return; }
+    if (!selectedCategory?.category) { setLandedCostBySize(null); return; }
     let cancelled = false;
     setLandedCostLoading(true);
     getLandedCost(selectedCategory.category)
-      .then(res => { if (!cancelled) setLandedCost(res.data); })
-      .catch(() => { if (!cancelled) setLandedCost(null); })
+      .then(res => { if (!cancelled) setLandedCostBySize(res.data.sizes || null); })
+      .catch(() => { if (!cancelled) setLandedCostBySize(null); })
       .finally(() => { if (!cancelled) setLandedCostLoading(false); });
     return () => { cancelled = true; };
   }, [selectedCategory?.category]);
@@ -535,9 +672,18 @@ export default function SellYourArt() {
     const err = validateFile(file);
     if (err) { setFileError(err); return; }
     setFileError('');
-    setImageFile(file);
     const reader = new FileReader();
-    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      // Replaces whatever was on the CURRENTLY ACTIVE view only. Position is
+      // set to null (sentinel) so the canvas-init effect auto-centers this
+      // fresh design once it knows the print area and the image's natural
+      // size, rather than reusing a stale position from a previous design.
+      setViewDesigns(prev => ({
+        ...prev,
+        [activeView]: { dataUrl, left: null, top: null, scaleX: null, scaleY: null, angle: 0 },
+      }));
+    };
     reader.readAsDataURL(file);
   };
 
@@ -549,64 +695,23 @@ export default function SellYourArt() {
 
   // ── Canvas init (runs when imagePreview changes in step 2) ──────────────────
 
-  // Map selected color → template color suffix (white/black/grey)
-  const getTemplateColorSuffix = () => {
-    const l = (selectedColor || '').toLowerCase();
-    if (l.includes('black') || l.includes('charcoal')) return 'black';
-    if (l.includes('grey') || l.includes('gray') || l.includes('melange')) return 'grey';
-    return 'white';
-  };
-
-  // Swap template file to the color variant if one exists on disk
-  const colorizeTemplate = (tmpl) => {
-    const colorSuffix = getTemplateColorSuffix();
-    if (colorSuffix === 'white') return tmpl;
-    // Replace "-white" with the color suffix, or append it
-    const colored = tmpl.template.replace(/-white\./, `-${colorSuffix}.`);
-    // Only use the colored version if it's a known available file
-    const available = [
-      '/mockups/hoodie-black.jpg', '/mockups/hoodie-grey.jpg',
-      '/mockups/sweatshirt-black.jpg', '/mockups/sweatshirt-grey.jpg',
-      '/mockups/crew-tee-black.jpg', '/mockups/crew-tee-grey.jpg',
-      '/mockups/oversized-tee-black.jpg',
-    ];
-    return { ...tmpl, template: available.includes(colored) ? colored : tmpl.template };
-  };
-
-  const getProductTemplate = () => {
-    if (!selectedCategory) return colorizeTemplate(DEFAULT_TEMPLATE);
-    const cat = selectedCategory.category;
-    // 1. PSD mockup (real extracted PNG per color)
-    const psd = getPsdMockup(cat, selectedColor);
-    if (psd) return { template: psd.url, printArea: psd.printArea || PSD_PRINT_AREAS['UT27'], isPsd: true };
-    // 2. Exact fallback template match
-    if (PRODUCT_TEMPLATES[cat]) return colorizeTemplate(PRODUCT_TEMPLATES[cat]);
-    // 3. Keyword match
-    const lower = cat.toLowerCase();
-    const kwMatch = KEYWORD_TEMPLATES.find(k => k.test.test(lower));
-    if (kwMatch) return colorizeTemplate({ template: kwMatch.template, printArea: kwMatch.printArea });
-    // 4. Default
-    return colorizeTemplate(DEFAULT_TEMPLATE);
-  };
-
-  // Save current view's design placement before switching
-  const saveCurrentViewDesign = useCallback(() => {
-    const d = designObjRef.current;
-    if (!d || !imagePreview) return;
-    setViewDesigns(prev => ({
-      ...prev,
-      [activeView]: { dataUrl: imagePreview, left: d.left, top: d.top, scaleX: d.scaleX, scaleY: d.scaleY, angle: d.angle || 0 },
-    }));
-  }, [activeView, imagePreview]);
+  // Persist the live canvas object's position/scale/angle back onto `view`'s
+  // own viewDesigns entry — called for the OUTGOING view right before the
+  // canvas switches to a different one. Only ever updates a view that already
+  // has a design (preserves its existing dataUrl); never creates one from
+  // whatever happens to be on screen, which is what caused designs to leak
+  // across views.
+  const commitLiveDesignToView = useCallback((view) => {
+    const liveDesignObj = designObjRef.current;
+    setViewDesigns(prev => withLiveDesignPosition(prev, view, liveDesignObj));
+  }, []);
 
   // Update live dimensions from canvas design object
   const updateDimensionsFromCanvas = useCallback((obj) => {
     if (!obj) return;
     const viewConfig = UV34_VIEWS[activeView] || UV34_VIEWS.front;
     const pa = viewConfig.printArea;
-    // Approximate: print area width in inches (front = 12"), px per inch
-    const printWidthInches = activeView.includes('pocket') ? 5 : activeView.includes('sleeve') ? 6 : 12;
-    const pxPerInch = pa.w / printWidthInches;
+    const pxPerInch = pa.w / printWidthInchesForView(activeView);
     const widthInches = (obj.width * obj.scaleX) / pxPerInch;
     const heightInches = (obj.height * obj.scaleY) / pxPerInch;
     const dpi = Math.round(obj.width / widthInches);
@@ -633,57 +738,14 @@ export default function SellYourArt() {
     let keyHandler = null;
 
     const init = async () => {
-      // Save previous view design
-      if (fabricRef.current && designObjRef.current) saveCurrentViewDesign();
+      // The previous effect instance's cleanup (below) already saved the
+      // outgoing view's live position and disposed its canvas before this
+      // runs. This guard is just defensive (e.g. StrictMode double-invoke).
       if (fabricRef.current) { fabricRef.current.dispose(); fabricRef.current = null; designObjRef.current = null; }
 
-      const isUV34 = !selectedCategory || selectedCategory.category.includes('UV34');
-      let tmpl, viewConfig;
-      if (isUV34) {
-        viewConfig = UV34_VIEWS[activeView] || UV34_VIEWS.front;
-        tmpl = { template: viewConfig.template, printArea: viewConfig.printArea };
-      } else {
-        const psd = getPsdMockup(selectedCategory.category, selectedColor);
-        const frontTemplate = psd ? psd.url : '/mockups/hoodie-white.jpg';
-        const frontPrintArea = psd?.printArea || PSD_PRINT_AREAS['UH24'];
-
-        if (activeView === 'front') {
-          tmpl = { template: frontTemplate, printArea: frontPrintArea };
-          viewConfig = { ...tmpl, tintable: false };
-        } else {
-          const typeKey = getProductTypeKey(selectedCategory.category);
-          const typeViews = PRODUCT_TYPE_VIEWS[typeKey];
-          const viewCfg = typeViews[activeView];
-          if (viewCfg && viewCfg.template) {
-            // For the back view, prefer per-SKU per-color → per-SKU single → type default
-            let backTemplate = viewCfg.template;
-            if (activeView === 'back') {
-              const skuMatch = selectedCategory.category.match(/\|\s*([A-Z0-9]+)\s*$/);
-              const sku = skuMatch ? skuMatch[1] : null;
-              if (sku) {
-                const backMap = PSD_BACK_VIEWS[sku];
-                if (backMap) {
-                  const ck = normColorKey(selectedColor);
-                  backTemplate = backMap[ck] || backMap.base_white || Object.values(backMap)[0] || backTemplate;
-                } else if (SKU_BACK_IMAGES[sku]) {
-                  backTemplate = SKU_BACK_IMAGES[sku];
-                }
-              }
-            }
-            tmpl = { template: backTemplate, printArea: viewCfg.printArea };
-            viewConfig = { ...tmpl, tintable: viewCfg.tintable };
-          } else if (viewCfg) {
-            // Config exists but no dedicated template (e.g., hoodie pockets/sleeves) —
-            // show the front garment image so the user sees the product, not a blank canvas.
-            tmpl = { template: frontTemplate, printArea: viewCfg.printArea };
-            viewConfig = { ...tmpl, tintable: false };
-          } else {
-            // No config for this view on this product type — fall back to front entirely.
-            tmpl = { template: frontTemplate, printArea: frontPrintArea };
-            viewConfig = { ...tmpl, tintable: false };
-          }
-        }
-      }
+      const resolved = resolveViewTemplate(selectedCategory?.category, selectedColor, activeView);
+      const tmpl = { template: resolved.template, printArea: resolved.printArea };
+      const viewConfig = resolved;
       activePrintAreaRef.current = tmpl.printArea;
       const pa = tmpl.printArea;
 
@@ -694,37 +756,55 @@ export default function SellYourArt() {
       fabricRef.current = canvas;
 
       // ── 1. Load garment template + apply color tint ──
-      try {
-        const bgDataUrl = await toDataURL(tmpl.template);
-        if (cancelled) return;
-        const bgImg = await fabric.FabricImage.fromURL(bgDataUrl);
-        if (cancelled) return;
-        const bgScale = Math.max(CANVAS_W / bgImg.width, CANVAS_H / bgImg.height);
-        bgImg.set({
-          originX: 'center', originY: 'center',
-          left: CANVAS_W / 2, top: CANVAS_H / 2,
-          scaleX: bgScale, scaleY: bgScale,
-          selectable: false, evented: false, name: 'garment',
+      if (viewConfig.noPreview) {
+        // No source art for this view — fail visibly instead of silently
+        // loading a different product's photo. Still shows the print-area
+        // outline (step 5 below) so design placement stays usable.
+        const placeholderBg = new fabric.Rect({
+          left: 0, top: 0, width: CANVAS_W, height: CANVAS_H,
+          fill: '#EFEDE9', selectable: false, evented: false, name: 'garment',
         });
-
-        // Color tinting — only for UV34 (other products have real per-color PNGs)
-        const colorKey = (selectedColor || '').toLowerCase().trim();
-        const tintHex = UV34_COLOR_MAP[colorKey] || COLOR_HEX[colorKey];
-        const skipTint = !viewConfig.tintable || !tintHex || colorKey === 'white' || colorKey === '' || tintHex === '#FFFFFF';
-
-        if (!skipTint) {
-          const isLightColor = ['#FFD5DB','#BBB1D2','#BFFCF7','#C3C3C3','#a4cef8','#EF9A31','#CF8F26','#fffae7'].includes(tintHex);
-          bgImg.filters = [new fabric.filters.BlendColor({
-            color: tintHex,
-            mode: isLightColor ? 'tint' : 'multiply',
-            alpha: isLightColor ? 0.6 : 0.8,
-          })];
-          bgImg.applyFilters();
-        }
-
-        canvas.add(bgImg);
+        const placeholderText = new fabric.FabricText('No preview available for this view\nDesign will still be placed at this position', {
+          left: CANVAS_W / 2, top: CANVAS_H / 2,
+          originX: 'center', originY: 'center',
+          fontSize: 18, fill: '#9A968D', textAlign: 'center',
+          fontFamily: 'sans-serif', selectable: false, evented: false,
+        });
+        canvas.add(placeholderBg, placeholderText);
         canvas.renderAll();
-      } catch (_) {}
+      } else {
+        try {
+          const bgDataUrl = await toDataURL(tmpl.template);
+          if (cancelled) return;
+          const bgImg = await fabric.FabricImage.fromURL(bgDataUrl);
+          if (cancelled) return;
+          const bgScale = Math.max(CANVAS_W / bgImg.width, CANVAS_H / bgImg.height);
+          bgImg.set({
+            originX: 'center', originY: 'center',
+            left: CANVAS_W / 2, top: CANVAS_H / 2,
+            scaleX: bgScale, scaleY: bgScale,
+            selectable: false, evented: false, name: 'garment',
+          });
+
+          // Color tinting — only for UV34 (other products have real per-color PNGs)
+          const colorKey = (selectedColor || '').toLowerCase().trim();
+          const tintHex = UV34_COLOR_MAP[colorKey] || COLOR_HEX[colorKey];
+          const skipTint = !viewConfig.tintable || !tintHex || colorKey === 'white' || colorKey === '' || tintHex === '#FFFFFF';
+
+          if (!skipTint) {
+            const isLightColor = ['#FFD5DB','#BBB1D2','#BFFCF7','#C3C3C3','#a4cef8','#EF9A31','#CF8F26','#fffae7'].includes(tintHex);
+            bgImg.filters = [new fabric.filters.BlendColor({
+              color: tintHex,
+              mode: isLightColor ? 'tint' : 'multiply',
+              alpha: isLightColor ? 0.6 : 0.8,
+            })];
+            bgImg.applyFilters();
+          }
+
+          canvas.add(bgImg);
+          canvas.renderAll();
+        } catch (_) {}
+      }
 
       // ── 2. Clamping: keep design fully inside print area ──
       const clampDesign = (obj) => {
@@ -772,15 +852,20 @@ export default function SellYourArt() {
           designObjRef.current = null;
           setDesignDimensions({ width: 0, height: 0, dpi: 0 });
           setDesignAngle(0);
-          setImageFile(null); setImagePreview(null);
+          // Clear only THIS view's design, not any other view's.
+          setViewDesigns(prev => { const next = { ...prev }; delete next[activeView]; return next; });
           canvas.renderAll();
         }
       };
       document.addEventListener('keydown', keyHandler);
 
-      // ── 5. Place design + print area boundary (only if design uploaded) ──
+      // ── 5. Place design + print area boundary (only if THIS view has one) ──
+      // Strictly viewDesigns[activeView] — no fallback to any other state, so
+      // a view nothing was ever placed on renders empty rather than picking
+      // up whatever was last uploaded elsewhere.
       const savedDesign = viewDesigns[activeView];
-      const designDataUrl = savedDesign?.dataUrl || imagePreview;
+      const designDataUrl = savedDesign?.dataUrl || null;
+      const hasSavedPosition = savedDesign && savedDesign.left != null;
 
       if (designDataUrl) {
         // Red dashed print area boundary
@@ -807,7 +892,15 @@ export default function SellYourArt() {
           const designImg = await fabric.FabricImage.fromURL(designDataUrl);
           if (cancelled) return;
 
-          if (savedDesign) {
+          // Record the design's natural pixel size on this view's entry —
+          // needed at submit time to compute real print dimensions for views
+          // that aren't the currently active one (their canvas isn't live).
+          setViewDesigns(prev => (prev[activeView] && prev[activeView].naturalWidth == null ? {
+            ...prev,
+            [activeView]: { ...prev[activeView], naturalWidth: designImg.width, naturalHeight: designImg.height },
+          } : prev));
+
+          if (hasSavedPosition) {
             designImg.set({
               left: savedDesign.left, top: savedDesign.top,
               originX: 'center', originY: 'center',
@@ -815,6 +908,8 @@ export default function SellYourArt() {
               angle: savedDesign.angle || 0,
             });
           } else {
+            // Fresh upload for this view (position sentinel is null) — center
+            // and scale to fit the print area.
             const scale = Math.min((pa.w * 0.8) / designImg.width, (pa.h * 0.8) / designImg.height);
             designImg.set({
               left: pa.x + pa.w / 2, top: pa.y + pa.h / 2,
@@ -847,7 +942,8 @@ export default function SellYourArt() {
               designObjRef.current = null;
               setDesignDimensions({ width: 0, height: 0, dpi: 0 });
               setDesignAngle(0);
-              setImageFile(null); setImagePreview(null);
+              // Clear only THIS view's design, not any other view's.
+              setViewDesigns(prev => { const next = { ...prev }; delete next[activeView]; return next; });
               canvas.renderAll();
               return true;
             },
@@ -887,6 +983,12 @@ export default function SellYourArt() {
     return () => {
       cancelled = true;
       if (keyHandler) document.removeEventListener('keydown', keyHandler);
+      // React runs this cleanup BEFORE the next effect run's setup — so this,
+      // not the top of init(), is the only correct place to save the outgoing
+      // view's live position. `activeView` here is whatever this effect
+      // instance was showing (closures capture it per-render), so it's
+      // already correct even though a newer render may have moved on.
+      commitLiveDesignToView(activeView);
       if (fabricRef.current) { fabricRef.current.dispose(); fabricRef.current = null; designObjRef.current = null; }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -909,7 +1011,14 @@ export default function SellYourArt() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!imageFile) { setError('Please upload a design image.'); return; }
+
+    // Snapshot the active view's live position — the user may still be on it,
+    // so it was never committed by a view-switch. Computed synchronously (not
+    // via setViewDesigns, which wouldn't apply in time for the rest of this call).
+    const liveViewDesigns = withLiveDesignPosition(viewDesigns, activeView, designObjRef.current);
+    const placedViews = Object.keys(liveViewDesigns).filter(v => liveViewDesigns[v]?.dataUrl);
+
+    if (placedViews.length === 0) { setError('Please upload a design image.'); return; }
     const effectiveTitle = (productName || title).trim();
     if (!effectiveTitle) { setError('Please enter a product name.'); return; }
     // Validate pricing: either per-size prices or single price
@@ -917,57 +1026,85 @@ export default function SellYourArt() {
     if (!hasSizePrices && (!price || isNaN(Number(price)) || Number(price) <= 0)) { setError('Please set pricing for at least one size.'); return; }
     if (selectedSizes.length === 0) { setError('Please select at least one size.'); return; }
 
-    // Defensive minimum-markup check — the backend re-validates this regardless,
-    // but catch it here too so the error is immediate instead of a round trip.
-    if (landedCost) {
-      const pricesToCheck = hasSizePrices
-        ? selectedSizes.map(s => Number(sizePrices[s])).filter(v => v > 0)
-        : [Number(price)];
-      const belowFloor = pricesToCheck.some(v => v < landedCost.min_price);
-      if (belowFloor) {
-        setError(`Price must be at least ₹${landedCost.min_price.toFixed(2)} (landed cost ₹${landedCost.landed_cost.toFixed(2)} + ₹${landedCost.min_markup.toFixed(0)} minimum markup).`);
-        return;
+    // Defensive minimum-markup check, per size — the backend re-validates this
+    // regardless, but catch it here too so the error is immediate instead of a
+    // round trip. Each size has its own floor (base price + shipping weight
+    // both vary by size), so check each priced size against its own landed cost.
+    if (landedCostBySize) {
+      const sizesToCheck = hasSizePrices ? selectedSizes : Object.keys(landedCostBySize);
+      for (const size of sizesToCheck) {
+        const p = hasSizePrices ? Number(sizePrices[size]) : Number(price);
+        if (!(p > 0)) continue;
+        const lc = landedCostBySize[size];
+        if (lc && p < lc.min_price) {
+          setError(`Price for ${size} must be at least ₹${lc.min_price.toFixed(2)} (landed cost ₹${lc.landed_cost.toFixed(2)} + ₹${lc.min_markup.toFixed(0)} minimum markup).`);
+          return;
+        }
       }
     }
 
     setSubmitting(true);
+    // Persist the active view's just-captured live position so the UI stays
+    // consistent if submission fails and the creator retries.
+    commitLiveDesignToView(activeView);
     try {
-      // 1. Upload design image
-      const uploadRes = await uploadDesignImage(imageFile);
-      const hostedImageUrl = uploadRes.data.url || uploadRes.data.image_url || '';
+      const category = selectedCategory?.category || 'V Neck T-Shirt | UV34';
 
-      // 2. Export canvas mockup
+      // 1. Upload each placed view's design image separately and compute that
+      // view's own print-area geometry — a front-only design must never be
+      // reported as a back or pocket placement, and vice versa.
+      const placements = [];
+      for (const view of placedViews) {
+        const vd = liveViewDesigns[view];
+        const designFile = await dataUrlToFile(vd.dataUrl, `design-${view}.png`);
+        const uploadRes = await uploadDesignImage(designFile);
+        const viewImageUrl = uploadRes.data.url || uploadRes.data.image_url || '';
+
+        const { printArea: pa } = resolveViewTemplate(category, selectedColor, view);
+        const hasPosition = vd.left != null;
+
+        // Real-world print size, for Qikink's width_inches/height_inches —
+        // only computable once we know the design's natural pixel size
+        // (captured on load) and this view's px-per-inch.
+        let widthInches = null, heightInches = null;
+        if (vd.naturalWidth && hasPosition) {
+          const pxPerInch = pa.w / printWidthInchesForView(view);
+          widthInches = parseFloat(((vd.naturalWidth * vd.scaleX) / pxPerInch).toFixed(2));
+          heightInches = parseFloat(((vd.naturalHeight * vd.scaleY) / pxPerInch).toFixed(2));
+        }
+
+        placements.push({
+          view,
+          image_url: viewImageUrl,
+          canvas_w: CANVAS_W, canvas_h: CANVAS_H,
+          print_area: { x: pa.x, y: pa.y, w: pa.w, h: pa.h },
+          left: hasPosition ? vd.left : pa.x + pa.w / 2,
+          top: hasPosition ? vd.top : pa.y + pa.h / 2,
+          scaleX: hasPosition ? vd.scaleX : null,
+          scaleY: hasPosition ? vd.scaleY : null,
+          angle: vd.angle || 0,
+          left_pct: hasPosition ? parseFloat(((vd.left - pa.x) / pa.w).toFixed(4)) : 0.5,
+          top_pct: hasPosition ? parseFloat(((vd.top - pa.y) / pa.h).toFixed(4)) : 0.5,
+          width_inches: widthInches,
+          height_inches: heightInches,
+        });
+      }
+
+      const primaryView = placements.find(p => p.view === 'front') || placements[0];
+
+      // 2. Export a representative mockup from whatever the canvas currently
+      // shows (garment + that view's design, if any).
       let mockupUrl = '';
-      let placementCoords = null;
       const canvas = fabricRef.current;
       if (canvas) {
-        const tmpl = getProductTemplate();
-        const pa = tmpl.printArea;
-        const designObj = designObjRef.current;
-        if (designObj) {
-          placementCoords = {
-            canvas_w: CANVAS_W, canvas_h: CANVAS_H,
-            print_area: { x: pa.x, y: pa.y, w: pa.w, h: pa.h },
-            left: designObj.left, top: designObj.top,
-            scaleX: designObj.scaleX, scaleY: designObj.scaleY,
-            angle: designObj.angle || 0,
-            left_pct: parseFloat(((designObj.left - pa.x) / pa.w).toFixed(4)),
-            top_pct: parseFloat(((designObj.top - pa.y) / pa.h).toFixed(4)),
-            width_pct: parseFloat((designObj.width * designObj.scaleX / pa.w).toFixed(4)),
-            height_pct: parseFloat((designObj.height * designObj.scaleY / pa.h).toFixed(4)),
-          };
-        }
         canvas.discardActiveObject();
-        // Hide print area overlay before exporting clean mockup
         const printAreaObjs = canvas.getObjects().filter(o => o.name === 'printArea');
         printAreaObjs.forEach(o => o.set('visible', false));
         canvas.renderAll();
         const dataUrl = canvas.toDataURL({ format: 'png', multiplier: 1 });
         printAreaObjs.forEach(o => o.set('visible', true));
         canvas.renderAll();
-        const fetchRes = await fetch(dataUrl);
-        const blob = await fetchRes.blob();
-        const mockupFile = new File([blob], 'mockup.png', { type: 'image/png' });
+        const mockupFile = await dataUrlToFile(dataUrl, 'mockup.png');
         const mockupUploadRes = await uploadDesignImage(mockupFile);
         mockupUrl = mockupUploadRes.data.url || mockupUploadRes.data.image_url;
       }
@@ -975,18 +1112,21 @@ export default function SellYourArt() {
       // Determine effective print type label
       const printTypeLabel = printType === 'vinyl' ? `vinyl_${vinylSubOption}` : PRINTING_OPTIONS.find(o => o.value === printType)?.label || 'dtf';
 
-      // 3. Create design with Qikink-style fields
+      // 3. Create design with Qikink-style fields. placements carries the full
+      // per-view record; image_url/placement_coordinates/placement_view are
+      // kept as the primary (front-first) placement for older readers.
       await createDesign({
         title: (productName || title).trim(),
         description: description.trim(),
         description_html: descriptionHtml,
         price: Object.keys(sizePrices).length > 0 ? Math.min(...Object.values(sizePrices).filter(v => v > 0)) : (Number(price) || 0),
         size_prices: Object.keys(sizePrices).length > 0 ? sizePrices : undefined,
-        image_url: hostedImageUrl,
+        image_url: primaryView.image_url,
         mockup_image_url: mockupUrl,
-        product_type: selectedCategory?.category || 'V Neck T-Shirt | UV34',
-        placement_coordinates: placementCoords,
-        placement_view: activeView,
+        product_type: category,
+        placements,
+        placement_coordinates: primaryView,
+        placement_view: primaryView.view,
         selected_sizes: selectedSizes,
         selected_color: selectedColors[0] || selectedColor,
         selected_colors: [selectedColor],
@@ -1023,7 +1163,7 @@ export default function SellYourArt() {
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
             <button
-              onClick={() => { setSuccess(false); setStep(1); setImageFile(null); setImagePreview(null); setImageUrl(''); setMockupImageUrl(''); setPlacement(null); setTitle(''); setDescription(''); setPrice(''); setSelectedCategory(null); setSelectedCollection(null); setSelectedSizes([]); setSelectedColor(''); }}
+              onClick={() => { setSuccess(false); setStep(1); setImageUrl(''); setMockupImageUrl(''); setPlacement(null); setTitle(''); setDescription(''); setPrice(''); setSelectedCategory(null); setSelectedCollection(null); setSelectedSizes([]); setSelectedColor(''); setViewDesigns({}); setActiveView('front'); }}
               style={{ ...body, padding: '12px 28px', borderRadius: '999px', background: BG3, border: `1px solid ${BS}`, color: TP, fontWeight: 500, cursor: 'pointer', fontSize: '14px' }}
             >Upload Another</button>
             <button onClick={() => navigate('/dashboard')} style={{ ...body, padding: '12px 28px', borderRadius: '999px', background: AS, border: 'none', color: BG, fontWeight: 700, cursor: 'pointer', fontSize: '14px' }}>
@@ -1108,7 +1248,7 @@ export default function SellYourArt() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                 {filteredCatalog.map(item => (
                   <ProductCard key={item.category} item={item} selected={selectedCategory?.category === item.category}
-                    onSelect={() => { setSelectedCategory(item); setSearchQuery(''); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setActiveView('front'); setStep(2); }} />
+                    onSelect={() => { setSelectedCategory(item); setSearchQuery(''); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setActiveView('front'); setViewDesigns({}); setStep(2); }} />
                 ))}
               </div>
             </div>
@@ -1125,7 +1265,7 @@ export default function SellYourArt() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                 {(catalogByCollection[selectedCollection] || []).map(item => (
                   <ProductCard key={item.category} item={item} selected={selectedCategory?.category === item.category}
-                    onSelect={() => { setSelectedCategory(item); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setActiveView('front'); setStep(2); }} />
+                    onSelect={() => { setSelectedCategory(item); setSelectedSizes([]); setSelectedColor(item.colors?.[0] || ''); setActiveView('front'); setViewDesigns({}); setStep(2); }} />
                 ))}
               </div>
             </div>
@@ -1222,7 +1362,7 @@ export default function SellYourArt() {
                 {getProductViewList(selectedCategory?.category, selectedColor).map((view) => {
                   const isViewActive = activeView === view.key;
                   return (
-                    <div key={view.key} onClick={() => { saveCurrentViewDesign(); setActiveView(view.key); }}
+                    <div key={view.key} onClick={() => setActiveView(view.key)}
                       style={{ cursor: 'pointer', textAlign: 'center', marginBottom: '6px' }}>
                       <div style={{
                         width: '64px', height: '64px', overflow: 'hidden',
@@ -1272,9 +1412,10 @@ export default function SellYourArt() {
                 productName={selectedCategory.category}
                 productColors={selectedCategory.colors || []}
                 productSizes={selectedCategory.sizes || []}
+                colorSwatchImages={getColorSwatchImages(selectedCategory.category, selectedCategory.colors)}
                 selectedColor={selectedColor}
                 onColorChange={setSelectedColor}
-                landedCost={landedCost}
+                landedCostBySize={landedCostBySize}
                 landedCostLoading={landedCostLoading}
                 pricingConfig={pricingConfig}
                 selectedSizes={selectedSizes}
@@ -1285,10 +1426,11 @@ export default function SellYourArt() {
                 imagePreview={imagePreview}
                 onAddDesign={() => fileInputRef.current?.click()}
                 onDeleteDesign={() => {
-                  // Clear all design state — useEffect will re-render canvas clean
-                  setImageFile(null); setImagePreview(null); setImageUrl('');
+                  // Clear only the active view's design — useEffect will re-render
+                  // canvas clean. Other views keep whatever designs they have.
+                  setImageUrl('');
                   setDesignDimensions({ width: 0, height: 0, dpi: 0 }); setDesignAngle(0);
-                  setViewDesigns({});
+                  setViewDesigns(prev => { const next = { ...prev }; delete next[activeView]; return next; });
                 }}
                 designDimensions={designDimensions}
                 designAngle={designAngle}

@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS designs (
     selected_colors       TEXT[] DEFAULT '{}',
     print_type            TEXT DEFAULT 'dtf',
     description_html      TEXT,
+    placements            JSONB, -- one entry per view with a design: [{view, image_url, print_area, left, top, scaleX, scaleY, angle, width_inches, height_inches}, ...]
     created_at           TIMESTAMPTZ DEFAULT now(),
     updated_at           TIMESTAMPTZ DEFAULT now()
 );
